@@ -1,0 +1,45 @@
+services:
+  register:
+    build: ./registration-service
+    container_name: registration-service
+    env_file: ./registration-service/.env
+    environment:
+      - PORT=5001
+    ports:
+      - "5001:5001"
+    networks: [app-net]
+
+  login:
+    build: ./login-service
+    container_name: login-service
+    env_file: ./login-service/.env
+    environment:
+      - PORT=5002
+    ports:
+      - "5002:5002"
+    networks: [app-net]
+
+  fastapi:
+    build: ./fastapi_environment
+    container_name: fastapi_service
+    ports:
+      - "8000:8000"
+    networks: [app-net]
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    env_file: ./api-gateway/.env
+    environment:
+      - PORT=4000
+      - REGISTER_SERVICE_URL=http://registration-service:5001
+      - LOGIN_SERVICE_URL=http://login-service:5002
+      - FASTAPI_SERVICE_URL=http://fastapi_service:8000
+    ports:
+      - "4000:4000"
+    depends_on: [register, login, fastapi]
+    networks: [app-net]
+
+networks:
+  app-net:
+    driver: bridge

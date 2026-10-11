@@ -1,4 +1,5 @@
 services:
+
   register:
     build: ./registration-service
     container_name: registration-service
@@ -19,11 +20,22 @@ services:
       - "5002:5002"
     networks: [app-net]
 
-  fastapi:
-    build: ./fastapi_environment
-    container_name: fastapi_service
+  request-service:
+    build: ./request-service
+    env_file: ./request-service/.env
+    container_name: request-service
     ports:
       - "8000:8000"
+    networks: [app-net]
+
+  event-service:
+    build: ./event-service
+    env_file: ./event-service/.env
+    container_name: event-service
+    ports:
+      - "8001:8001"
+    volumes:
+      - event_uploads:/backend/uploads
     networks: [app-net]
 
   api-gateway:
@@ -34,12 +46,15 @@ services:
       - PORT=4000
       - REGISTER_SERVICE_URL=http://registration-service:5001
       - LOGIN_SERVICE_URL=http://login-service:5002
-      - FASTAPI_SERVICE_URL=http://fastapi_service:8000
+      - REQUEST_SERVICE_URL=http://request-service:8000
+      - EVENT_SERVICE_URL=http://event-service:8001
     ports:
       - "4000:4000"
-    depends_on: [register, login, fastapi]
+    depends_on: [register, login, request-service, event-service]
     networks: [app-net]
-
+  
 networks:
   app-net:
     driver: bridge
+volumes:
+  event_uploads:

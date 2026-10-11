@@ -15,7 +15,7 @@ connectDB();
 
 // Registration Endpoint
 // Accessible via Gateway: POST http://<gateway-host>:4000/register/userregister
-app.post('/userregister', async (req, res) => {
+app.post('/register', async (req, res) => {
   const { name, emailid, pass, mobile, role } = req.body;
 
   // Validate required fields

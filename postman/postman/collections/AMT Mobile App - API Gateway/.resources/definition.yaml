@@ -1,0 +1,14 @@
+$kind: collection
+description: Gateway-based requests for registration, authentication, request-service, and event-service. Run folders in order. Set gatewayUrl if the gateway is not running on localhost:4000.
+variables:
+  gatewayUrl: http://localhost:4000
+  token: ""
+  adminToken: ""
+  requestId: "000000000000000000000000"
+  leaveRequestId: "000000000000000000000000"
+  eventId: "000000000000000000000000"
+  eventImageUrl: ""
+  testEmail: ""
+  testPassword: TestPass123!
+  adminEmail: ""
+  adminPassword: AdminPass123!

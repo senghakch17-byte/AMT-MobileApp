@@ -2,10 +2,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "FastAPI Backend Core"
+    PROJECT_NAME: str = "Request Service Backend Core"
     API_V1_STR: str = "/api/v1"
     DEBUG: bool = True
     ENVIRONMENT: str = "development"
+    MONGODB_URI: str
+    MONGODB_DB_NAME: str = "final_project"
+    JWT_SECRET: str
+    JWT_ALGORITHM: str = "HS256"
+    UPLOAD_DIR: str = "uploads"
+    PUBLIC_BASE_URL: str = "http://localhost:4000/events"  # gateway URL + route prefix
+    MAX_IMAGE_MB: int = 5
+    MAX_IMAGES_PER_EVENT: int = 10
 
     # Reserved for future DB connection string (PostgreSQL/MongoDB)
     DATABASE_URL: str | None = None

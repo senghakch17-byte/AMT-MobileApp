@@ -8,7 +8,7 @@ WORKDIR /backend
 COPY pyproject.toml uv.lock ./
 
 # 4. Install python dependencies cleanly using uv
-RUN uv sync --frozen --no-cache
+RUN uv sync --frozen --no-cache --no-install-project
 
 # 5. Copy the application into the working directory
 COPY . .
@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8000
 
 # 7. Start the API server using uv's managed environment
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "--no-sync", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]    

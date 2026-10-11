@@ -17,11 +17,12 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 const REGISTER_SERVICE = process.env.REGISTER_SERVICE_URL;
 const LOGIN_SERVICE = process.env.LOGIN_SERVICE_URL;
-const FASTAPI_SERVICE = process.env.FASTAPI_SERVICE_URL;
+const REQUEST_SERVICE = process.env.REQUEST_SERVICE_URL;
+const EVENT_SERVICE = process.env.EVENT_SERVICE_URL;
 
-console.log('[Gateway] Targets:', { REGISTER_SERVICE, LOGIN_SERVICE, FASTAPI_SERVICE });
+console.log('[Gateway] Targets:', { REGISTER_SERVICE, LOGIN_SERVICE, REQUEST_SERVICE, EVENT_SERVICE });
 
-if (!REGISTER_SERVICE || !LOGIN_SERVICE || !FASTAPI_SERVICE) {
+if (!REGISTER_SERVICE || !LOGIN_SERVICE || !REQUEST_SERVICE || !EVENT_SERVICE) {
   console.error('[Gateway] Missing one or more service URL env vars');
 }
 
@@ -79,12 +80,18 @@ app.use('/auth', (req, res) => {
   proxy.web(req, res, { target: LOGIN_SERVICE });
 });
 
-// 3. FASTAPI: /fastapi/... -> fastapi:8000/...
-// To protect it, use: app.use('/fastapi', authToken, (req, res) => {...})
-app.use('/fastapi', (req, res) => {
-  console.log('[Gateway] Routing to FastAPI Service:', req.method, req.originalUrl);
-  proxy.web(req, res, { target: FASTAPI_SERVICE });
+// 3. FASTAPI: /request/... -> request:8000/...
+// To protect it, use: app.use('/request', authToken, (req, res) => {...})
+app.use('/request', authToken, (req, res) => {
+  console.log('[Gateway] Routing to Request Service:', req.method, req.originalUrl);
+  proxy.web(req, res, { target: REQUEST_SERVICE });
 });
+
+app.use('/event', authToken, (req, res) => {
+  console.log('[Gateway] Routing to Event Service:', req.method, req.originalUrl);
+  proxy.web(req, res, { target: EVENT_SERVICE });
+});
+
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

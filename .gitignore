@@ -1,0 +1,20 @@
+# Root & Recursive Microservice Ignores
+**/node_modules/
+**/.env
+**/.env.local
+**/npm-debug.log*
+**/.DS_Store
+
+# Python-generated files
+**/__pycache__/
+**/*.py[oc]
+**/build/
+**/dist/
+**/wheels/
+**/*.egg-info
+
+# Virtual environments & System/IDE files
+**/.venv
+**/*.pem
+**/*.log
+**/.vscode/

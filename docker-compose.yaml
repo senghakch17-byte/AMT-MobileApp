@@ -1,9 +1,20 @@
 services:
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    depends_on:
+      - gateway1
+      - gateway2
+    ports:
+      - "80:80"
+    networks: [app-net]
 
   register:
-    build: ./registration-service
+    build: ./apps/registration-service
     container_name: registration-service
-    env_file: ./registration-service/.env
+    env_file:
+      - path: ./apps/registration-service/.env
+        required: false
     environment:
       - PORT=5001
     ports:
@@ -11,9 +22,11 @@ services:
     networks: [app-net]
 
   login:
-    build: ./login-service
+    build: ./apps/login-service
     container_name: login-service
-    env_file: ./login-service/.env
+    env_file:
+      - path: ./apps/login-service/.env
+        required: false
     environment:
       - PORT=5002
     ports:
@@ -21,27 +34,33 @@ services:
     networks: [app-net]
 
   request-service:
-    build: ./request-service
-    env_file: ./request-service/.env
+    build: ./apps/request-service
     container_name: request-service
+    env_file:
+      - path: ./apps/request-service/.env
+        required: false
     ports:
       - "8000:8000"
     networks: [app-net]
 
   event-service:
-    build: ./event-service
-    env_file: ./event-service/.env
+    build: ./apps/event-service
     container_name: event-service
+    env_file:
+      - path: ./apps/event-service/.env
+        required: false
     ports:
       - "8001:8001"
     volumes:
       - event_uploads:/backend/uploads
     networks: [app-net]
 
-  api-gateway:
-    build: ./api-gateway
-    container_name: api-gateway
-    env_file: ./api-gateway/.env
+  gateway1:
+    build: ./apps/api-gateway
+    container_name: gateway1
+    env_file:
+      - path: ./apps/api-gateway/.env
+        required: false
     environment:
       - PORT=4000
       - REGISTER_SERVICE_URL=http://registration-service:5001
@@ -50,11 +69,37 @@ services:
       - EVENT_SERVICE_URL=http://event-service:8001
     ports:
       - "4000:4000"
-    depends_on: [register, login, request-service, event-service]
+    depends_on:
+      - register
+      - login
+      - request-service
+      - event-service
     networks: [app-net]
-  
+
+  gateway2:
+    build: ./apps/api-gateway
+    container_name: gateway2
+    env_file:
+      - path: ./apps/api-gateway/.env
+        required: false
+    environment:
+      - PORT=4000
+      - REGISTER_SERVICE_URL=http://registration-service:5001
+      - LOGIN_SERVICE_URL=http://login-service:5002
+      - REQUEST_SERVICE_URL=http://request-service:8000
+      - EVENT_SERVICE_URL=http://event-service:8001
+    ports:
+      - "4001:4000"
+    depends_on:
+      - register
+      - login
+      - request-service
+      - event-service
+    networks: [app-net]
+
 networks:
   app-net:
     driver: bridge
+
 volumes:
   event_uploads:

@@ -1,0 +1,16 @@
+# Hardened base shared by every EC2 file.
+# Use with: extends: { file: common.yaml, service: base }
+services:
+  base:
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 512m
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     MONGODB_URI: str
     MONGODB_DB_NAME: str = "final_project"
+    MONGODB_SERVER_SELECTION_TIMEOUT_MS: int = 10000
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
 

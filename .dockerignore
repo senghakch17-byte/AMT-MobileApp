@@ -1,0 +1,23 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+htmlcov/
+
+# Environment and configuration
+.env
+.env.example
+
+# macOS system files
+.DS_Store
+
+# Dependencies
+node_modules/

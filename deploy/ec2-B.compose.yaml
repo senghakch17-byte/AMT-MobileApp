@@ -1,0 +1,23 @@
+# EC2-B: request-service, event-service
+x-env: &env
+  REDIS_URL: redis://${EC2_A_IP}:6379
+  NOTIFICATION_SERVICE_URL: http://${EC2_C_IP}:8005
+
+services:
+  request-service:
+    extends: { file: common.yaml, service: base }
+    build: ../apps/request-service
+    env_file: ../apps/request-service/.env
+    environment: { <<: *env, PORT: "8000" }
+    ports: ["8000:8000"]
+
+  event-service:
+    extends: { file: common.yaml, service: base }
+    build: ../apps/event-service
+    env_file: ../apps/event-service/.env
+    environment: { <<: *env, PORT: "8001" }
+    ports: ["8001:8001"]
+    volumes: [event_uploads:/backend/uploads]
+
+volumes:
+  event_uploads:

@@ -1,60 +1,97 @@
-services:
+# LOCAL: docker compose up --build
+x-base: &base
+  restart: unless-stopped
 
+services:
+  redis:
+    <<: *base
+    image: redis:alpine
+    command: redis-server --save "" --appendonly no
+    ports: ["6379:6379"]
+
+  # ---- Node ----
   register:
-    build: ./registration-service
-    container_name: registration-service
-    env_file: ./registration-service/.env
-    environment:
-      - PORT=5001
-    ports:
-      - "5001:5001"
-    networks: [app-net]
+    build: ./apps/registration-service
+    env_file: ./apps/registration-service/.env
+    environment: { PORT: "5001" }
+    ports: ["5001:5001"]
 
   login:
-    build: ./login-service
-    container_name: login-service
-    env_file: ./login-service/.env
-    environment:
-      - PORT=5002
-    ports:
-      - "5002:5002"
-    networks: [app-net]
-
-  request-service:
-    build: ./request-service
-    env_file: ./request-service/.env
-    container_name: request-service
-    ports:
-      - "8000:8000"
-    networks: [app-net]
-
-  event-service:
-    build: ./event-service
-    env_file: ./event-service/.env
-    container_name: event-service
-    ports:
-      - "8001:8001"
-    volumes:
-      - event_uploads:/backend/uploads
-    networks: [app-net]
+    build: ./apps/login-service
+    env_file: ./apps/login-service/.env
+    environment: { PORT: "5002" }
+    ports: ["5002:5002"]
 
   api-gateway:
-    build: ./api-gateway
-    container_name: api-gateway
-    env_file: ./api-gateway/.env
+    <<: *base
+    build: ./apps/api-gateway
+    env_file: ./apps/api-gateway/.env
     environment:
-      - PORT=4000
-      - REGISTER_SERVICE_URL=http://registration-service:5001
-      - LOGIN_SERVICE_URL=http://login-service:5002
-      - REQUEST_SERVICE_URL=http://request-service:8000
-      - EVENT_SERVICE_URL=http://event-service:8001
-    ports:
-      - "4000:4000"
-    depends_on: [register, login, request-service, event-service]
-    networks: [app-net]
-  
-networks:
-  app-net:
-    driver: bridge
+      PORT: "4000"
+      REGISTER_SERVICE_URL: http://register:5001
+      LOGIN_SERVICE_URL: http://login:5002
+      REQUEST_SERVICE_URL: http://request-service:8000
+      EVENT_SERVICE_URL: http://event-service:8001
+      # MEMBER_SERVICE_URL: http://member-service:8002
+      # LIBRARY_SERVICE_URL: http://library-service:8003
+      # ATTENDANCE_SERVICE_URL: http://attendance-service:8004
+      # NOTIFICATION_SERVICE_URL: http://notification-service:8005
+    ports: ["4000:4000"]
+    depends_on: [register, login]
+
+  # ---- FastAPI ----
+  request-service:
+    
+    build: ./apps/request-service
+    env_file: ./apps/request-service/.env
+    environment:
+      PORT: "8000"
+      REDIS_URL: redis://redis:6379
+      # NOTIFICATION_SERVICE_URL: http://notification-service:8005
+    ports: ["8000:8000"]
+    depends_on: [redis]
+
+  event-service:
+    
+    build: ./apps/event-service
+    env_file: ./apps/event-service/.env
+    environment:
+      PORT: "8001"
+      REDIS_URL: redis://redis:6379
+      # NOTIFICATION_SERVICE_URL: http://notification-service:8005
+    ports: ["8001:8001"]
+    volumes: [event_uploads:/backend/uploads]
+    depends_on: [redis]
+
+  # member-service:
+  #   <<: *base
+  #   build: ./apps/member-service
+  #   env_file: ./apps/member-service/.env
+  #   environment: { PORT: "8002" }
+  #   ports: ["8002:8002"]
+  #   volumes: [member_documents:/backend/documents]
+
+  # library-service:
+  #   <<: *base
+  #   build: ./apps/library-service
+  #   env_file: ./apps/library-service/.env
+  #   environment: { PORT: "8003" }
+  #   ports: ["8003:8003"]
+
+  # attendance-service:
+  #   <<: *base
+  #   build: ./apps/attendance-service
+  #   env_file: ./apps/attendance-service/.env
+  #   environment: { PORT: "8004" }
+  #   ports: ["8004:8004"]
+
+  # notification-service:
+  #   <<: *base
+  #   build: ./apps/notification-service
+  #   env_file: ./apps/notification-service/.env
+  #   environment: { PORT: "8005" }
+  #   ports: ["8005:8005"]
+
 volumes:
   event_uploads:
+  member_documents:

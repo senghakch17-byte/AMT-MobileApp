@@ -16,6 +16,7 @@ const proxy = httpProxy.createProxyServer({
 proxy.on('error', handleProxyError);
 
 // DO NOT add express.json() here. http-proxy needs the unparsed raw request stream.
+app.set('trust proxy', true);
 app.use(rateLimit({ windowMs: 60_000, max: 100 }));
 
 registerProxyRoutes(app, proxy, services, {

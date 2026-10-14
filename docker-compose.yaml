@@ -9,6 +9,13 @@ services:
       - "80:80"
     networks: [app-net]
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks: [app-net]
+
   register:
     build: ./apps/registration-service
     container_name: registration-service
@@ -67,6 +74,7 @@ services:
       - LOGIN_SERVICE_URL=http://login-service:5002
       - REQUEST_SERVICE_URL=http://request-service:8000
       - EVENT_SERVICE_URL=http://event-service:8001
+      - REDIS_URL=redis://redis:6379
     ports:
       - "4000:4000"
     depends_on:
@@ -74,6 +82,7 @@ services:
       - login
       - request-service
       - event-service
+      - redis
     networks: [app-net]
 
   gateway2:
@@ -88,6 +97,7 @@ services:
       - LOGIN_SERVICE_URL=http://login-service:5002
       - REQUEST_SERVICE_URL=http://request-service:8000
       - EVENT_SERVICE_URL=http://event-service:8001
+      - REDIS_URL=redis://redis:6379
     ports:
       - "4001:4000"
     depends_on:
@@ -95,6 +105,7 @@ services:
       - login
       - request-service
       - event-service
+      - redis
     networks: [app-net]
 
 networks:

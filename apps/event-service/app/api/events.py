@@ -1,9 +1,21 @@
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from pydantic import ValidationError
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+    status,
+)
+from pydantic import TypeAdapter, ValidationError
 
 from app.api.deps import get_current_user, require_admin
+from app.core.cache import cache_get, cache_set, get_list_version, invalidate_event
 from app.core.config import settings
+from app.core.limiter import limiter
 from app.core.security import CurrentUser
 from app.database.models import Event
 from app.schemas.event import EventBase, EventCreate, EventResponse, EventUpdate
@@ -12,6 +24,14 @@ from app.utils.helpers import utcnow
 from app.utils.storage import delete_image, save_image
 
 router = APIRouter(prefix="/events", tags=["Events"])
+
+_event_adapter = TypeAdapter(EventResponse)
+_events_adapter = TypeAdapter(list[EventResponse])
+
+
+def _scope(user: CurrentUser) -> str:
+    # Admins see drafts, others don't, so they must never share a cache entry.
+    return "admin" if user.role == "admin" else "public"
 
 
 async def _get_or_404(event_id: PydanticObjectId) -> Event:
@@ -27,6 +47,7 @@ async def _get_or_404(event_id: PydanticObjectId) -> Event:
 async def create_event(payload: EventCreate, admin: CurrentUser = Depends(require_admin)):
     event = Event(**payload.model_dump(), created_by=admin.id, created_by_email=admin.emailid)
     await event.insert()
+    await invalidate_event()
     return event
 
 
@@ -53,6 +74,7 @@ async def update_event(
         setattr(event, field, getattr(merged, field))
     event.updated_at = utcnow()
     await event.save()
+    await invalidate_event(event.id)
     return event
 
 
@@ -62,6 +84,7 @@ async def delete_event(event_id: PydanticObjectId, _: CurrentUser = Depends(requ
     for url in event.images:
         delete_image(url)
     await event.delete()
+    await invalidate_event(event_id)
 
 
 #================================================
@@ -92,6 +115,7 @@ async def delete_event(event_id: PydanticObjectId, _: CurrentUser = Depends(requ
 #     event.images.extend(saved)
 #     event.updated_at = utcnow()
 #     await event.save()
+#     await invalidate_event(event.id)
 #     return event
 
 
@@ -108,13 +132,16 @@ async def delete_event(event_id: PydanticObjectId, _: CurrentUser = Depends(requ
 #     delete_image(url)
 #     event.updated_at = utcnow()
 #     await event.save()
+#     await invalidate_event(event.id)
 #     return event
 
 
-# ---------- Any logged-in user: read ----------
+# ---------- Any logged-in user: read (cached + rate-limited) ----------
 
 @router.get("", response_model=list[EventResponse])
+@limiter.limit(settings.RATE_LIMIT_READ)
 async def list_events(
+    request: Request,  # required by slowapi
     category: EventCategory | None = None,
     upcoming: bool | None = Query(None, description="true = future events only (soonest first)"),
     status_filter: EventStatus | None = Query(None, alias="status", description="Admin only"),
@@ -122,6 +149,15 @@ async def list_events(
     limit: int = Query(20, ge=1, le=100),
     user: CurrentUser = Depends(get_current_user),
 ):
+    version = await get_list_version()
+    key = (
+        f"events:list:v{version}:{_scope(user)}:"
+        f"{category.value if category else '-'}:{upcoming}:"
+        f"{status_filter.value if status_filter else '-'}:{skip}:{limit}"
+    )
+    if (cached := await cache_get(key)) is not None:
+        return Response(cached, media_type="application/json")
+
     conditions = []
     if user.role == "admin":
         if status_filter:
@@ -133,12 +169,32 @@ async def list_events(
     if upcoming:
         conditions.append(Event.start_at >= utcnow())
     sort = "+start_at" if upcoming else "-start_at"
-    return await Event.find(*conditions).sort(sort).skip(skip).limit(limit).to_list()
+    events = await Event.find(*conditions).sort(sort).skip(skip).limit(limit).to_list()
+
+    body = _events_adapter.dump_json(
+        _events_adapter.validate_python(events, from_attributes=True), by_alias=True
+    )
+    await cache_set(key, body, settings.CACHE_TTL_LIST)
+    return Response(body, media_type="application/json")
 
 
 @router.get("/{event_id}", response_model=EventResponse)
-async def get_event(event_id: PydanticObjectId, user: CurrentUser = Depends(get_current_user)):
+@limiter.limit(settings.RATE_LIMIT_READ)
+async def get_event(
+    request: Request,  # required by slowapi
+    event_id: PydanticObjectId,
+    user: CurrentUser = Depends(get_current_user),
+):
+    key = f"events:detail:{_scope(user)}:{event_id}"
+    if (cached := await cache_get(key)) is not None:
+        return Response(cached, media_type="application/json")
+
     event = await _get_or_404(event_id)
     if user.role != "admin" and event.status != EventStatus.PUBLISHED:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Event not found")
-    return event
+
+    body = _event_adapter.dump_json(
+        _event_adapter.validate_python(event, from_attributes=True), by_alias=True
+    )
+    await cache_set(key, body, settings.CACHE_TTL_DETAIL)
+    return Response(body, media_type="application/json")

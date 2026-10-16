@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
-
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.core.limiter import limiter
 from fastapi import FastAPI
 
 from app.api.router import api_router
@@ -19,13 +21,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan,
-    root_path="/fastapi"
 )
-
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Include API v1 Router
-app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_router)
 
 
 @app.get("/", include_in_schema=False)

@@ -18,3 +18,5 @@
 **/*.pem
 **/*.log
 **/.vscode/
+
+AGENTS.md

@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     PUBLIC_BASE_URL: str = "http://localhost:4000/events"  # gateway URL + route prefix
     MAX_IMAGE_MB: int = 5
     MAX_IMAGES_PER_EVENT: int = 10
+    REDIS_URL: str = "redis://localhost:6379"
+    CACHE_TTL_LIST: int = 30      # seconds
+    CACHE_TTL_DETAIL: int = 120   # seconds
+    RATE_LIMIT_READ: str = "60/minute"
 
     # Reserved for future DB connection string (PostgreSQL/MongoDB)
     DATABASE_URL: str | None = None

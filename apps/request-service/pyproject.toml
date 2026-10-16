@@ -13,4 +13,5 @@ dependencies = [
     "python-dotenv>=1.2.4",
     "slowapi>=0.1.10",
     "uvicorn>=0.54.0",
+    "redis>=8.1.0",
 ]

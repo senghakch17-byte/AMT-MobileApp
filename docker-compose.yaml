@@ -1,3 +1,7 @@
+# LOCAL: docker compose up --build
+x-base: &base
+  restart: unless-stopped
+
 services:
   nginx:
     build: ./nginx
@@ -7,7 +11,9 @@ services:
     networks: [app-net]
 
   redis:
-    image: redis:7-alpine
+    <<: *base
+    image: redis:alpine
+    command: redis-server --save "" --appendonly no
     container_name: redis
     ports: ["6379:6379"]
     networks: [app-net]
@@ -33,25 +39,34 @@ services:
     networks: [app-net]
 
   request-service:
+    <<: *base
     build: ./apps/request-service
     container_name: request-service
     env_file:
       - path: ./apps/request-service/.env
         required: false
+    environment:
+      REDIS_URL: redis://redis:6379
     ports: ["8000:8000"]
+    depends_on: [redis]
     networks: [app-net]
 
   event-service:
+    <<: *base
     build: ./apps/event-service
     container_name: event-service
     env_file:
       - path: ./apps/event-service/.env
         required: false
+    environment:
+      REDIS_URL: redis://redis:6379
     ports: ["8001:8001"]
     volumes: [event_uploads:/backend/uploads]
+    depends_on: [redis]
     networks: [app-net]
 
   attendance-service:
+    <<: *base
     build: ./apps/attendance-service
     container_name: attendance-service
     env_file:
@@ -61,6 +76,7 @@ services:
     networks: [app-net]
 
   gateway1:
+    <<: *base
     build: ./apps/api-gateway
     container_name: gateway1
     env_file:
@@ -79,6 +95,7 @@ services:
     networks: [app-net]
 
   gateway2:
+    <<: *base
     build: ./apps/api-gateway
     container_name: gateway2
     env_file:

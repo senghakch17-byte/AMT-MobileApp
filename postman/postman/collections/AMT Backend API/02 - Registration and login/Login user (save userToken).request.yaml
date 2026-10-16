@@ -1,0 +1,23 @@
+$kind: http-request
+description: Public. Requires emailid, pass, and role; JWT expires in one hour.
+url: "{{gatewayUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "emailid": "{{userEmail}}",
+      "pass": "{{userPassword}}",
+      "role": "user"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Login succeeded', function () { pm.expect(pm.response.code).to.eql(200); });
+      if (pm.response.code === 200) { pm.environment.set('userToken', pm.response.json().token); }
+    language: text/javascript
+order: 2000

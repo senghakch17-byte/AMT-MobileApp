@@ -25,7 +25,7 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 
 ## Architecture Rules
 
-- Keep current gateway routing, authentication, and service URL handling in `apps/api-gateway/index.js` unless its size or complexity makes a split necessary.
+- Keep gateway routing in `apps/api-gateway/routes/proxyRoutes.js`, service targets in `apps/api-gateway/config/services.config.js`, and auth/error middleware in `apps/api-gateway/middleware/`.
 - Keep attendance-service HTTP wiring in `routes/`, handlers in `controllers/`, JWT/error handling in `middleware/`, Mongoose schemas in `models/`, database setup in `config/`, and focused shared helpers in `utils/`. Keep `app.js` separate from `server.js` for testing.
 - Attendance records use `userID`, never `studentId` or `userId`.
 - Keep FastAPI routers in `app/api/`, schemas in `app/schemas/`, and database models in `app/database/models.py`.

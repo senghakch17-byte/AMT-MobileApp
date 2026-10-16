@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{gatewayUrl}}/event/events"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "Community Information Session",
+      "description": "An information session for students and families.",
+      "category": "announcement",
+      "location": "Phnom Penh",
+      "start_at": "2026-11-15T09:00:00+07:00",
+      "end_at": "2026-11-15T11:00:00+07:00",
+      "status": "draft"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: if (pm.response.code === 201) { pm.environment.set('eventId', pm.response.json().id); }
+    language: text/javascript
+order: 1000

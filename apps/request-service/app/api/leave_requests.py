@@ -2,9 +2,11 @@ from datetime import date
 
 from beanie import PydanticObjectId
 from beanie.operators import In
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from app.api.deps import get_current_user
+from app.core.cache import bump_version, cached_list
+from app.core.limiter import limiter
 from app.core.security import CurrentUser
 from app.database.models import LeaveRequest
 from app.schemas.leave_request import (
@@ -23,6 +25,7 @@ from app.utils.helpers import (
 router = APIRouter(prefix="/leave-requests", tags=["Leave Requests"])
 
 ACTIVE = [RequestStatus.PENDING.value, RequestStatus.APPROVED.value]
+NS = "leave"
 
 
 async def _ensure_no_overlap(
@@ -54,25 +57,39 @@ async def send_leave_request(
         **payload.model_dump(), student_id=user.id, student_email=user.emailid
     )
     await doc.insert()
+    await bump_version(NS, user.id)
     return doc
 
 
 @router.get("", response_model=list[LeaveRequestResponse])
+@limiter.limit("10/minute")
 async def list_my_leave_requests(
+    request: Request,
     status_filter: RequestStatus | None = Query(None, alias="status"),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     user: CurrentUser = Depends(get_current_user),
 ):
-    query = LeaveRequest.find(LeaveRequest.student_id == user.id)
-    if status_filter:
-        query = query.find(LeaveRequest.status == status_filter)
-    return await query.sort("-created_at").skip(skip).limit(limit).to_list()
+    async def load():
+        query = LeaveRequest.find(LeaveRequest.student_id == user.id)
+        if status_filter:
+            query = query.find(LeaveRequest.status == status_filter)
+        docs = await query.sort("-created_at").skip(skip).limit(limit).to_list()
+        return [
+            LeaveRequestResponse.model_validate(d, from_attributes=True).model_dump(mode="json")
+            for d in docs
+        ]
+
+    sub = f"{status_filter.value if status_filter else 'all'}:{skip}:{limit}"
+    return await cached_list(NS, user.id, sub, load)
 
 
 @router.get("/{request_id}", response_model=LeaveRequestResponse)
+@limiter.limit("10/minute")
 async def get_leave_request(
-    request_id: PydanticObjectId, user: CurrentUser = Depends(get_current_user)
+    request: Request,
+    request_id: PydanticObjectId,
+    user: CurrentUser = Depends(get_current_user),
 ):
     return await get_owned_or_404(LeaveRequest, request_id, user)
 
@@ -90,6 +107,7 @@ async def update_leave_request(
         user.id, doc.start_date, doc.end_date, exclude_id=doc.id
     )
     await doc.save()
+    await bump_version(NS, user.id)
     return doc
 
 
@@ -101,4 +119,5 @@ async def cancel_leave_request(
     ensure_pending(doc)
     mark_cancelled(doc)
     await doc.save()
+    await bump_version(NS, user.id)
     return doc

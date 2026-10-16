@@ -19,10 +19,11 @@ const REGISTER_SERVICE = process.env.REGISTER_SERVICE_URL;
 const LOGIN_SERVICE = process.env.LOGIN_SERVICE_URL;
 const REQUEST_SERVICE = process.env.REQUEST_SERVICE_URL;
 const EVENT_SERVICE = process.env.EVENT_SERVICE_URL;
+const ATTENDANCE_SERVICE = process.env.ATTENDANCE_SERVICE_URL;
 
-console.log('[Gateway] Targets:', { REGISTER_SERVICE, LOGIN_SERVICE, REQUEST_SERVICE, EVENT_SERVICE });
+console.log('[Gateway] Targets:', { REGISTER_SERVICE, LOGIN_SERVICE, REQUEST_SERVICE, EVENT_SERVICE, ATTENDANCE_SERVICE });
 
-if (!REGISTER_SERVICE || !LOGIN_SERVICE || !REQUEST_SERVICE || !EVENT_SERVICE) {
+if (!REGISTER_SERVICE || !LOGIN_SERVICE || !REQUEST_SERVICE || !EVENT_SERVICE || !ATTENDANCE_SERVICE) {
   console.error('[Gateway] Missing one or more service URL env vars');
 }
 
@@ -92,6 +93,11 @@ app.use('/event', authToken, (req, res) => {
   proxy.web(req, res, { target: EVENT_SERVICE });
 });
 
+
+app.use('/attendance', authToken, (req, res) => {
+  console.log('[Gateway] Routing to Attendance Service:', req.method, req.originalUrl);
+  proxy.web(req, res, { target: ATTENDANCE_SERVICE });
+});
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

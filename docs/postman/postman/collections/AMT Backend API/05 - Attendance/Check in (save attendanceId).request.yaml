@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{gatewayUrl}}/attendance/check-in"
+method: POST
+scripts:
+  - type: afterResponse
+    code: if (pm.response.code === 201) { pm.environment.set('attendanceId', pm.response.json()._id); }
+    language: text/javascript
+order: 1000

@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{gatewayUrl}}/attendance/{{attendanceId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "present"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+order: 5000

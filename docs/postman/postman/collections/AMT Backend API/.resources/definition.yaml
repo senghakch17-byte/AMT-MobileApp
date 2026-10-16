@@ -10,6 +10,8 @@ variables:
   adminToken: ""
   leaveRequestId: ""
   eventId: ""
+  attendanceId: ""
+  notificationId: ""
   preScholarshipAcademicYear: 2026-2027
 auth:
   - id: a3ab0993-8967-4c9e-86f3-436507500e58

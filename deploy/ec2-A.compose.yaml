@@ -1,19 +1,18 @@
-# EC2-A: nginx, 2x api-gateway, login, registration, redis
+# EC2-A: nginx, two API gateways, registration, login, Redis
 x-gateway: &gateway
   extends: { file: common.yaml, service: base }
   image: api-gateway
-  build: ../api-gateway
-  env_file: ../api-gateway/.env
+  build: ../apps/api-gateway
+  env_file: ../apps/api-gateway/.env
   environment:
     PORT: "4000"
     REGISTER_SERVICE_URL: http://register:5001
     LOGIN_SERVICE_URL: http://login:5002
     REQUEST_SERVICE_URL: http://${EC2_B_IP}:8000
     EVENT_SERVICE_URL: http://${EC2_B_IP}:8001
-    ATTENDANCE_SERVICE_URL: http://${EC2_C_IP}:8004
+    ATTENDANCE_SERVICE_URL: http://${EC2_C_IP}:8002
     NOTIFICATION_SERVICE_URL: http://${EC2_C_IP}:8005
-    MEMBER_SERVICE_URL: http://${EC2_D_IP}:8002
-    LIBRARY_SERVICE_URL: http://${EC2_D_IP}:8003
+    REDIS_URL: redis://redis:6379
   depends_on: [register, login]
 
 services:
@@ -23,23 +22,23 @@ services:
     ports: ["80:80"]
     cap_add: [CHOWN, SETGID, SETUID, NET_BIND_SERVICE]
     tmpfs: [/var/cache/nginx, /run]
-    depends_on: [webserver1, webserver2]
+    depends_on: [gateway1, gateway2]
 
-  webserver1:
+  gateway1:
     <<: *gateway
-  webserver2:
+  gateway2:
     <<: *gateway
 
   register:
     extends: { file: common.yaml, service: base }
-    build: ../registration-service
-    env_file: ../registration-service/.env
+    build: ../apps/registration-service
+    env_file: ../apps/registration-service/.env
     environment: { PORT: "5001" }
 
   login:
     extends: { file: common.yaml, service: base }
-    build: ../login-service
-    env_file: ../login-service/.env
+    build: ../apps/login-service
+    env_file: ../apps/login-service/.env
     environment: { PORT: "5002" }
 
   redis:

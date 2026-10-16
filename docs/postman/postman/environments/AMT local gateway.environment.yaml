@@ -18,5 +18,9 @@ values:
     value: ''
   - key: eventId
     value: ''
+  - key: attendanceId
+    value: ''
+  - key: notificationId
+    value: ''
   - key: preScholarshipAcademicYear
     value: 2026-2027

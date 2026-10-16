@@ -7,10 +7,10 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 - API style: REST
 - Public entry: `nginx` load balancer on port `80`, routing to gateway replicas on ports `4000` and `4001`
 - Gateway: Node.js / Express in `apps/api-gateway`
-- Node services: registration, login, and attendance
+- Node services: registration, login, attendance, and notification
 - Python services: request and event APIs using FastAPI
 - Database: external MongoDB
-- Deployment: local Docker Compose; EC2 files are incomplete placeholders
+- Deployment: local Docker Compose; EC2 Compose files exist but remain incomplete and unverified for production
 
 ## Service Map
 
@@ -18,6 +18,7 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 - `apps/registration-service/` — Express/Mongoose registration service.
 - `apps/login-service/` — Express/Mongoose login service and JWT issuing.
 - `apps/attendance-service/` — Express/Mongoose attendance check-in, check-out, and administration API.
+- `apps/notification-service/` — Express/Mongoose in-app notifications, receipt state, preferences, and Redis event consumer.
 - `apps/request-service/` — FastAPI/Beanie request APIs.
 - `apps/event-service/` — FastAPI/Beanie event APIs and uploads.
 - `nginx/` — public load balancer configuration connected to root Compose.
@@ -52,6 +53,7 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 	- `/request`
 	- `/event`
 	- `/attendance`
+	- `/notification`
 	- `/health`
 - Follow REST conventions and use appropriate HTTP status codes.
 - Keep response shapes stable for mobile clients.
@@ -62,11 +64,14 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 ## Documentation Sync
 
 - When changing routes, ports, environment variables, service names, Compose paths, startup commands, proxy prefixes, authentication requirements, behavior, architecture, or deployment decisions, update affected documentation in the same change.
+- When adding, removing, renaming, or materially changing a service, update `AGENTS.md` in the same change. Keep project overview, service map, architecture rules, API prefixes, environment variables, deployment status, and verification commands aligned with active code and configuration.
 - Check `README.md`, service READMEs, `.env.example` files, Docker/Compose configuration, route tables, and `AGENTS.md`; update only files affected by the change.
 - Document only behavior present in active code and configuration. Label disabled code, empty deployment files, and planned infrastructure explicitly as incomplete; do not present them as operational.
 - Verify documented paths and commands from the repository root and distinguish direct-service URLs from gateway URLs.
 - Keep public entry points, service ports, URL prefixes, required authentication, and environment variable names consistent across documentation and configuration.
+- When changing active API routes, methods, request bodies, authentication, environment variables, or response-driven collection scripts, update both Postman YAML sources under `docs/postman/postman/` and exported JSON files `docs/postman/AMT-Backend.postman_collection.json` and `docs/postman/AMT-local.postman_environment.json` in the same change. Verify strict JSON parsing and JSON/YAML endpoint parity.
 - Record changed architectural or operational decisions in the relevant existing document. Create a dedicated decision record only when explicitly requested or when no existing document can hold the decision clearly.
+- Keep `docs/AWS_DEVELOPMENT.md` synchronized with EC2 topology, Compose paths, exposed ports, security-group requirements, deployment commands, and known deployment limitations.
 
 ## Security
 
@@ -82,7 +87,7 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 
 - MongoDB is external. Docker Compose does not provision MongoDB.
 - Missing `.env` files may cause runtime failures even when Compose starts.
-- Gateway service targets come from environment variables such as `REGISTER_SERVICE_URL`, `LOGIN_SERVICE_URL`, `REQUEST_SERVICE_URL`, `EVENT_SERVICE_URL`, and `ATTENDANCE_SERVICE_URL`.
+- Gateway service targets come from environment variables such as `REGISTER_SERVICE_URL`, `LOGIN_SERVICE_URL`, `REQUEST_SERVICE_URL`, `EVENT_SERVICE_URL`, `ATTENDANCE_SERVICE_URL`, and `NOTIFICATION_SERVICE_URL`.
 
 ## Testing And Verification
 
@@ -99,6 +104,16 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 	- `cd apps/request-service && uv run uvicorn app.main:app --reload --port 8000`
 	- `cd apps/event-service && uv run uvicorn app.main:app --reload --port 8001`
 	- `cd apps/attendance-service && npm test`
+	- `cd apps/notification-service && npm test`
+
+## New Service Discovery
+
+- Before designing or creating a new service, ask user to choose supported stack, such as Node.js/Express or Python/FastAPI. Do not choose stack without confirmation.
+- Gather requirements needed to define service purpose and boundaries, users and roles, endpoints and contracts, validation and errors, data and persistence, authentication and authorization, events and integrations, gateway prefix and port, environment variables, background work or uploads, tests, and deployment placement.
+- Inspect existing service conventions before proposing architecture.
+- Suggest relevant useful features, security controls, edge cases, and simpler alternatives. Separate required scope from optional ideas and explain tradeoffs.
+- Confirm unresolved API contract, schema, security, and service-boundary decisions before implementation. Existing conventions may answer minor details.
+- After implementation, update tests, API contract, configuration examples, Compose files, README, AWS documentation when deployment changes, and `AGENTS.md`.
 
 ## Agent Workflow
 

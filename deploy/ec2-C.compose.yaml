@@ -5,13 +5,14 @@ services:
     build: ../apps/attendance-service
     env_file: ../apps/attendance-service/.env
     environment:
-      PORT: "8004"
-      MEMBER_SERVICE_URL: http://${EC2_D_IP}:8002
-    ports: ["8004:8004"]
+      PORT: "8002"
+    ports: ["8002:8002"]
 
   notification-service:
     extends: { file: common.yaml, service: base }
     build: ../apps/notification-service
     env_file: ../apps/notification-service/.env
-    environment: { PORT: "8005" }
+    environment:
+      PORT: "8005"
+      REDIS_URL: redis://${EC2_A_IP}:6379
     ports: ["8005:8005"]

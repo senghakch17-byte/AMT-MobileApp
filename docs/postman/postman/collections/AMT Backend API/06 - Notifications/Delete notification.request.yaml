@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}"
+method: DELETE
+order: 6000

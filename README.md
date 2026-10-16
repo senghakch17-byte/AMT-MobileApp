@@ -42,7 +42,7 @@ MongoDB is external; Compose does not provision it. Node services use `MONGO_URI
 
 ## Current limitations
 
-- `deploy/` contains empty EC2 Compose placeholders and no deployable infrastructure.
+- `deploy/` contains incomplete EC2 Compose configuration that is not production-verified.
 - FastAPI `root_path` values do not match gateway prefixes. Direct Swagger pages may generate incorrect URLs, and protected gateway docs may not load their schemas in a browser.
 
 ## Prerequisites
@@ -54,30 +54,7 @@ MongoDB is external; Compose does not provision it. Node services use `MONGO_URI
 
 ## Configuration
 
-From repository root, copy each template and replace placeholder values:
-
-```bash
-cp apps/registration-service/.env.example apps/registration-service/.env
-cp apps/attendance-service/.env.example apps/attendance-service/.env
-cp apps/login-service/.env.example apps/login-service/.env
-cp apps/request-service/.env.example apps/request-service/.env
-cp apps/event-service/.env.example apps/event-service/.env
-cp apps/notification-service/.env.example apps/notification-service/.env
-cp apps/api-gateway/.env.example apps/api-gateway/.env
-```
-
-Registration, login, attendance, and notification services require `MONGO_URI`. Login, attendance, and notification services require `JWT_SECRET`. Notification service also requires `INTERNAL_API_KEY` for service-to-service event ingestion. Request and event services require `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, and `JWT_ALGORITHM`. Gateway requires every service URL, including `NOTIFICATION_SERVICE_URL`, and same `JWT_SECRET` used by login and protected services.
-
-Event image URLs should use gateway prefix:
-
-```dotenv
-PUBLIC_BASE_URL=http://localhost/event
-UPLOAD_DIR=uploads
-MAX_IMAGE_MB=5
-MAX_IMAGES_PER_EVENT=10
-```
-
-Do not commit `.env` files or credentials. URL-encode reserved characters in MongoDB passwords.
+See [configuration guide](docs/CONFIGURATION.md).
 
 ## Run with Docker Compose
 
@@ -100,102 +77,18 @@ docker compose down -v # also removes event uploads
 
 `depends_on` controls startup order, not readiness. No Compose health checks wait for MongoDB or upstream APIs.
 
-## API contract
+## Documentation
 
-Gateway health, registration, and login are public. Every `/request/*`, `/event/*`, `/attendance/*`, and `/notification/*` gateway request requires `Authorization: Bearer <token>`. Use `http://localhost` through Nginx. Direct service exposure bypasses gateway authentication, but protected service handlers still enforce their own JWT dependencies.
-
-### Gateway routes
-
-| Method | Gateway path | Access | Destination |
-| --- | --- | --- | --- |
-| GET | `/health` | Public | Gateway |
-| Any | `/register/*` | Public | Registration; prefix stripped |
-| Any | `/auth/*` | Public | Login; prefix stripped |
-| Any | `/request/*` | JWT required | Request; prefix stripped |
-| Any | `/event/*` | JWT required | Event; prefix stripped |
-| Any | `/attendance/*` | JWT required | Attendance; prefix stripped |
-
-### Registration and login
-
-| Method | Gateway path | Direct path | Access |
-| --- | --- | --- | --- |
-| POST | `/register/register` | `http://localhost:5001/register` | Public |
-| POST | `/auth/login` | `http://localhost:5002/login` | Public |
-
-Registration requires `name`, `emailid`, `pass`, and `mobile`; `role` defaults to `user`. Login requires `emailid`, `pass`, and `role`, and returns JWT valid for one hour.
-
-### Request service
-
-Gateway base: `/request/api/v1`
-
-Direct base: `http://localhost:8000/api/v1`
-
-| Method | Relative path | Access and behavior |
-| --- | --- | --- |
-| GET | `/health` | Direct route public; gateway route JWT-protected |
-| POST | `/leave-requests` | JWT; create request |
-| GET | `/leave-requests` | JWT; list current user's requests |
-| GET | `/leave-requests/{request_id}` | JWT; owned record only |
-| PATCH | `/leave-requests/{request_id}` | JWT; pending record only |
-| PATCH | `/leave-requests/{request_id}/cancel` | JWT; pending record only |
-| POST | `/pre-scholarship-registrations` | JWT; create registration |
-| GET | `/pre-scholarship-registrations` | JWT; list current user's registrations |
-
-Pre-scholarship get-one, update, and cancel handlers are disabled in source and are not API routes.
-
-### Event service
-
-Gateway base: `/event/api/v1`
-
-Direct base: `http://localhost:8001/api/v1`
-
-| Method | Relative path | Access and behavior |
-| --- | --- | --- |
-| POST | `/events` | Admin; create event |
-| GET | `/events` | Authenticated; non-admin users receive published events |
-| GET | `/events/{event_id}` | Authenticated; non-admin users can view published events |
-| PATCH | `/events/{event_id}` | Admin; update event |
-| DELETE | `/events/{event_id}` | Admin; delete event and referenced images |
-
-Image upload and removal handlers are disabled. Existing uploaded files remain available directly under `/uploads/*`; gateway access through `/event/uploads/*` requires JWT.
-
-### Attendance service
-
-Gateway base: `/attendance`
-
-Direct base: `http://localhost:8002`
-
-| Method | Relative path | Access and behavior |
-| --- | --- | --- |
-| GET | `/health` | Direct public; gateway route JWT-protected |
-| POST | `/check-in` | JWT; create current user's daily attendance |
-| POST | `/check-out` | JWT; close current user's daily attendance |
-| GET | `/me` | JWT; list current user's records |
-| GET | `/` | Admin; list records with optional filters |
-| PATCH | `/{id}` | Admin; update attendance record |
+- [API contract](docs/API_CONTRACT.md)
+- [Configuration](docs/CONFIGURATION.md)
+- [Local development](docs/LOCAL_DEVELOPMENT.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [AWS sandbox development](docs/AWS_DEVELOPMENT.md)
+- [Postman collection](docs/postman/README.md)
 
 ## Local development
 
-Create service-specific `.env` files first. Run each command from repository root in separate terminal.
-
-```bash
-cd apps/api-gateway && npm ci && node index.js
-cd apps/registration-service && npm ci && node index.js
-cd apps/login-service && npm ci && node index.js
-cd apps/attendance-service && npm ci && node server.js
-cd apps/request-service && uv sync && uv run uvicorn app.main:app --reload --port 8000
-cd apps/event-service && uv sync && uv run uvicorn app.main:app --reload --port 8001
-```
-
-For local processes, gateway service URLs must use `http://localhost:<port>` instead of Compose hostnames.
-
-Direct endpoints:
-
-- Gateway health: `http://localhost:4000/health`
-- Request health: `http://localhost:8000/api/v1/health`
-- Request OpenAPI: `http://localhost:8000/api/v1/openapi.json`
-- Event OpenAPI: `http://localhost:8001/openapi.json`
-- Attendance health: `http://localhost:8002/health`
+See [local development guide](docs/LOCAL_DEVELOPMENT.md).
 
 ## Repository layout
 
@@ -207,32 +100,14 @@ apps/
   request-service/      FastAPI request APIs
   event-service/        FastAPI event API and uploads
   attendance-service/   Express attendance API
-deploy/                 Empty EC2 deployment placeholders
+deploy/                 EC2 Docker Compose configuration
 nginx/                  Nginx load balancer configuration
+docs/                   API, configuration, development, and Postman docs
 docker-compose.yaml     Local orchestration configuration
 AGENTS.md               Agent and contribution instructions
-README.md               Project documentation
+README.md               Project setup and operations
 ```
 
 ## Troubleshooting
 
-### `Application startup failed`
-
-```bash
-docker compose logs --tail=200 request-service event-service
-```
-
-Confirm MongoDB URI, credentials, database name, network access, and DNS connectivity.
-
-### `Bad Gateway`
-
-```bash
-docker compose ps
-docker compose logs --tail=200 api-gateway
-```
-
-Confirm target service and gateway service URL.
-
-### `401 Access Denied`
-
-Use token returned by `/auth/login` in exact `Authorization: Bearer <token>` header. All token-verifying services must share `JWT_SECRET`.
+See [troubleshooting guide](docs/TROUBLESHOOTING.md).

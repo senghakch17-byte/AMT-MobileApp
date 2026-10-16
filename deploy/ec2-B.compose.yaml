@@ -1,7 +1,6 @@
 # EC2-B: request-service, event-service
 x-env: &env
   REDIS_URL: redis://${EC2_A_IP}:6379
-  NOTIFICATION_SERVICE_URL: http://${EC2_C_IP}:8005
 
 services:
   request-service:

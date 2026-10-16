@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{gatewayUrl}}/notification/api/v1/notifications?skip=0&limit=20"
+method: GET
+order: 1000

@@ -18,7 +18,8 @@ API gateways :4000, :4001
     |-- /auth      -> Login service :5002
     |-- /request   -> Request service :8000
     |-- /event     -> Event service :8001
-    `-- /attendance -> Attendance service :8002
+    |-- /attendance -> Attendance service :8002
+    `-- /notification -> Notification service :8005
 
 All application services -> external MongoDB
 Event service -> event_uploads volume
@@ -35,6 +36,7 @@ Event service -> event_uploads volume
 | Request | `request-service` | 8000 | Leave requests and pre-scholarship registrations |
 | Event | `event-service` | 8001 | Event management and image storage |
 | Attendance | `attendance-service` | 8002 | User check-in, check-out, history, and admin corrections |
+| Notification | `notification-service` | 8005 | In-app notifications and user receipt state |
 
 MongoDB is external; Compose does not provision it. Node services use `MONGO_URI`; Python services use `MONGODB_URI`.
 
@@ -60,10 +62,11 @@ cp apps/attendance-service/.env.example apps/attendance-service/.env
 cp apps/login-service/.env.example apps/login-service/.env
 cp apps/request-service/.env.example apps/request-service/.env
 cp apps/event-service/.env.example apps/event-service/.env
+cp apps/notification-service/.env.example apps/notification-service/.env
 cp apps/api-gateway/.env.example apps/api-gateway/.env
 ```
 
-Registration, login, and attendance require `MONGO_URI`. Login and attendance require `JWT_SECRET`. Request and event services require `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, and `JWT_ALGORITHM`. Gateway requires all five service URLs and same `JWT_SECRET` used by login and protected services.
+Registration, login, attendance, and notification services require `MONGO_URI`. Login, attendance, and notification services require `JWT_SECRET`. Notification service also requires `INTERNAL_API_KEY` for service-to-service event ingestion. Request and event services require `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, and `JWT_ALGORITHM`. Gateway requires every service URL, including `NOTIFICATION_SERVICE_URL`, and same `JWT_SECRET` used by login and protected services.
 
 Event image URLs should use gateway prefix:
 
@@ -99,7 +102,7 @@ docker compose down -v # also removes event uploads
 
 ## API contract
 
-Gateway health, registration, and login are public. Every `/request/*`, `/event/*`, and `/attendance/*` gateway request requires `Authorization: Bearer <token>`. Use `http://localhost` through Nginx. Direct service exposure bypasses gateway authentication, but protected service handlers still enforce their own JWT dependencies.
+Gateway health, registration, and login are public. Every `/request/*`, `/event/*`, `/attendance/*`, and `/notification/*` gateway request requires `Authorization: Bearer <token>`. Use `http://localhost` through Nginx. Direct service exposure bypasses gateway authentication, but protected service handlers still enforce their own JWT dependencies.
 
 ### Gateway routes
 

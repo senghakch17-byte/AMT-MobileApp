@@ -6,6 +6,7 @@ const DEFAULT_SERVICE_ROUTES = [
   { prefix: 'request', env: 'REQUEST_SERVICE_URL', protected: true },
   { prefix: 'event', env: 'EVENT_SERVICE_URL', protected: true },
   { prefix: 'attendance', env: 'ATTENDANCE_SERVICE_URL', protected: true },
+  { prefix: 'notification', env: 'NOTIFICATION_SERVICE_URL', protected: true },
 ];
 
 // Resolve each service target from its environment variable name.

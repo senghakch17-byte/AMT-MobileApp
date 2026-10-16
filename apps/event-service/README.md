@@ -1,30 +1,61 @@
-# Application Architecture (`app/`)
+# Event Service
 
-This directory contains the core source code for the FastAPI backend service.
+FastAPI service for event management and event image storage. Uses Beanie with external MongoDB.
 
-## Directory Structure Overview
+## Structure
 
-* **`api/`**: API route definitions and versioning.
-    * **`endpoints/`**: Individual endpoint route handlers (e.g., `health.py`, `users.py`).
-    * **`router.py`**: Central router aggregating all v1 endpoint sub-routers.
-* **`core/`**: Application configuration and global setup.
-  * `config.py`: Environment variable loading and validation via `pydantic-settings`.
-* **`database/`**: Database connection lifecycles and session management.
-  * Ready to configure drivers for either PostgreSQL (`asyncpg` + `sqlalchemy` / `sqlmodel`) or MongoDB (`motor` / `beanie`).
-* **`schemas/`**: Pydantic models for request validation and response serialization.
-* **`utils/`**: Helper utilities, custom loggers, and shared helper functions.
-* **`main.py`**: Application factory, lifespan context manager, and entry point.
+```text
+app/
+  api/
+    deps.py
+    events.py
+    router.py
+  core/
+    config.py
+    security.py
+  database/
+    models.py
+    mongodb.py
+    session.py
+  schemas/
+  utils/
+  main.py
+```
 
----
+## Setup
 
-## Development Setup with `uv`
+Requires Python 3.12, `uv`, reachable MongoDB, and JWT secret shared with login and gateway services.
 
-### Prerequisites
-Install `uv` package manager:
 ```bash
-curl -LsSf [https://astral.sh/uv/install.sh](https://astral.sh/uv/install.sh) | sh
-
-
+curl -LsSf https://astral.sh/uv/install.sh | sh
+cp .env.example .env
 uv sync
-uv run uvicorn app.main:app --reload --port 8000
-Swagger UI: http://localhost:8000/docs
+uv run uvicorn app.main:app --reload --port 8001
+```
+
+Required configuration includes `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, and `JWT_ALGORITHM`. Storage settings include `PUBLIC_BASE_URL`, `UPLOAD_DIR`, `MAX_IMAGE_MB`, and `MAX_IMAGES_PER_EVENT`. Application startup pings MongoDB and fails when database is unreachable.
+
+## URLs
+
+- Direct API base: `http://localhost:8001/api/v1`
+- Gateway API base: `http://localhost:4000/event/api/v1`
+- Direct uploads: `http://localhost:8001/uploads`
+- Gateway uploads: `http://localhost:4000/event/uploads`
+- Direct OpenAPI: `http://localhost:8001/openapi.json`
+
+Current app `root_path` is `/events`, which does not match gateway prefix `/event`. Generated Swagger URLs may be incorrect until runtime configuration is reconciled.
+
+All gateway `/event/*` traffic requires JWT. Event handlers also enforce authenticated-user or admin access.
+
+## Active routes
+
+| Method | Relative path | Access and behavior |
+| --- | --- | --- |
+| POST | `/events` | Admin; create event |
+| GET | `/events` | Authenticated; non-admin users receive published events |
+| GET | `/events/{event_id}` | Authenticated; non-admin users can view published events |
+| PATCH | `/events/{event_id}` | Admin; update event |
+| DELETE | `/events/{event_id}` | Admin; delete event and referenced images |
+| GET | `/uploads/*` | Static files; gateway access requires JWT |
+
+Image upload and removal handlers are disabled in source and are not available routes. Existing uploaded files remain served by static mount.

@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{gatewayUrl}}/request/leave-requests?skip=0&limit=20"
+method: GET
+queryParams:
+  skip: "0"
+  limit: "20"
+auth:
+  type: bearer
+  credentials:
+    token: "{{vault:json_web_token_18d9}}"
+order: 3000

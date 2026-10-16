@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{gatewayUrl}}/request/leave-requests/{{leaveRequestId}}/cancel"
+method: PATCH
+order: 6000

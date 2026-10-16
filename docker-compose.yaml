@@ -75,6 +75,19 @@ services:
     ports: ["8002:8002"]
     networks: [app-net]
 
+  notification-service:
+    <<: *base
+    build: ./apps/notification-service
+    container_name: notification-service
+    env_file:
+      - path: ./apps/notification-service/.env
+        required: false
+    environment:
+      REDIS_URL: redis://redis:6379
+    ports: ["8005:8005"]
+    depends_on: [redis]
+    networks: [app-net]
+
   gateway1:
     <<: *base
     build: ./apps/api-gateway
@@ -89,9 +102,10 @@ services:
       - REQUEST_SERVICE_URL=http://request-service:8000
       - EVENT_SERVICE_URL=http://event-service:8001
       - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8005
       - REDIS_URL=redis://redis:6379
     ports: ["4000:4000"]
-    depends_on: [register, login, request-service, event-service, attendance-service, redis]
+    depends_on: [register, login, request-service, event-service, attendance-service, notification-service, redis]
     networks: [app-net]
 
   gateway2:
@@ -108,9 +122,10 @@ services:
       - REQUEST_SERVICE_URL=http://request-service:8000
       - EVENT_SERVICE_URL=http://event-service:8001
       - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8005
       - REDIS_URL=redis://redis:6379
     ports: ["4001:4000"]
-    depends_on: [register, login, request-service, event-service, attendance-service, redis]
+    depends_on: [register, login, request-service, event-service, attendance-service, notification-service, redis]
     networks: [app-net]
 
 networks:

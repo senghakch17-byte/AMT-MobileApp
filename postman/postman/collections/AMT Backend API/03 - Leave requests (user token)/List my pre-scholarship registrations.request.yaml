@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{gatewayUrl}}/request/pre-scholarship-registrations?skip=0&limit=20"
+method: GET
+queryParams:
+  skip: "0"
+  limit: "20"
+order: 8000

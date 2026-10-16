@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{gatewayUrl}}/request/leave-requests/{{leaveRequestId}}"
+method: GET
+order: 4000

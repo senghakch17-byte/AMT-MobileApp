@@ -32,10 +32,10 @@ services:
       LOGIN_SERVICE_URL: http://login:5002
       REQUEST_SERVICE_URL: http://request-service:8000
       EVENT_SERVICE_URL: http://event-service:8001
-      # MEMBER_SERVICE_URL: http://member-service:8002
-      # LIBRARY_SERVICE_URL: http://library-service:8003
-      # ATTENDANCE_SERVICE_URL: http://attendance-service:8004
-      # NOTIFICATION_SERVICE_URL: http://notification-service:8005
+      MEMBER_SERVICE_URL: http://member-service:8002
+      LIBRARY_SERVICE_URL: http://library-service:8003
+      ATTENDANCE_SERVICE_URL: http://attendance-service:8004
+      NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["4000:4000"]
     depends_on: [register, login]
 
@@ -47,7 +47,7 @@ services:
     environment:
       PORT: "8000"
       REDIS_URL: redis://redis:6379
-      # NOTIFICATION_SERVICE_URL: http://notification-service:8005
+      NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["8000:8000"]
     depends_on: [redis]
 
@@ -58,39 +58,39 @@ services:
     environment:
       PORT: "8001"
       REDIS_URL: redis://redis:6379
-      # NOTIFICATION_SERVICE_URL: http://notification-service:8005
+      NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["8001:8001"]
     volumes: [event_uploads:/backend/uploads]
     depends_on: [redis]
 
-  # member-service:
-  #   <<: *base
-  #   build: ./apps/member-service
-  #   env_file: ./apps/member-service/.env
-  #   environment: { PORT: "8002" }
-  #   ports: ["8002:8002"]
-  #   volumes: [member_documents:/backend/documents]
+  member-service:
+    <<: *base
+    build: ./apps/member-service
+    env_file: ./apps/member-service/.env
+    environment: { PORT: "8002" }
+    ports: ["8002:8002"]
+    volumes: [member_documents:/backend/documents]
 
-  # library-service:
-  #   <<: *base
-  #   build: ./apps/library-service
-  #   env_file: ./apps/library-service/.env
-  #   environment: { PORT: "8003" }
-  #   ports: ["8003:8003"]
+  library-service:
+    <<: *base
+    build: ./apps/library-service
+    env_file: ./apps/library-service/.env
+    environment: { PORT: "8003" }
+    ports: ["8003:8003"]
 
-  # attendance-service:
-  #   <<: *base
-  #   build: ./apps/attendance-service
-  #   env_file: ./apps/attendance-service/.env
-  #   environment: { PORT: "8004" }
-  #   ports: ["8004:8004"]
+  attendance-service:
+    <<: *base
+    build: ./apps/attendance-service
+    env_file: ./apps/attendance-service/.env
+    environment: { PORT: "8004" }
+    ports: ["8004:8004"]
 
-  # notification-service:
-  #   <<: *base
-  #   build: ./apps/notification-service
-  #   env_file: ./apps/notification-service/.env
-  #   environment: { PORT: "8005" }
-  #   ports: ["8005:8005"]
+  notification-service:
+    <<: *base
+    build: ./apps/notification-service
+    env_file: ./apps/notification-service/.env
+    environment: { PORT: "8005" }
+    ports: ["8005:8005"]
 
 volumes:
   event_uploads:

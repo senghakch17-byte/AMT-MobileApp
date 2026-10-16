@@ -1,0 +1,19 @@
+$kind: http-request
+description: Public. Creates a standard user; duplicate email returns 400.
+url: "{{gatewayUrl}}/register/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Example User",
+      "emailid": "{{userEmail}}",
+      "pass": "{{userPassword}}",
+      "mobile": "+85512345678",
+      "role": "user"
+    }
+auth:
+  type: noauth
+order: 1000

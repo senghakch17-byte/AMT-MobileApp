@@ -1,0 +1,30 @@
+$kind: http-request
+description: Use scholarship_type need_based with monthly_family_income, or merit with academic_average. Active duplicate academic_year returns 409.
+url: "{{gatewayUrl}}/request/pre-scholarship-registrations"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "scholarship_type": "need_based",
+      "academic_year": "{{preScholarshipAcademicYear}}",
+      "full_name": "Example Student",
+      "date_of_birth": "2010-04-15",
+      "gender": "female",
+      "phone": "+85512345678",
+      "address": "123 Example Street, Phnom Penh",
+      "school_name": "Example High School",
+      "grade_level": "Grade 10",
+      "guardian_name": "Example Guardian",
+      "guardian_phone": "+85512345679",
+      "guardian_relationship": "parent",
+      "monthly_family_income": 300,
+      "number_of_dependents": 4,
+      "academic_average": 85,
+      "achievements": [],
+      "statement": "Our family needs support so I can continue my education.",
+      "document_urls": []
+    }
+order: 7000

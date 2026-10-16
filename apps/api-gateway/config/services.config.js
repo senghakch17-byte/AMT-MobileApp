@@ -1,10 +1,11 @@
 // Default gateway routes keep existing behavior when GATEWAY_SERVICES is not set.
-// { prefix: 'user', env: 'USER_SERVICE_URL', protected: true, role: 'admin' }, 
+// { prefix: 'user', env: 'USER_SERVICE_URL', protected: true, role: 'admin' },
 const DEFAULT_SERVICE_ROUTES = [
   { prefix: 'register', env: 'REGISTER_SERVICE_URL', protected: false },
   { prefix: 'auth', env: 'LOGIN_SERVICE_URL', protected: false },
   { prefix: 'request', env: 'REQUEST_SERVICE_URL', protected: true },
   { prefix: 'event', env: 'EVENT_SERVICE_URL', protected: true },
+  { prefix: 'attendance', env: 'ATTENDANCE_SERVICE_URL', protected: true },
 ];
 
 // Resolve each service target from its environment variable name.

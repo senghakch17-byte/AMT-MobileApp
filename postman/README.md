@@ -55,4 +55,3 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost:
 - `502`: gateway cannot reach the upstream service; check `docker compose ps` and logs.
 
 The direct service health/doc URLs are documented in the root README. These Postman requests use the gateway paths so they exercise gateway JWT authentication too.
-

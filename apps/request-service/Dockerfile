@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 8000
 
 # 7. Start the API server using uv's managed environment
-CMD ["uv", "run", "--frozen", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]    
+CMD ["uv", "run", "--frozen", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

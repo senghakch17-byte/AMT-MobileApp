@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,  
+    title=settings.PROJECT_NAME,
     lifespan=lifespan,
 )
 app.state.limiter = limiter

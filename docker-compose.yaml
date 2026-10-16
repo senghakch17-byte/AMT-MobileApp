@@ -3,95 +3,119 @@ x-base: &base
   restart: unless-stopped
 
 services:
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    depends_on: [gateway1, gateway2]
+    ports: ["80:80"]
+    networks: [app-net]
+
   redis:
     <<: *base
     image: redis:alpine
     command: redis-server --save "" --appendonly no
+    container_name: redis
     ports: ["6379:6379"]
+    networks: [app-net]
 
-  # ---- Node ----
   register:
     build: ./apps/registration-service
-    env_file: ./apps/registration-service/.env
-    environment: { PORT: "5001" }
+    container_name: registration-service
+    env_file:
+      - path: ./apps/registration-service/.env
+        required: false
+    environment: [PORT=5001]
     ports: ["5001:5001"]
+    networks: [app-net]
 
   login:
     build: ./apps/login-service
-    env_file: ./apps/login-service/.env
-    environment: { PORT: "5002" }
+    container_name: login-service
+    env_file:
+      - path: ./apps/login-service/.env
+        required: false
+    environment: [PORT=5002]
     ports: ["5002:5002"]
+    networks: [app-net]
 
-  api-gateway:
-    <<: *base
-    build: ./apps/api-gateway
-    env_file: ./apps/api-gateway/.env
-    environment:
-      PORT: "4000"
-      REGISTER_SERVICE_URL: http://register:5001
-      LOGIN_SERVICE_URL: http://login:5002
-      REQUEST_SERVICE_URL: http://request-service:8000
-      EVENT_SERVICE_URL: http://event-service:8001
-      MEMBER_SERVICE_URL: http://member-service:8002
-      LIBRARY_SERVICE_URL: http://library-service:8003
-      ATTENDANCE_SERVICE_URL: http://attendance-service:8004
-      NOTIFICATION_SERVICE_URL: http://notification-service:8005
-    ports: ["4000:4000"]
-    depends_on: [register, login]
-
-  # ---- FastAPI ----
   request-service:
-    
+    <<: *base
     build: ./apps/request-service
-    env_file: ./apps/request-service/.env
+    container_name: request-service
+    env_file:
+      - path: ./apps/request-service/.env
+        required: false
     environment:
-      PORT: "8000"
       REDIS_URL: redis://redis:6379
-      NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["8000:8000"]
     depends_on: [redis]
+    networks: [app-net]
 
   event-service:
-    
+    <<: *base
     build: ./apps/event-service
-    env_file: ./apps/event-service/.env
+    container_name: event-service
+    env_file:
+      - path: ./apps/event-service/.env
+        required: false
     environment:
-      PORT: "8001"
       REDIS_URL: redis://redis:6379
-      NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["8001:8001"]
     volumes: [event_uploads:/backend/uploads]
     depends_on: [redis]
-
-  member-service:
-    <<: *base
-    build: ./apps/member-service
-    env_file: ./apps/member-service/.env
-    environment: { PORT: "8002" }
-    ports: ["8002:8002"]
-    volumes: [member_documents:/backend/documents]
-
-  library-service:
-    <<: *base
-    build: ./apps/library-service
-    env_file: ./apps/library-service/.env
-    environment: { PORT: "8003" }
-    ports: ["8003:8003"]
+    networks: [app-net]
 
   attendance-service:
     <<: *base
     build: ./apps/attendance-service
-    env_file: ./apps/attendance-service/.env
-    environment: { PORT: "8004" }
-    ports: ["8004:8004"]
+    container_name: attendance-service
+    env_file:
+      - path: ./apps/attendance-service/.env
+        required: false
+    ports: ["8002:8002"]
+    networks: [app-net]
 
-  notification-service:
+  gateway1:
     <<: *base
-    build: ./apps/notification-service
-    env_file: ./apps/notification-service/.env
-    environment: { PORT: "8005" }
-    ports: ["8005:8005"]
+    build: ./apps/api-gateway
+    container_name: gateway1
+    env_file:
+      - path: ./apps/api-gateway/.env
+        required: false
+    environment:
+      - PORT=4000
+      - REGISTER_SERVICE_URL=http://registration-service:5001
+      - LOGIN_SERVICE_URL=http://login-service:5002
+      - REQUEST_SERVICE_URL=http://request-service:8000
+      - EVENT_SERVICE_URL=http://event-service:8001
+      - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
+      - REDIS_URL=redis://redis:6379
+    ports: ["4000:4000"]
+    depends_on: [register, login, request-service, event-service, attendance-service, redis]
+    networks: [app-net]
+
+  gateway2:
+    <<: *base
+    build: ./apps/api-gateway
+    container_name: gateway2
+    env_file:
+      - path: ./apps/api-gateway/.env
+        required: false
+    environment:
+      - PORT=4000
+      - REGISTER_SERVICE_URL=http://registration-service:5001
+      - LOGIN_SERVICE_URL=http://login-service:5002
+      - REQUEST_SERVICE_URL=http://request-service:8000
+      - EVENT_SERVICE_URL=http://event-service:8001
+      - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
+      - REDIS_URL=redis://redis:6379
+    ports: ["4001:4000"]
+    depends_on: [register, login, request-service, event-service, attendance-service, redis]
+    networks: [app-net]
+
+networks:
+  app-net:
+    driver: bridge
 
 volumes:
   event_uploads:
-  member_documents:

@@ -1,6 +1,6 @@
 # API Contract
 
-Gateway health, registration, and login are public. Every `/request/*`, `/event/*`, `/attendance/*`, and `/notification/*` gateway request requires `Authorization: Bearer <token>`. Use `http://localhost` through Nginx. Direct service exposure bypasses gateway authentication, but protected service handlers still enforce their own JWT dependencies.
+Gateway health, registration, and login are public. Every `/request/*`, `/event/*`, `/attendance/*`, `/notification/*`, `/members/*`, and `/library/*` gateway request requires `Authorization: Bearer <token>`. Use `http://localhost` through Nginx. Direct service exposure bypasses gateway authentication, but protected service handlers still enforce their own JWT dependencies.
 
 ### Gateway routes
 
@@ -13,6 +13,8 @@ Gateway health, registration, and login are public. Every `/request/*`, `/event/
 | Any | `/event/*` | JWT required | Event; prefix stripped |
 | Any | `/attendance/*` | JWT required | Attendance; prefix stripped |
 | Any | `/notification/*` | JWT required | Notification; prefix stripped |
+| Any | `/members/*` | JWT required | Member; prefix stripped |
+| Any | `/library/*` | JWT required | Library; prefix stripped |
 
 ### Registration and login
 
@@ -72,6 +74,55 @@ Direct base: `http://localhost:8002`
 | GET | `/me` | JWT; list current user's records |
 | GET | `/` | Admin; list records with optional filters |
 | PATCH | `/{id}` | Admin; update attendance record |
+
+### Member service
+
+Gateway API base: `/members/api/v1`
+
+Direct API base: `http://localhost:8004/api/v1`
+
+| Method | Relative path | Access and behavior |
+| --- | --- | --- |
+| GET | `/members/me` | JWT; get own profile, creating it from JWT claims on first use |
+| PATCH | `/members/me` | JWT; update own `full_name`, `phone`, `address`, or `date_of_birth` |
+| POST | `/members/me/documents` | JWT; upload own PDF, JPEG, PNG, or WEBP document as multipart form data |
+| GET | `/members/me/documents` | JWT; list own documents; optional `doc_type`, `skip`, and `limit` |
+| GET | `/members/me/documents/{document_id}/download` | JWT; download own document |
+| GET | `/members` | Admin; list profiles; optional `q`, `role`, `skip`, and `limit` |
+| GET | `/members/{user_id}` | Admin or matching user; get profile |
+| GET | `/members/{user_id}/documents` | Admin or matching user; list documents |
+| GET | `/members/{user_id}/documents/{document_id}/download` | Admin or matching user; download document |
+
+List endpoints return total matching records in `X-Total-Count`. `user_id` is the JWT `id` claim, not the member document's MongoDB ID. Documents are private and have no static file route. Health check uses `/members/health` through the gateway or `http://localhost:8004/health` directly.
+
+### Library service
+
+Gateway API base: `/library/api/v1`
+
+Direct API base: `http://localhost:8003/api/v1`
+
+| Method | Relative path | Access and behavior |
+| --- | --- | --- |
+| POST | `/rooms` | Admin; create room |
+| GET | `/rooms` | JWT; list rooms; optional `q`, `min_capacity`, `amenity`, `skip`, and `limit`; admin may also use `is_active` |
+| GET | `/rooms/{room_id}` | JWT; get visible room |
+| GET | `/rooms/{room_id}/availability` | JWT; list approved busy slots; required `start` and `end`, maximum 31-day window |
+| PATCH | `/rooms/{room_id}` | Admin; update room or set `is_active` |
+| DELETE | `/rooms/{room_id}` | Admin; delete room only when no booking history exists |
+| POST | `/bookings` | JWT; create room booking |
+| GET | `/bookings/me` | JWT; list own bookings; optional `status`, `upcoming`, `skip`, and `limit` |
+| GET | `/bookings` | Admin; list booking history; optional `status`, `room_id`, `user_id`, `start_from`, `start_to`, `skip`, and `limit` |
+| GET | `/bookings/{booking_id}` | Owner or admin; get booking |
+| POST | `/bookings/{booking_id}/cancel` | Owner or admin; cancel pending or approved future booking |
+| POST | `/bookings/{booking_id}/approve` | Admin; approve pending booking; optional `note` body |
+| POST | `/bookings/{booking_id}/reject` | Admin; reject pending booking; optional `note` body |
+| POST | `/books` | Admin; create catalog book |
+| GET | `/books` | JWT; browse catalog; optional `q`, `category`, `skip`, and `limit` |
+| GET | `/books/{book_id}` | JWT; get book |
+| PATCH | `/books/{book_id}` | Admin; update book |
+| DELETE | `/books/{book_id}` | Admin; delete book |
+
+List endpoints return total matching records in `X-Total-Count`. Only approved bookings reserve time. Health check uses `/library/health` through the gateway or `http://localhost:8003/health` directly.
 
 ### Notification service
 

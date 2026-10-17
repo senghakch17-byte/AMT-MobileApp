@@ -1,9 +1,9 @@
 services:
 
   register:
-    build: ./registration-service
+    build: ./apps/registration-service
     container_name: registration-service
-    env_file: ./registration-service/.env
+    env_file: ./apps/registration-service/.env
     environment:
       - PORT=5001
     ports:
@@ -11,9 +11,9 @@ services:
     networks: [app-net]
 
   login:
-    build: ./login-service
+    build: ./apps/login-service
     container_name: login-service
-    env_file: ./login-service/.env
+    env_file: ./apps/login-service/.env
     environment:
       - PORT=5002
     ports:
@@ -21,16 +21,16 @@ services:
     networks: [app-net]
 
   request-service:
-    build: ./request-service
-    env_file: ./request-service/.env
+    build: ./apps/request-service
+    env_file: ./apps/request-service/.env
     container_name: request-service
     ports:
       - "8000:8000"
     networks: [app-net]
 
   event-service:
-    build: ./event-service
-    env_file: ./event-service/.env
+    build: ./apps/event-service
+    env_file: ./apps/event-service/.env
     container_name: event-service
     ports:
       - "8001:8001"
@@ -38,19 +38,39 @@ services:
       - event_uploads:/backend/uploads
     networks: [app-net]
 
+  member-service:
+    build: ./apps/member-service
+    container_name: member-service
+    env_file: ./apps/member-service/.env
+    ports:
+      - "8002:8002"
+    volumes:
+      - member_uploads:/backend/uploads
+    networks: [app-net]
+
+  library-service:
+    build: ./apps/library-service
+    container_name: library-service
+    env_file: ./apps/library-service/.env
+    ports:
+      - "8003:8003"
+    networks: [app-net]
+
   api-gateway:
-    build: ./api-gateway
+    build: ./apps/api-gateway
     container_name: api-gateway
-    env_file: ./api-gateway/.env
+    env_file: ./apps/api-gateway/.env
     environment:
       - PORT=4000
       - REGISTER_SERVICE_URL=http://registration-service:5001
       - LOGIN_SERVICE_URL=http://login-service:5002
       - REQUEST_SERVICE_URL=http://request-service:8000
       - EVENT_SERVICE_URL=http://event-service:8001
+      - MEMBER_SERVICE_URL=http://member-service:8002
+      - LIBRARY_SERVICE_URL=http://library-service:8003
     ports:
       - "4000:4000"
-    depends_on: [register, login, request-service, event-service]
+    depends_on: [register, login, request-service, event-service, member-service, library-service]
     networks: [app-net]
   
 networks:
@@ -58,3 +78,4 @@ networks:
     driver: bridge
 volumes:
   event_uploads:
+  member_uploads:

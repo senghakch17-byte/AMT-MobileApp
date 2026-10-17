@@ -19,10 +19,12 @@ const REGISTER_SERVICE = process.env.REGISTER_SERVICE_URL;
 const LOGIN_SERVICE = process.env.LOGIN_SERVICE_URL;
 const REQUEST_SERVICE = process.env.REQUEST_SERVICE_URL;
 const EVENT_SERVICE = process.env.EVENT_SERVICE_URL;
+const MEMBER_SERVICE = process.env.MEMBER_SERVICE_URL;
+const LIBRARY_SERVICE = process.env.LIBRARY_SERVICE_URL;
 
-console.log('[Gateway] Targets:', { REGISTER_SERVICE, LOGIN_SERVICE, REQUEST_SERVICE, EVENT_SERVICE });
+console.log('[Gateway] Targets:', { REGISTER_SERVICE, LOGIN_SERVICE, REQUEST_SERVICE, EVENT_SERVICE, MEMBER_SERVICE, LIBRARY_SERVICE });
 
-if (!REGISTER_SERVICE || !LOGIN_SERVICE || !REQUEST_SERVICE || !EVENT_SERVICE) {
+if (!REGISTER_SERVICE || !LOGIN_SERVICE || !REQUEST_SERVICE || !EVENT_SERVICE || !MEMBER_SERVICE || !LIBRARY_SERVICE) {
   console.error('[Gateway] Missing one or more service URL env vars');
 }
 
@@ -92,6 +94,17 @@ app.use('/event', authToken, (req, res) => {
   proxy.web(req, res, { target: EVENT_SERVICE });
 });
 
+// 4. MEMBER SERVICE
+app.use(['/members', '/member'], authToken, (req, res) => {
+  console.log('[Gateway] Routing to Member Service:', req.method, req.originalUrl);
+  proxy.web(req, res, { target: MEMBER_SERVICE });
+});
+
+// 5. LIBRARY SERVICE
+app.use('/library', authToken, (req, res) => {
+  console.log('[Gateway] Routing to Library Service:', req.method, req.originalUrl);
+  proxy.web(req, res, { target: LIBRARY_SERVICE });
+});
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

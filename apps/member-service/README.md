@@ -38,10 +38,10 @@ List endpoints return the total in an `X-Total-Count` header.
 ```bash
 uv sync
 cp .env.example .env        # set MONGODB_URI and the same JWT_SECRET as the auth service
-uv run uvicorn app.main:app --reload --port 8002
+uv run uvicorn app.main:app --reload --port 8004
 ```
 
-Swagger UI: http://localhost:8002/docs
+Swagger UI: http://localhost:8004/docs
 
 ## Tests
 
@@ -56,7 +56,7 @@ DB tests use a throwaway database named `member_service_test`.
 
 ```bash
 docker build -t member-service .
-docker run -p 8002:8002 --env-file .env member-service
+docker run -p 8004:8004 --env-file .env member-service
 ```
 
 Mount a volume at `/backend/uploads` so uploaded documents survive container restarts.

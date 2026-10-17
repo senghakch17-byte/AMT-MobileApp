@@ -8,19 +8,21 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 - Public entry: `nginx` load balancer on port `80`, routing to gateway replicas on ports `4000` and `4001`
 - Gateway: Node.js / Express in `apps/api-gateway`
 - Node services: registration, login, attendance, and notification
-- Python services: request and event APIs using FastAPI
+- Python services: request, event, member, and library APIs using FastAPI
 - Database: external MongoDB
 - Deployment: local Docker Compose; EC2 Compose files exist but remain incomplete and unverified for production
 
 ## Service Map
 
-- `apps/api-gateway/` — Express gateway, proxy routing, and JWT middleware in `index.js`.
+- `apps/api-gateway/` — Express gateway, dynamic service proxy routing, and JWT middleware in `server.js` and `app.js`.
 - `apps/registration-service/` — Express/Mongoose registration service.
 - `apps/login-service/` — Express/Mongoose login service and JWT issuing.
 - `apps/attendance-service/` — Express/Mongoose attendance check-in, check-out, and administration API.
 - `apps/notification-service/` — Express/Mongoose in-app notifications, receipt state, preferences, and Redis event consumer.
 - `apps/request-service/` — FastAPI/Beanie request APIs.
 - `apps/event-service/` — FastAPI/Beanie event APIs and uploads.
+- `apps/member-service/` — FastAPI/Beanie member profiles and document history APIs.
+- `apps/library-service/` — FastAPI/Beanie room booking and book catalog APIs.
 - `nginx/` — public load balancer configuration connected to root Compose.
 - `deploy/` — EC2 compose placeholders. Do not claim production deployment is complete from these files alone.
 
@@ -54,6 +56,8 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 	- `/event`
 	- `/attendance`
 	- `/notification`
+	- `/members`
+	- `/library`
 	- `/health`
 - Follow REST conventions and use appropriate HTTP status codes.
 - Keep response shapes stable for mobile clients.

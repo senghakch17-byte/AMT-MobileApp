@@ -13,8 +13,8 @@ RUN uv sync --frozen --no-cache --no-install-project --no-dev
 # 5. Copy the application into the working directory
 COPY . .
 
-# 6. Tell Docker to open up Port 8002
-EXPOSE 8002
+# 6. Tell Docker to open up Port 8004
+EXPOSE 8004
 
 # 7. Start the API server using uv's managed environment
-CMD ["uv", "run", "--no-sync", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002"]
+CMD ["uv", "run", "--no-sync", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8004"]

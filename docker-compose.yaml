@@ -92,7 +92,7 @@ services:
     env_file:
       - path: ./apps/member-service/.env
         required: false
-    ports: ["8004:8002"]
+    ports: ["8004:8004"]
     volumes: [member_uploads:/backend/uploads]
     networks: [app-net]
 
@@ -124,7 +124,7 @@ services:
       - EVENT_SERVICE_URL=http://event-service:8001
       - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
       - LIBRARY_SERVICE_URL=http://library-service:8003
-      - MEMBER_SERVICE_URL=http://member-service:8002
+      - MEMBER_SERVICE_URL=http://member-service:8004
       - NOTIFICATION_SERVICE_URL=http://notification-service:8005
       - REDIS_URL=redis://redis:6379
     ports: ["4000:4000"]
@@ -146,7 +146,7 @@ services:
       - EVENT_SERVICE_URL=http://event-service:8001
       - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
       - LIBRARY_SERVICE_URL=http://library-service:8003
-      - MEMBER_SERVICE_URL=http://member-service:8002
+      - MEMBER_SERVICE_URL=http://member-service:8004
       - NOTIFICATION_SERVICE_URL=http://notification-service:8005
       - REDIS_URL=redis://redis:6379
     ports: ["4001:4000"]

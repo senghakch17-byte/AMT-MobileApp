@@ -1,81 +1,162 @@
+# LOCAL: docker compose up --build
+x-base: &base
+  restart: unless-stopped
+
 services:
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    depends_on: [gateway1, gateway2]
+    ports: ["80:80"]
+    networks: [app-net]
+
+  redis:
+    <<: *base
+    image: redis:alpine
+    command: redis-server --save "" --appendonly no
+    container_name: redis
+    ports: ["6379:6379"]
+    networks: [app-net]
 
   register:
     build: ./apps/registration-service
     container_name: registration-service
-    env_file: ./apps/registration-service/.env
-    environment:
-      - PORT=5001
-    ports:
-      - "5001:5001"
+    env_file:
+      - path: ./apps/registration-service/.env
+        required: false
+    environment: [PORT=5001]
+    ports: ["5001:5001"]
     networks: [app-net]
 
   login:
     build: ./apps/login-service
     container_name: login-service
-    env_file: ./apps/login-service/.env
-    environment:
-      - PORT=5002
-    ports:
-      - "5002:5002"
+    env_file:
+      - path: ./apps/login-service/.env
+        required: false
+    environment: [PORT=5002]
+    ports: ["5002:5002"]
     networks: [app-net]
 
   request-service:
+    <<: *base
     build: ./apps/request-service
-    env_file: ./apps/request-service/.env
     container_name: request-service
-    ports:
-      - "8000:8000"
+    env_file:
+      - path: ./apps/request-service/.env
+        required: false
+    environment:
+      REDIS_URL: redis://redis:6379
+    ports: ["8000:8000"]
+    depends_on: [redis]
     networks: [app-net]
 
   event-service:
+    <<: *base
     build: ./apps/event-service
-    env_file: ./apps/event-service/.env
     container_name: event-service
-    ports:
-      - "8001:8001"
-    volumes:
-      - event_uploads:/backend/uploads
+    env_file:
+      - path: ./apps/event-service/.env
+        required: false
+    environment:
+      REDIS_URL: redis://redis:6379
+    ports: ["8001:8001"]
+    volumes: [event_uploads:/backend/uploads]
+    depends_on: [redis]
     networks: [app-net]
 
-  member-service:
-    build: ./apps/member-service
-    container_name: member-service
-    env_file: ./apps/member-service/.env
-    ports:
-      - "8002:8002"
-    volumes:
-      - member_uploads:/backend/uploads
+  attendance-service:
+    <<: *base
+    build: ./apps/attendance-service
+    container_name: attendance-service
+    env_file:
+      - path: ./apps/attendance-service/.env
+        required: false
+    ports: ["8002:8002"]
     networks: [app-net]
 
   library-service:
+    <<: *base
     build: ./apps/library-service
     container_name: library-service
-    env_file: ./apps/library-service/.env
-    ports:
-      - "8003:8003"
+    env_file:
+      - path: ./apps/library-service/.env
+        required: false
+    ports: ["8003:8003"]
     networks: [app-net]
 
-  api-gateway:
+  member-service:
+    <<: *base
+    build: ./apps/member-service
+    container_name: member-service
+    env_file:
+      - path: ./apps/member-service/.env
+        required: false
+    ports: ["8004:8002"]
+    volumes: [member_uploads:/backend/uploads]
+    networks: [app-net]
+
+  notification-service:
+    <<: *base
+    build: ./apps/notification-service
+    container_name: notification-service
+    env_file:
+      - path: ./apps/notification-service/.env
+        required: false
+    environment:
+      REDIS_URL: redis://redis:6379
+    ports: ["8005:8005"]
+    depends_on: [redis]
+    networks: [app-net]
+
+  gateway1:
+    <<: *base
     build: ./apps/api-gateway
-    container_name: api-gateway
-    env_file: ./apps/api-gateway/.env
+    container_name: gateway1
+    env_file:
+      - path: ./apps/api-gateway/.env
+        required: false
     environment:
       - PORT=4000
       - REGISTER_SERVICE_URL=http://registration-service:5001
       - LOGIN_SERVICE_URL=http://login-service:5002
       - REQUEST_SERVICE_URL=http://request-service:8000
       - EVENT_SERVICE_URL=http://event-service:8001
-      - MEMBER_SERVICE_URL=http://member-service:8002
+      - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
       - LIBRARY_SERVICE_URL=http://library-service:8003
-    ports:
-      - "4000:4000"
-    depends_on: [register, login, request-service, event-service, member-service, library-service]
+      - MEMBER_SERVICE_URL=http://member-service:8002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8005
+      - REDIS_URL=redis://redis:6379
+    ports: ["4000:4000"]
+    depends_on: [register, login, request-service, event-service, attendance-service, library-service, member-service, notification-service, redis]
     networks: [app-net]
-  
+
+  gateway2:
+    <<: *base
+    build: ./apps/api-gateway
+    container_name: gateway2
+    env_file:
+      - path: ./apps/api-gateway/.env
+        required: false
+    environment:
+      - PORT=4000
+      - REGISTER_SERVICE_URL=http://registration-service:5001
+      - LOGIN_SERVICE_URL=http://login-service:5002
+      - REQUEST_SERVICE_URL=http://request-service:8000
+      - EVENT_SERVICE_URL=http://event-service:8001
+      - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
+      - LIBRARY_SERVICE_URL=http://library-service:8003
+      - MEMBER_SERVICE_URL=http://member-service:8002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8005
+      - REDIS_URL=redis://redis:6379
+    ports: ["4001:4000"]
+    depends_on: [register, login, request-service, event-service, attendance-service, library-service, member-service, notification-service, redis]
+    networks: [app-net]
+
 networks:
   app-net:
     driver: bridge
+
 volumes:
   event_uploads:
   member_uploads:

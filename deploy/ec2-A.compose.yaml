@@ -1,0 +1,49 @@
+# EC2-A: nginx, two API gateways, registration, login, Redis
+x-gateway: &gateway
+  extends: { file: common.yaml, service: base }
+  image: api-gateway
+  build: ../apps/api-gateway
+  env_file: ../apps/api-gateway/.env
+  environment:
+    PORT: "4000"
+    REGISTER_SERVICE_URL: http://register:5001
+    LOGIN_SERVICE_URL: http://login:5002
+    REQUEST_SERVICE_URL: http://${EC2_B_IP}:8000
+    EVENT_SERVICE_URL: http://${EC2_B_IP}:8001
+    ATTENDANCE_SERVICE_URL: http://${EC2_C_IP}:8002
+    NOTIFICATION_SERVICE_URL: http://${EC2_C_IP}:8005
+    REDIS_URL: redis://redis:6379
+  depends_on: [register, login]
+
+services:
+  nginx:
+    extends: { file: common.yaml, service: base }
+    build: ../nginx
+    ports: ["80:80"]
+    cap_add: [CHOWN, SETGID, SETUID, NET_BIND_SERVICE]
+    tmpfs: [/var/cache/nginx, /run]
+    depends_on: [gateway1, gateway2]
+
+  gateway1:
+    <<: *gateway
+  gateway2:
+    <<: *gateway
+
+  register:
+    extends: { file: common.yaml, service: base }
+    build: ../apps/registration-service
+    env_file: ../apps/registration-service/.env
+    environment: { PORT: "5001" }
+
+  login:
+    extends: { file: common.yaml, service: base }
+    build: ../apps/login-service
+    env_file: ../apps/login-service/.env
+    environment: { PORT: "5002" }
+
+  redis:
+    extends: { file: common.yaml, service: base }
+    image: redis:7-alpine
+    user: redis
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --save "" --appendonly no
+    ports: ["6379:6379"]

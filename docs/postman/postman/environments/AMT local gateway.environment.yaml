@@ -1,0 +1,26 @@
+name: AMT local gateway
+values:
+  - key: gatewayUrl
+    value: 'http://localhost:4000'
+  - key: userEmail
+    value: user@example.com
+  - key: userPassword
+    value: ChangeMe123!
+  - key: adminEmail
+    value: admin@example.com
+  - key: adminPassword
+    value: ChangeMeAdmin123!
+  - key: userToken
+    secret: true
+  - key: adminToken
+    secret: true
+  - key: leaveRequestId
+    value: ''
+  - key: eventId
+    value: ''
+  - key: attendanceId
+    value: ''
+  - key: notificationId
+    value: ''
+  - key: preScholarshipAcademicYear
+    value: 2026-2027

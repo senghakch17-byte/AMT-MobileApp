@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{gatewayUrl}}/event/events/{{eventId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "published"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+order: 4000

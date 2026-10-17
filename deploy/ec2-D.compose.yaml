@@ -1,0 +1,3 @@
+# EC2-D is reserved. Member and library service source directories do not exist
+# in this repository, so this host has no active Compose services.
+services: {}

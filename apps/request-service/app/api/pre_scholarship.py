@@ -1,8 +1,10 @@
 from beanie import PydanticObjectId
 from beanie.operators import In
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from app.api.deps import get_current_user
+from app.core.cache import bump_version, cached_list
+from app.core.limiter import limiter
 from app.core.security import CurrentUser
 from app.database.models import PreScholarshipRegistration as Registration
 from app.schemas.pre_scholarship import (
@@ -24,6 +26,7 @@ router = APIRouter(
 )
 
 ACTIVE = [RequestStatus.PENDING.value, RequestStatus.APPROVED.value]
+NS = "prescholarship"
 
 
 async def _ensure_not_duplicate(
@@ -56,20 +59,31 @@ async def send_registration(
         **payload.model_dump(), student_id=user.id, student_email=user.emailid
     )
     await doc.insert()
+    await bump_version(NS, user.id)
     return doc
 
 
 @router.get("", response_model=list[PreScholarshipResponse])
+@limiter.limit("60/minute")
 async def list_my_registrations(
+    request: Request,
     status_filter: RequestStatus | None = Query(None, alias="status"),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     user: CurrentUser = Depends(get_current_user),
 ):
-    query = Registration.find(Registration.student_id == user.id)
-    if status_filter:
-        query = query.find(Registration.status == status_filter)
-    return await query.sort("-created_at").skip(skip).limit(limit).to_list()
+    async def load():
+        query = Registration.find(Registration.student_id == user.id)
+        if status_filter:
+            query = query.find(Registration.status == status_filter)
+        docs = await query.sort("-created_at").skip(skip).limit(limit).to_list()
+        return [
+            PreScholarshipResponse.model_validate(d, from_attributes=True).model_dump(mode="json")
+            for d in docs
+        ]
+
+    sub = f"{status_filter.value if status_filter else 'all'}:{skip}:{limit}"
+    return await cached_list(NS, user.id, sub, load)
 
 
 #===============================================

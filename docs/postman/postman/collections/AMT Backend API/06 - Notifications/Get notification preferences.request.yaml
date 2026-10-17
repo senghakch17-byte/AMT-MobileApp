@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{gatewayUrl}}/notification/api/v1/notification-preferences/me"
+method: GET
+order: 7000

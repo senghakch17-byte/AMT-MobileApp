@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{gatewayUrl}}/notification/api/v1/notification-preferences/me"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "inAppEnabled": true,
+      "mutedTypes": []
+    }
+order: 8000

@@ -1,0 +1,23 @@
+$kind: http-request
+description: Creates an admin bearer token when the admin account exists.
+url: "{{gatewayUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "emailid": "{{adminEmail}}",
+      "pass": "{{adminPassword}}",
+      "role": "admin"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Login succeeded', function () { pm.expect(pm.response.code).to.eql(200); });
+      if (pm.response.code === 200) { pm.environment.set('adminToken', pm.response.json().token); }
+    language: text/javascript
+order: 4000

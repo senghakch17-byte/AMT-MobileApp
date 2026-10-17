@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 # Settings are read at import time, so configure the environment first.
 # The test database name is forced so tests can never touch real data.
-os.environ["JWT_SECRET"] = "test-secret"
+os.environ["JWT_SECRET"] = "member-service-test-secret-0123456789"
 os.environ["JWT_ALGORITHM"] = "HS256"
 os.environ["MONGODB_URI"] = os.environ.get("MONGODB_TEST_URI", "mongodb://localhost:27017")
 os.environ["MONGODB_DB_NAME"] = "member_service_test"
@@ -26,7 +26,7 @@ def make_token(user_id: str, role: str = "member", email: str | None = None) -> 
         "role": role,
         "exp": datetime.now(timezone.utc) + timedelta(hours=1),
     }
-    token = jwt.encode(payload, "test-secret", algorithm="HS256")
+    token = jwt.encode(payload, os.environ["JWT_SECRET"], algorithm="HS256")
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -60,8 +60,9 @@ async def db_client():
 
     try:
         async with app.router.lifespan_context(app):
-            await mongodb.client[os.environ["MONGODB_DB_NAME"]].drop_collection("members")
-            await mongodb.client[os.environ["MONGODB_DB_NAME"]].drop_collection("member_documents")
+            db = mongodb.client[os.environ["MONGODB_DB_NAME"]]
+            await db["members"].delete_many({})
+            await db["member_documents"].delete_many({})
             transport = httpx.ASGITransport(app=app)
             async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as c:
                 yield c

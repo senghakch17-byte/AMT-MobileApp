@@ -77,6 +77,16 @@ docker compose down -v # also removes event uploads
 
 `depends_on` controls startup order, not readiness. No Compose health checks wait for MongoDB or upstream APIs.
 
+## Tests
+
+Run all service suites from repository root:
+
+```bash
+./test-all.sh
+```
+
+The script stops at first failure. Python suites run `uv sync` before `pytest`.
+
 ## Documentation
 
 - [API contract](docs/API_CONTRACT.md)

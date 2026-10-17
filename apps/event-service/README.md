@@ -37,13 +37,13 @@ Required configuration includes `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, 
 
 ## URLs
 
-- Direct API base: `http://localhost:8001/api/v1`
-- Gateway API base: `http://localhost:4000/event/api/v1`
+- Direct API base: `http://localhost:8001`
+- Gateway API base: `http://localhost:4000/event`
 - Direct uploads: `http://localhost:8001/uploads`
 - Gateway uploads: `http://localhost:4000/event/uploads`
 - Direct OpenAPI: `http://localhost:8001/openapi.json`
 
-Current app `root_path` is `/events`, which does not match gateway prefix `/event`. Generated Swagger URLs may be incorrect until runtime configuration is reconciled.
+Gateway proxy strips `/event` before forwarding to direct-service routes.
 
 All gateway `/event/*` traffic requires JWT. Event handlers also enforce authenticated-user or admin access.
 
@@ -59,3 +59,12 @@ All gateway `/event/*` traffic requires JWT. Event handlers also enforce authent
 | GET | `/uploads/*` | Static files; gateway access requires JWT |
 
 Image upload and removal handlers are disabled in source and are not available routes. Existing uploaded files remain served by static mount.
+
+## Tests
+
+```bash
+uv sync
+uv run pytest
+```
+
+Route and schema tests run without MongoDB. Add `MONGODB_TEST_URI` when integration tests are added.

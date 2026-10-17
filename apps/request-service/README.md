@@ -39,12 +39,12 @@ Required configuration includes `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, 
 
 ## URLs
 
-- Direct base: `http://localhost:8000/api/v1`
-- Gateway base: `http://localhost:4000/request/api/v1`
-- Direct health: `http://localhost:8000/api/v1/health`
-- Direct OpenAPI: `http://localhost:8000/api/v1/openapi.json`
+- Direct base: `http://localhost:8000`
+- Gateway base: `http://localhost:4000/request`
+- Direct health: `http://localhost:8000/health`
+- Direct OpenAPI: `http://localhost:8000/openapi.json`
 
-Current app `root_path` is `/fastapi`, which does not match gateway prefix `/request`. Generated Swagger URLs may be incorrect until runtime configuration is reconciled.
+Gateway proxy strips `/request` before forwarding to direct-service routes.
 
 All gateway `/request/*` traffic requires JWT. Direct health route has no service-level auth dependency; other active routes require JWT.
 
@@ -62,3 +62,12 @@ All gateway `/request/*` traffic requires JWT. Direct health route has no servic
 | GET | `/pre-scholarship-registrations` | List current user's registrations |
 
 Pre-scholarship get-one, update, and cancel handlers are disabled in source and are not available routes.
+
+## Tests
+
+```bash
+uv sync
+uv run pytest
+```
+
+Route and schema tests run without MongoDB. Add `MONGODB_TEST_URI` when integration tests are added.

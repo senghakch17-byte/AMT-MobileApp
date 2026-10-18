@@ -4,6 +4,8 @@ FROM ghcr.io/astral-sh/uv:python3.12-alpine
 # 2. Set the working directory inside the container
 WORKDIR /backend
 
+ENV UV_CACHE_DIR=/tmp/uv-cache
+
 # 3. Copy only dependency files first to lock down layer caching
 COPY pyproject.toml uv.lock ./
 

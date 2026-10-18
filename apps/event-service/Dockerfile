@@ -6,6 +6,7 @@ WORKDIR /backend
 
 # Keep container environment separate from any copied local .venv.
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+ENV UV_CACHE_DIR=/tmp/uv-cache
 
 # 3. Copy only dependency files first to lock down layer caching
 COPY pyproject.toml uv.lock ./

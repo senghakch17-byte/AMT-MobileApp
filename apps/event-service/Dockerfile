@@ -4,6 +4,9 @@ FROM ghcr.io/astral-sh/uv:python3.12-alpine
 # 2. Set the working directory inside your virtual container environment
 WORKDIR /backend
 
+# Keep container environment separate from any copied local .venv.
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+
 # 3. Copy only dependency files first to lock down layer caching
 COPY pyproject.toml uv.lock ./
 

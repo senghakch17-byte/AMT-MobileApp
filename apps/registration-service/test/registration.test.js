@@ -51,10 +51,10 @@ test('registration hashes password, defaults role, and excludes password respons
   assert.ok(saved);
 });
 
-test('registration preserves supplied role', async () => {
+test('registration ignores supplied role', async () => {
   Person.findOne = async () => null;
   Person.prototype.save = async function save() { this._id = 'admin-1'; };
   const response = await request({ ...valid, role: 'admin' });
   assert.equal(response.status, 201);
-  assert.equal(response.body.user.role, 'admin');
+  assert.equal(response.body.user.role, 'user');
 });

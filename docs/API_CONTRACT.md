@@ -1,6 +1,6 @@
 # API Contract
 
-Gateway health, registration, and login are public. Every `/request/*`, `/event/*`, `/attendance/*`, `/notification/*`, `/members/*`, and `/library/*` gateway request requires `Authorization: Bearer <token>`. Use `http://localhost` through Nginx. Direct service exposure bypasses gateway authentication, but protected service handlers still enforce their own JWT dependencies.
+Gateway health, registration, and login are public. Every `/request/*`, `/event/*`, `/attendance/*`, `/notification/*`, `/members/*`, and `/library/*` gateway request requires `Authorization: Bearer <token>`. Gateway returns `403` before proxying documented admin-only Event, Attendance, and Library routes; services retain their own authorization checks. Use `http://localhost` through Nginx. Direct service exposure bypasses gateway authentication, but protected service handlers still enforce their own JWT dependencies.
 
 ### Gateway routes
 
@@ -23,7 +23,7 @@ Gateway health, registration, and login are public. Every `/request/*`, `/event/
 | POST | `/register/register` | `http://localhost:5001/register` | Public |
 | POST | `/auth/login` | `http://localhost:5002/login` | Public |
 
-Registration requires `name`, `emailid`, `pass`, and `mobile`; `role` defaults to `user`. Login requires `emailid`, `pass`, and `role`, and returns JWT valid for one hour.
+Registration requires `name`, `emailid`, `pass`, and `mobile`; public registration always creates role `user` and ignores supplied `role`. Provision admins through controlled database access using `npm run provision-admin` with `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE` set in the registration service environment. Login requires `emailid`, `pass`, and `role`, and returns JWT valid for one hour.
 
 ### Request service
 

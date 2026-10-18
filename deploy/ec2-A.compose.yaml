@@ -12,6 +12,8 @@ x-gateway: &gateway
     EVENT_SERVICE_URL: http://${EC2_B_IP}:8001
     ATTENDANCE_SERVICE_URL: http://${EC2_C_IP}:8002
     NOTIFICATION_SERVICE_URL: http://${EC2_C_IP}:8005
+    LIBRARY_SERVICE_URL: http://${EC2_D_IP}:8003
+    MEMBER_SERVICE_URL: http://${EC2_D_IP}:8004
     REDIS_URL: redis://redis:6379
   depends_on: [register, login]
 
@@ -46,4 +48,4 @@ services:
     image: redis:7-alpine
     user: redis
     command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --save "" --appendonly no
-    ports: ["6379:6379"]
+    ports: ["${EC2_A_IP}:6379:6379"]

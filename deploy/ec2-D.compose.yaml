@@ -1,3 +1,17 @@
-# EC2-D is reserved. Member and library service source directories do not exist
-# in this repository, so this host has no active Compose services.
-services: {}
+# EC2-D: library-service and member-service
+services:
+  library-service:
+    extends: { file: common.yaml, service: base }
+    build: ../apps/library-service
+    env_file: ../apps/library-service/.env
+    ports: ["${EC2_D_IP}:8003:8003"]
+
+  member-service:
+    extends: { file: common.yaml, service: base }
+    build: ../apps/member-service
+    env_file: ../apps/member-service/.env
+    ports: ["${EC2_D_IP}:8004:8004"]
+    volumes: [member_uploads:/backend/uploads]
+
+volumes:
+  member_uploads:

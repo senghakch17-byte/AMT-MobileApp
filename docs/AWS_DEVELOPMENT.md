@@ -96,6 +96,8 @@ cp apps/attendance-service/.env.example apps/attendance-service/.env
 cp apps/request-service/.env.example apps/request-service/.env
 cp apps/event-service/.env.example apps/event-service/.env
 cp apps/notification-service/.env.example apps/notification-service/.env
+cp apps/member-service/.env.example apps/member-service/.env
+cp apps/library-service/.env.example apps/library-service/.env
 cp apps/api-gateway/.env.example apps/api-gateway/.env
 ```
 
@@ -138,16 +140,17 @@ Expected response contains gateway status JSON. Use [Postman collection](postman
 | EC2-C | Attendance, notification |
 | EC2-D | Member, library |
 
-Do not use this topology for a sandbox lab yet. It remains incomplete and unverified:
+This topology is configured but not deployed or production-verified. Each host must have repository checkout and required service `.env` files. Use private IPs only for service-to-service traffic. Place EC2 private addresses in ignored `deploy/.env`, based on `deploy/.env.example`.
 
-- EC2-A build and `env_file` paths do not match active repository layout.
-- Notification service on EC2-C needs remote Redis configuration for EC2-A.
-- Redis has no persistence and its published port needs security-group restrictions.
-- Gateway currently proxies notification internal ingestion route; that route must remain private to service callers.
-- EC2-D references member and library services not present in active application service map.
-- Each host requires its own service `.env` files and private-IP configuration.
+On each host, copy only its service environments, create `deploy/.env`, validate, then start its Compose file:
 
-When these gaps are fixed, use private IPs only for service-to-service traffic. Place EC2 private addresses in ignored `deploy/.env`, based on `deploy/.env.example`.
+```bash
+cp deploy/.env.example deploy/.env
+docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml config --quiet
+docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml up -d --build
+```
+
+Replace `ec2-A` with current host suffix. EC2-A uses Nginx port `80`; EC2-B, EC2-C, EC2-D service ports and EC2-A Redis bind only to host private IP addresses. Redis has no persistence. `POST /notification/api/v1/internal/events` remains excluded from public gateway use.
 
 Multi-host security groups must allow only required private traffic:
 
@@ -156,7 +159,10 @@ Multi-host security groups must allow only required private traffic:
 | EC2-A Nginx | 80 | Test clients |
 | EC2-A Redis | 6379 | EC2-B and EC2-C security groups only |
 | EC2-B services | 8000, 8001 | EC2-A gateway only |
-| EC2-C services | 8004, 8005 | EC2-A gateway; EC2-B may access `8005` for internal events |
+| EC2-C Attendance | 8002 | EC2-A gateway only |
+| EC2-C Notification | 8005 | EC2-A gateway and EC2-B service group for internal events |
+| EC2-D Library | 8003 | EC2-A gateway only |
+| EC2-D Member | 8004 | EC2-A gateway only |
 
 SSH access remains restricted to your current public IP. Never publish direct service or Redis ports to internet.
 

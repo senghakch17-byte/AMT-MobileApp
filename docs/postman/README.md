@@ -1,16 +1,16 @@
-# AMT API testing in Postman
+# OMS API testing in Postman
 
 ## Import and configure
 
 1. Start the backend with `docker compose up --build`. The gateway should be reachable at `http://localhost`; MongoDB must be configured and reachable by the services.
-2. In Postman, import `AMT-Backend.postman_collection.json` and `AMT-local.postman_environment.json` (Import → Files). Select **AMT local gateway** in the environment selector.
+2. In Postman, import `OMS-Backend.postman_collection.json` and `OMS-local.postman_environment.json` (Import → Files). Select **OMS local gateway** in the environment selector.
 3. Set `userEmail` and `userPassword` to credentials for test account. **Register user** always sends its request; use fresh test email to expect `201`, or existing email to expect duplicate-account `400`. Keep `gatewayUrl` as is for local Docker, or change it to your deployed gateway URL.
 4. `runPreScholarshipRegistration` and `runAttendanceMutation` default to `false`, so these setup or daily-state mutations skip during repeat runs. Set each to `true` only in controlled test data. Run **Login user (save userToken)**; it automatically stores JWT in selected environment. It expires after one hour; run login again after expiry.
 5. Run folders in number order. Folder **01 - Load balancer and Gateway health** first: direct health checks verify `gateway1Url` and `gateway2Url`; four Nginx health requests collect `X-Upstream`, and final request fails unless two distinct Gateway upstreams served traffic. Collection auth sends `userToken` to protected endpoints. Admin requests explicitly use `adminToken`. **Members** uploads `docs/postman/fixtures/member-test-document.pdf`; select this file again if Postman cannot resolve path after import. **Library** creates booking history using separate time slots, then deletes only its disposable room and book.
 
 ## Admin token setup
 
-An admin account is needed for event creation, update, and deletion. In a controlled local/test database only, set `adminEmail` and `adminPassword`, run **Register admin (only when authorized)** once, then **Login admin (save adminToken)**. The current registration service accepts `role: "admin"` from the public body, so do not expose this self-registration behavior in production. Use an administrator account created through your trusted provisioning process. The event write requests read `adminToken`; user role tokens receive 403.
+An admin account is needed for event creation, update, and deletion. In a controlled local/test database only, set `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE` in `apps/registration-service/.env`, then run `cd apps/registration-service && npm run provision-admin`. Set matching `adminEmail` and `adminPassword` in Postman, then run **Login admin (save adminToken)**. Public registration always creates a `user`; it cannot self-provision admins. Event write requests read `adminToken`; user role tokens receive gateway `403`.
 
 Both Request and Event services verify JWTs using the same `JWT_SECRET` as Login and the API Gateway. The gateway protects all `/request/*` and `/event/*` requests. Do not manually paste the token when using this collection; the login test script stores it, and collection/request auth sends it as `Authorization: Bearer <token>`.
 
@@ -21,7 +21,7 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 | Method and path | Auth | Use / notes |
 | --- | --- | --- |
 | `GET /health` | None | Gateway liveness check. |
-| `POST /register/register` | None | JSON: `name`, `emailid`, `pass`, `mobile`; optional `role` defaults to `user`. Returns 201. Duplicate email returns 400. |
+| `POST /register/register` | None | JSON: `name`, `emailid`, `pass`, `mobile`. Supplied `role` is ignored and response role is always `user`. Returns 201. Duplicate email returns 400. |
 | `POST /auth/login` | None | JSON: `emailid`, `pass`, and matching `role` (`user` or `admin`). Returns a one-hour JWT; collection stores the token. |
 | `GET /request/health` | User token | Request service health. |
 | `POST /request/leave-requests` | User token | JSON uses `leave_type` (`sick`, `personal`, etc. per API enum), ISO dates, reason of 10–500 chars, optional `attachment_urls`. Create returns an ID. Avoid overlapping active requests. |
@@ -72,7 +72,7 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 2. Register user → Login user.
 3. Create leave request → its test script saves `leaveRequestId`; use Get, Update, or Cancel while it is pending. A cancelled request cannot be changed.
 4. Set `runPreScholarshipRegistration=true` only when creating a new registration, then list registrations. An active duplicate for same academic year returns 409.
-5. Register/login admin in controlled environment → Create event → update event to `published` → list/get as user → delete as admin. Create saves returned `id` into `eventId` automatically.
+5. Provision/login admin in controlled environment → Create event → update event to `published` → list/get as user → delete as admin. Create saves returned `id` into `eventId` automatically.
 6. Set `runAttendanceMutation=true` only when checking in/out for current UTC day. Collection saves `attendanceId` on check-in; list personal attendance always runs. Use admin token for list-all and update.
 7. List notifications saves first returned `id` as `notificationId`. Item requests skip when no accessible notification exists. Preferences work without notification data. `POST /notification/api/v1/internal/events` is intentionally excluded: internal service-to-service route requires `x-internal-api-key` and must not be exposed through gateway.
 8. Members: get profile to save `memberUserId`. In **Upload my document**, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/member-test-document.pdf` for `file` after import, then upload/list/download. Upload or non-empty list saves `memberDocumentId`. Run admin member document list before its download; it saves both IDs. Upload leaves test document history in database.

@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "f0d57f14-df7c-4c11-a8c5-amt-backend-api",
-    "name": "AMT Backend API",
-    "description": "Nginx load-balancer and Gateway collection for AMT microservices. Run folder 01 to verify both Gateway replicas receive Nginx traffic, then register/login and run protected endpoints. Login requests store userToken or adminToken automatically.",
+    "name": "OMS Backend API",
+    "description": "Nginx load-balancer and Gateway collection for OMS microservices. Run folder 01 to verify both Gateway replicas receive Nginx traffic, then register/login and run protected endpoints. Login requests store userToken or adminToken automatically.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -357,33 +357,6 @@
             },
             "description": "Public. Requires emailid, pass, and role; JWT expires in one hour."
           }
-        },
-        {
-          "name": "Register admin (only when authorized)",
-          "request": {
-            "method": "POST",
-            "url": "{{gatewayUrl}}/register/register",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Example Admin\",\n  \"emailid\": \"{{adminEmail}}\",\n  \"pass\": \"{{adminPassword}}\",\n  \"mobile\": \"+85512345679\",\n  \"role\": \"admin\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "The current registration API accepts a role field. Use admin registration only in a controlled test database; do not expose admin self-registration in production."
-          },
-          "description": "The current registration API accepts a role field. Use admin registration only in a controlled test database; do not expose admin self-registration in production."
         },
         {
           "name": "Login admin (save adminToken)",
@@ -1931,7 +1904,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Postman API Testing\",\n  \"author\": \"AMT Team\",\n  \"isbn\": \"{{testIsbn}}\",\n  \"category\": \"testing\",\n  \"description\": \"Disposable catalog record created by Postman.\",\n  \"published_year\": 2025,\n  \"copies\": 2,\n  \"shelf_location\": \"TEST-01\"\n}",
+              "raw": "{\n  \"title\": \"Postman API Testing\",\n  \"author\": \"OMS Team\",\n  \"isbn\": \"{{testIsbn}}\",\n  \"category\": \"testing\",\n  \"description\": \"Disposable catalog record created by Postman.\",\n  \"published_year\": 2025,\n  \"copies\": 2,\n  \"shelf_location\": \"TEST-01\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

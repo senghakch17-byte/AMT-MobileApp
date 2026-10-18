@@ -6,7 +6,7 @@ workspace:
 
 cloudResources:
   collections:
-    ../postman/collections/AMT Backend API: 222a583e-63d9-4477-8aca-a0c1e24ab6d5
+    ../postman/collections/OMS Backend API: 222a583e-63d9-4477-8aca-a0c1e24ab6d5
 
 # All resources in the `postman/` folder are automatically registered in Local View.
 # Point to additional files outside the `postman/` folder to register them individually. Example:

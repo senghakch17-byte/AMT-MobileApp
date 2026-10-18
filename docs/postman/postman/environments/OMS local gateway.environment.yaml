@@ -1,4 +1,4 @@
-name: AMT local gateway
+name: OMS local gateway
 values:
   - key: gatewayUrl
     value: 'http://localhost'

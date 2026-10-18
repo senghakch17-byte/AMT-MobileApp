@@ -12,8 +12,8 @@ function listen(server) {
   return new Promise((resolve) => { server.listen(0, '127.0.0.1', resolve); });
 }
 
-async function request(path, token) {
-  const response = await fetch(`${url}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+async function request(path, token, method = 'GET') {
+  const response = await fetch(`${url}${path}`, { method, headers: token ? { Authorization: `Bearer ${token}` } : {} });
   return { status: response.status, body: await response.json() };
 }
 
@@ -39,4 +39,12 @@ test('protected routes reject bad tokens and proxy valid JWT', async () => {
   assert.equal((await request('/request/api/v1/health', 'bad')).status, 401);
   const token = jwt.sign({ id: 'user-1', emailid: 'user@example.com', role: 'user' }, process.env.JWT_SECRET);
   assert.deepEqual(await request('/request/api/v1/health', token), { status: 200, body: { path: '/api/v1/health', method: 'GET' } });
+});
+
+test('gateway blocks users from admin routes and proxies allowed roles', async () => {
+  const user = jwt.sign({ id: 'user-1', emailid: 'user@example.com', role: 'user' }, process.env.JWT_SECRET);
+  const admin = jwt.sign({ id: 'admin-1', emailid: 'admin@example.com', role: 'admin' }, process.env.JWT_SECRET);
+  assert.equal((await request('/event/events', user, 'POST')).status, 403);
+  assert.deepEqual(await request('/event/events', admin, 'POST'), { status: 200, body: { path: '/events', method: 'POST' } });
+  assert.deepEqual(await request('/library/api/v1/books', user), { status: 200, body: { path: '/api/v1/books', method: 'GET' } });
 });

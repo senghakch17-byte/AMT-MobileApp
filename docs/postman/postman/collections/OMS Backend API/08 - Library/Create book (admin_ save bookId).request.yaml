@@ -8,7 +8,7 @@ body:
   content: |-
     {
       "title": "Postman API Testing",
-      "author": "AMT Team",
+      "author": "OMS Team",
       "isbn": "{{testIsbn}}",
       "category": "testing",
       "description": "Disposable catalog record created by Postman.",

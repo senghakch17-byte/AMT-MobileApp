@@ -1,7 +1,7 @@
 {
   "name": "notification-service",
   "version": "1.0.0",
-  "description": "In-app notification service for AMT Mobile App",
+  "description": "In-app notification service for OMS Microservice",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {

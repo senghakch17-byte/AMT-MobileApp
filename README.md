@@ -1,6 +1,6 @@
-# AMT Mobile App Backend
+# OMS Microservice Backend
 
-Containerized microservices backend for registration, login, attendance, leave requests, pre-scholarship registrations, and events.
+Containerized microservices backend for registration, login, attendance, leave requests, events, notifications, member profiles, and library bookings.
 
 ## Architecture
 
@@ -19,7 +19,9 @@ API gateways :4000, :4001
     |-- /request   -> Request service :8000
     |-- /event     -> Event service :8001
     |-- /attendance -> Attendance service :8002
-    `-- /notification -> Notification service :8005
+    |-- /notification -> Notification service :8005
+    |-- /members    -> Member service :8004
+    `-- /library    -> Library service :8003
 
 All application services -> external MongoDB
 Event service -> event_uploads volume
@@ -36,13 +38,15 @@ Event service -> event_uploads volume
 | Request | `request-service` | 8000 | Leave requests and pre-scholarship registrations |
 | Event | `event-service` | 8001 | Event management and image storage |
 | Attendance | `attendance-service` | 8002 | User check-in, check-out, history, and admin corrections |
+| Library | `library-service` | 8003 | Room bookings and book catalog |
+| Member | `member-service` | 8004 | Member profiles and protected document history |
 | Notification | `notification-service` | 8005 | In-app notifications and user receipt state |
 
 MongoDB is external; Compose does not provision it. Node services use `MONGO_URI`; Python services use `MONGODB_URI`.
 
 ## Current limitations
 
-- `deploy/` contains incomplete EC2 Compose configuration that is not production-verified.
+- `deploy/` contains unverified EC2 Compose configuration. Four-host deployment needs real EC2 validation before course submission; see [AWS sandbox development](docs/AWS_DEVELOPMENT.md).
 - FastAPI `root_path` values do not match gateway prefixes. Direct Swagger pages may generate incorrect URLs, and protected gateway docs may not load their schemas in a browser.
 
 ## Prerequisites
@@ -121,6 +125,8 @@ apps/
   request-service/      FastAPI request APIs
   event-service/        FastAPI event API and uploads
   attendance-service/   Express attendance API
+  library-service/      FastAPI library booking and catalog API
+  member-service/       FastAPI member profile and document API
 deploy/                 EC2 Docker Compose configuration
 nginx/                  Nginx load balancer configuration
 docs/                   API, configuration, development, and Postman docs

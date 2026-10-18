@@ -73,7 +73,7 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 - Document only behavior present in active code and configuration. Label disabled code, empty deployment files, and planned infrastructure explicitly as incomplete; do not present them as operational.
 - Verify documented paths and commands from the repository root and distinguish direct-service URLs from gateway URLs.
 - Keep public entry points, service ports, URL prefixes, required authentication, and environment variable names consistent across documentation and configuration.
-- When changing active API routes, methods, request bodies, authentication, environment variables, or response-driven collection scripts, update both Postman YAML sources under `docs/postman/postman/` and exported JSON files `docs/postman/AMT-Backend.postman_collection.json` and `docs/postman/AMT-local.postman_environment.json` in the same change. Verify strict JSON parsing and JSON/YAML endpoint parity.
+- When changing active API routes, methods, request bodies, authentication, environment variables, or response-driven collection scripts, update both Postman YAML sources under `docs/postman/postman/` and exported JSON files `docs/postman/OMS-Backend.postman_collection.json` and `docs/postman/OMS-local.postman_environment.json` in the same change. Verify strict JSON parsing and JSON/YAML endpoint parity.
 - Record changed architectural or operational decisions in the relevant existing document. Create a dedicated decision record only when explicitly requested or when no existing document can hold the decision clearly.
 - Keep `docs/AWS_DEVELOPMENT.md` synchronized with EC2 topology, Compose paths, exposed ports, security-group requirements, deployment commands, and known deployment limitations.
 

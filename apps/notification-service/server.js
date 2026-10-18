@@ -9,8 +9,8 @@ let server;
 
 async function start() {
   await connectDatabase();
-  await startConsumer();
   server = app.listen(port, () => console.log(`[Notification] Service listening on port ${port}`));
+  await startConsumer();
 }
 
 async function shutdown(signal) {

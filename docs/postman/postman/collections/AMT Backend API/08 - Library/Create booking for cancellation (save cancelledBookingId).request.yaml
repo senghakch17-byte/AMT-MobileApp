@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{gatewayUrl}}/library/api/v1/bookings"
+method: POST
+headers:
+  Content-Type: "application/json"
+body:
+  type: json
+  content: |-
+    {
+      "room_id": "{{roomId}}",
+      "start_at": "{{bookingStart}}",
+      "end_at": "{{bookingEnd}}",
+      "attendees": 2,
+      "purpose": "Postman booking to cancel"
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      const start = new Date(Date.now() + 96 * 60 * 60 * 1000); start.setUTCMinutes(0, 0, 0); pm.environment.set('bookingStart', start.toISOString()); pm.environment.set('bookingEnd', new Date(start.getTime() + 60 * 60 * 1000).toISOString());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 201', function () { pm.response.to.have.status(201); });
+      if (pm.response.code === 201) { pm.environment.set('cancelledBookingId', pm.response.json().id); }
+    language: text/javascript
+order: 16000

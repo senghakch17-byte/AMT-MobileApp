@@ -1,4 +1,10 @@
 $kind: http-request
 url: "{{gatewayUrl}}/notification/api/v1/notifications?skip=0&limit=20"
 method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      if (pm.response.code === 200 && pm.response.json().length) { pm.environment.set('notificationId', pm.response.json()[0].id); }
+    language: text/javascript
 order: 1000

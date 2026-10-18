@@ -15,6 +15,8 @@ body:
     }
 scripts:
   - type: afterResponse
-    code: if (pm.response.code === 201) { pm.environment.set('leaveRequestId', pm.response.json().id); }
+    code: |-
+      pm.test('Expected 201', function () { pm.response.to.have.status(201); });
+      if (pm.response.code === 201) { pm.environment.set('leaveRequestId', pm.response.json().id); }
     language: text/javascript
 order: 2000

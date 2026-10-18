@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{gatewayUrl}}/library/api/v1/bookings/{{cancelledBookingId}}/cancel"
+method: POST
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 17000

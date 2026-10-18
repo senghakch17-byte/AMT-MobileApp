@@ -1,0 +1,40 @@
+$kind: http-request
+url: "{{gatewayUrl}}/library/api/v1/rooms"
+method: POST
+headers:
+  Content-Type: "application/json"
+body:
+  type: json
+  content: |-
+    {
+      "name": "Postman Booking Room {{testRunId}}",
+      "description": "Disposable room created by Postman integration collection.",
+      "location": "Postman Lab",
+      "capacity": 20,
+      "amenities": [
+        "WiFi",
+        "Projector"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      const runId = String(Date.now());
+      pm.environment.set('testRunId', runId);
+      const start = new Date(Date.now() + 48 * 60 * 60 * 1000);
+      start.setUTCMinutes(0, 0, 0);
+      const end = new Date(start.getTime() + 60 * 60 * 1000);
+      pm.environment.set('bookingStart', start.toISOString());
+      pm.environment.set('bookingEnd', end.toISOString());
+      pm.environment.set('testIsbn', '978' + runId.slice(-10));
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 201', function () { pm.response.to.have.status(201); });
+      if (pm.response.code === 201) { pm.environment.set('roomId', pm.response.json().id); }
+    language: text/javascript
+order: 2000

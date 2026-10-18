@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{gatewayUrl}}/library/api/v1/bookings/{{rejectedBookingId}}/reject"
+method: POST
+headers:
+  Content-Type: "application/json"
+body:
+  type: json
+  content: |-
+    {
+      "note": "Rejected by Postman collection."
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 15000

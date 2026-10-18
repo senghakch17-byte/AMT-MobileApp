@@ -1,0 +1,13 @@
+$kind: http-request
+description: "Runs infrastructure assertion; execute folder in order."
+url: "{{gateway1Url}}/health"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });
+    language: text/javascript
+order: 1000

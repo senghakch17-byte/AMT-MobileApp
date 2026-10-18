@@ -13,4 +13,8 @@ auth:
   type: bearer
   credentials:
     token: "{{adminToken}}"
-order: 4000
+scripts:
+  - type: afterResponse
+    code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 3000

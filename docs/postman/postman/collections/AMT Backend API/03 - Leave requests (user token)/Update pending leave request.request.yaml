@@ -9,4 +9,8 @@ body:
     {
       "reason": "Updated reason for this leave request"
     }
+scripts:
+  - type: afterResponse
+    code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
 order: 5000

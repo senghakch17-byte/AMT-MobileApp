@@ -1,0 +1,29 @@
+$kind: http-request
+description: "Select `file` again after import: `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/member-test-document.pdf`. Postman exports file paths, not file content. Keep field type `file`; do not set `Content-Type` manually."
+url: "{{gatewayUrl}}/members/api/v1/members/me/documents"
+method: POST
+body:
+  type: form-data
+  form:
+    - key: file
+      type: file
+      src: "docs/postman/fixtures/member-test-document.pdf"
+    - key: title
+      type: text
+      value: "Postman test document"
+    - key: doc_type
+      type: text
+      value: "other"
+    - key: description
+      type: text
+      value: "Disposable document uploaded through Nginx."
+    - key: document_date
+      type: text
+      value: "2020-01-01"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 201', function () { pm.response.to.have.status(201); });
+      if (pm.response.code === 201) { pm.environment.set('memberDocumentId', pm.response.json().id); }
+    language: text/javascript
+order: 4000

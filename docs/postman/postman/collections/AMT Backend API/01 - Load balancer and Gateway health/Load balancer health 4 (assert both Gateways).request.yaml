@@ -1,0 +1,20 @@
+$kind: http-request
+description: "Runs infrastructure assertion; execute folder in order."
+url: "{{gatewayUrl}}/health"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });
+      pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });
+      const upstream = pm.response.headers.get('X-Upstream');
+      pm.test('Nginx selected a Gateway upstream', function () { pm.expect(upstream).to.match(/^[^:]+:4000$/); });
+      const upstreams = JSON.parse(pm.environment.get('observedUpstreams') || '[]');
+      if (!upstreams.includes(upstream)) { upstreams.push(upstream); }
+      pm.environment.set('observedUpstreams', JSON.stringify(upstreams));
+      pm.test('Load balancer used both Gateway replicas', function () { pm.expect(upstreams, 'distinct X-Upstream values').to.have.length.of.at.least(2); });
+    language: text/javascript
+order: 6000

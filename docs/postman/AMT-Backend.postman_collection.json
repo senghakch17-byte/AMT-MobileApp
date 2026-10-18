@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "f0d57f14-df7c-4c11-a8c5-amt-backend-api",
     "name": "AMT Backend API",
-    "description": "Gateway collection for the AMT microservices. Set gatewayUrl, register/login, then run protected endpoints. Login requests store userToken or adminToken automatically.",
+    "description": "Nginx load-balancer and Gateway collection for AMT microservices. Run folder 01 to verify both Gateway replicas receive Nginx traffic, then register/login and run protected endpoints. Login requests store userToken or adminToken automatically.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -18,7 +18,7 @@
   "variable": [
     {
       "key": "gatewayUrl",
-      "value": "http://localhost:4000"
+      "value": "http://localhost"
     },
     {
       "key": "userEmail",
@@ -63,14 +63,222 @@
     {
       "key": "notificationId",
       "value": ""
+    },
+    {
+      "key": "memberUserId",
+      "value": ""
+    },
+    {
+      "key": "memberDocumentId",
+      "value": ""
+    },
+    {
+      "key": "roomId",
+      "value": ""
+    },
+    {
+      "key": "disposableRoomId",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "rejectedBookingId",
+      "value": ""
+    },
+    {
+      "key": "cancelledBookingId",
+      "value": ""
+    },
+    {
+      "key": "bookId",
+      "value": ""
+    },
+    {
+      "key": "testRunId",
+      "value": ""
+    },
+    {
+      "key": "bookingStart",
+      "value": ""
+    },
+    {
+      "key": "bookingEnd",
+      "value": ""
+    },
+    {
+      "key": "testIsbn",
+      "value": ""
+    },
+    {
+      "key": "gateway1Url",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "gateway2Url",
+      "value": "http://localhost:4001"
+    },
+    {
+      "key": "observedUpstreams",
+      "value": "[]"
     }
   ],
   "item": [
     {
-      "name": "01 - Gateway health",
+      "name": "01 - Load balancer and Gateway health",
       "item": [
         {
-          "name": "Health",
+          "name": "Gateway 1 direct health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{gateway1Url}}/health",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Gateway 2 direct health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{gateway2Url}}/health",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Load balancer health 1 (reset upstreams)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });",
+                  "pm.environment.set('observedUpstreams', '[]');",
+                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
+                  "const upstream = pm.response.headers.get('X-Upstream');",
+                  "pm.test('Nginx selected a Gateway upstream', function () { pm.expect(upstream).to.match(/^[^:]+:4000$/); });",
+                  "const upstreams = JSON.parse(pm.environment.get('observedUpstreams') || '[]');",
+                  "if (!upstreams.includes(upstream)) { upstreams.push(upstream); }",
+                  "pm.environment.set('observedUpstreams', JSON.stringify(upstreams));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/health",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Load balancer health 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });",
+                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
+                  "const upstream = pm.response.headers.get('X-Upstream');",
+                  "pm.test('Nginx selected a Gateway upstream', function () { pm.expect(upstream).to.match(/^[^:]+:4000$/); });",
+                  "const upstreams = JSON.parse(pm.environment.get('observedUpstreams') || '[]');",
+                  "if (!upstreams.includes(upstream)) { upstreams.push(upstream); }",
+                  "pm.environment.set('observedUpstreams', JSON.stringify(upstreams));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/health",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Load balancer health 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });",
+                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
+                  "const upstream = pm.response.headers.get('X-Upstream');",
+                  "pm.test('Nginx selected a Gateway upstream', function () { pm.expect(upstream).to.match(/^[^:]+:4000$/); });",
+                  "const upstreams = JSON.parse(pm.environment.get('observedUpstreams') || '[]');",
+                  "if (!upstreams.includes(upstream)) { upstreams.push(upstream); }",
+                  "pm.environment.set('observedUpstreams', JSON.stringify(upstreams));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/health",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Load balancer health 4 (assert both Gateways)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });",
+                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
+                  "const upstream = pm.response.headers.get('X-Upstream');",
+                  "pm.test('Nginx selected a Gateway upstream', function () { pm.expect(upstream).to.match(/^[^:]+:4000$/); });",
+                  "const upstreams = JSON.parse(pm.environment.get('observedUpstreams') || '[]');",
+                  "if (!upstreams.includes(upstream)) { upstreams.push(upstream); }",
+                  "pm.environment.set('observedUpstreams', JSON.stringify(upstreams));",
+                  "pm.test('Load balancer used both Gateway replicas', function () { pm.expect(upstreams, 'distinct X-Upstream values').to.have.length.of.at.least(2); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/health",
@@ -79,7 +287,8 @@
             }
           }
         }
-      ]
+      ],
+      "description": "Run in order. Direct checks prove each Gateway port responds. Nginx checks collect X-Upstream values; final check requires both Gateway replicas."
     },
     {
       "name": "02 - Registration and login",
@@ -108,7 +317,8 @@
               }
             },
             "description": "Public. Creates a standard user; duplicate email returns 400."
-          }
+          },
+          "description": "Public. Creates a standard user; duplicate email returns 400."
         },
         {
           "name": "Login user (save userToken)",
@@ -172,7 +382,8 @@
               }
             },
             "description": "The current registration API accepts a role field. Use admin registration only in a controlled test database; do not expose admin self-registration in production."
-          }
+          },
+          "description": "The current registration API accepts a role field. Use admin registration only in a controlled test database; do not expose admin self-registration in production."
         },
         {
           "name": "Login admin (save adminToken)",
@@ -222,7 +433,18 @@
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/request/health"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Create leave request",
@@ -232,6 +454,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
                   "if (pm.response.code === 201) { pm.environment.set('leaveRequestId', pm.response.json().id); }"
                 ]
               }
@@ -262,14 +485,36 @@
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/request/leave-requests?skip=0&limit=20"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get leave request by ID",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/request/leave-requests/{{leaveRequestId}}"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Update pending leave request",
@@ -291,14 +536,36 @@
                 }
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Cancel pending leave request",
           "request": {
             "method": "PATCH",
             "url": "{{gatewayUrl}}/request/leave-requests/{{leaveRequestId}}/cancel"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Create pre-scholarship registration",
@@ -321,14 +588,45 @@
               }
             },
             "description": "Use scholarship_type need_based with monthly_family_income, or merit with academic_average. Active duplicate academic_year returns 409."
-          }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.environment.get('runPreScholarshipRegistration') !== 'true') { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List my pre-scholarship registrations",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/request/pre-scholarship-registrations?skip=0&limit=20"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -368,13 +666,14 @@
           },
           "event": [
             {
+              "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
                   "if (pm.response.code === 201) { pm.environment.set('eventId', pm.response.json().id); }"
-                ],
-                "type": "text/javascript"
-              },
-              "listen": "test"
+                ]
+              }
             }
           ]
         },
@@ -383,13 +682,6 @@
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/event/events?skip=0&limit=20"
-          }
-        },
-        {
-          "name": "Get event by ID (user sees published only)",
-          "request": {
-            "method": "GET",
-            "url": "{{gatewayUrl}}/event/events/{{eventId}}"
           }
         },
         {
@@ -422,7 +714,36 @@
                 }
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get event by ID (user sees published only)",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/event/events/{{eventId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Delete event (admin)",
@@ -461,11 +782,20 @@
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.environment.get('runAttendanceMutation') !== 'true') { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Check-in created', function () { pm.expect(pm.response.code).to.eql(201); });",
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
                   "if (pm.response.code === 201) { pm.environment.set('attendanceId', pm.response.json()._id); }"
                 ]
               }
@@ -477,14 +807,45 @@
           "request": {
             "method": "POST",
             "url": "{{gatewayUrl}}/attendance/check-out"
-          }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.environment.get('runAttendanceMutation') !== 'true') { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List my attendance",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/attendance/me"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List all attendance (admin)",
@@ -552,21 +913,64 @@
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/notification/api/v1/notifications?skip=0&limit=20"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200 && pm.response.json().length) { pm.environment.set('notificationId', pm.response.json()[0].id); }"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get unread count",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/notification/api/v1/notifications/unread-count"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get notification by ID",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}"
-          }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('notificationId')) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Mark all notifications read",
@@ -580,14 +984,54 @@
           "request": {
             "method": "PATCH",
             "url": "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}/read"
-          }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('notificationId')) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Delete notification",
           "request": {
             "method": "DELETE",
             "url": "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}"
-          }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('notificationId')) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get notification preferences",
@@ -617,6 +1061,1003 @@
               }
             }
           }
+        }
+      ]
+    },
+    {
+      "name": "07 - Members",
+      "description": "Run after user and admin login. Upload leaves a document in the configured test database.",
+      "item": [
+        {
+          "name": "Member health",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/members/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get my profile (save memberUserId)",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/members/api/v1/members/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) { pm.environment.set('memberUserId', pm.response.json().user_id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PATCH",
+            "url": "{{gatewayUrl}}/members/api/v1/members/me",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Test User\",\n  \"phone\": \"+85512345678\",\n  \"address\": \"Phnom Penh\",\n  \"date_of_birth\": \"2000-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload my document (save memberDocumentId)",
+          "description": "Select `file` again after import: `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/member-test-document.pdf`. Postman exports file paths, not file content. Keep field type `file`; do not set `Content-Type` manually.",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/members/api/v1/members/me/documents",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "docs/postman/fixtures/member-test-document.pdf"
+                },
+                {
+                  "key": "title",
+                  "value": "Postman test document",
+                  "type": "text"
+                },
+                {
+                  "key": "doc_type",
+                  "value": "other",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Disposable document uploaded through Nginx.",
+                  "type": "text"
+                },
+                {
+                  "key": "document_date",
+                  "value": "2020-01-01",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) { pm.environment.set('memberDocumentId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List my documents",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/members/api/v1/members/me/documents?skip=0&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Has total count', function () { pm.expect(pm.response.headers.get('X-Total-Count')).to.exist; });",
+                  "const documents = pm.response.json();",
+                  "if (documents.length) { pm.environment.set('memberDocumentId', documents[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Download my document",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/members/api/v1/members/me/documents/{{memberDocumentId}}/download"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('memberDocumentId')) {",
+                  "  throw new Error('memberDocumentId is empty. Upload a document with file selected, or run List my documents first.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Is PDF', function () { pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List members (admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/members/api/v1/members?skip=0&limit=20",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get member profile (admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/members/api/v1/members/{{memberUserId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List member documents (admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/members/api/v1/members/{{memberUserId}}/documents?skip=0&limit=20",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "const documents = pm.response.json();",
+                  "if (documents.length) {",
+                  "  pm.environment.set('memberUserId', documents[0].user_id);",
+                  "  pm.environment.set('memberDocumentId', documents[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Download member document (admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/members/api/v1/members/{{memberUserId}}/documents/{{memberDocumentId}}/download",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('memberUserId') || !pm.environment.get('memberDocumentId')) {",
+                  "  throw new Error('memberUserId or memberDocumentId is empty. Run Get my profile and List member documents first.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 - Library",
+      "description": "Run after user and admin login. Creates booking history plus one disposable room and book, then deletes only records safe to delete.",
+      "item": [
+        {
+          "name": "Library health",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/library/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create booking room (admin, save roomId)",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/library/api/v1/rooms",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Booking Room {{testRunId}}\",\n  \"description\": \"Disposable room created by Postman integration collection.\",\n  \"location\": \"Postman Lab\",\n  \"capacity\": 20,\n  \"amenities\": [\n    \"WiFi\",\n    \"Projector\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const runId = String(Date.now());",
+                  "pm.environment.set('testRunId', runId);",
+                  "const start = new Date(Date.now() + 48 * 60 * 60 * 1000);",
+                  "start.setUTCMinutes(0, 0, 0);",
+                  "const end = new Date(start.getTime() + 60 * 60 * 1000);",
+                  "pm.environment.set('bookingStart', start.toISOString());",
+                  "pm.environment.set('bookingEnd', end.toISOString());",
+                  "pm.environment.set('testIsbn', '978' + runId.slice(-10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) { pm.environment.set('roomId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create disposable room (admin, save disposableRoomId)",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/library/api/v1/rooms",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Disposable Room {{testRunId}}\",\n  \"description\": \"Disposable room created by Postman integration collection.\",\n  \"location\": \"Postman Lab\",\n  \"capacity\": 20,\n  \"amenities\": [\n    \"WiFi\",\n    \"Projector\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) { pm.environment.set('disposableRoomId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List rooms",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/library/api/v1/rooms?skip=0&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get room",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/library/api/v1/rooms/{{roomId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get room availability",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/library/api/v1/rooms/{{roomId}}/availability?start={{bookingStart}}&end={{bookingEnd}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update disposable room (admin)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{gatewayUrl}}/library/api/v1/rooms/{{disposableRoomId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated by Postman integration collection.\",\n  \"capacity\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete disposable room (admin)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{gatewayUrl}}/library/api/v1/rooms/{{disposableRoomId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create booking for approval (save bookingId)",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/library/api/v1/bookings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"start_at\": \"{{bookingStart}}\",\n  \"end_at\": \"{{bookingEnd}}\",\n  \"attendees\": 2,\n  \"purpose\": \"Postman booking to approve\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) { pm.environment.set('bookingId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List my bookings",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/library/api/v1/bookings/me?skip=0&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List all bookings (admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/library/api/v1/bookings?skip=0&limit=20",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get booking",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/library/api/v1/bookings/{{bookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve booking (admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/library/api/v1/bookings/{{bookingId}}/approve",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Approved by Postman collection.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create booking for rejection (save rejectedBookingId)",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/library/api/v1/bookings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"start_at\": \"{{bookingStart}}\",\n  \"end_at\": \"{{bookingEnd}}\",\n  \"attendees\": 2,\n  \"purpose\": \"Postman booking to reject\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const start = new Date(Date.now() + 72 * 60 * 60 * 1000); start.setUTCMinutes(0, 0, 0); pm.environment.set('bookingStart', start.toISOString()); pm.environment.set('bookingEnd', new Date(start.getTime() + 60 * 60 * 1000).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) { pm.environment.set('rejectedBookingId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject booking (admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/library/api/v1/bookings/{{rejectedBookingId}}/reject",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Rejected by Postman collection.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create booking for cancellation (save cancelledBookingId)",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/library/api/v1/bookings",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{roomId}}\",\n  \"start_at\": \"{{bookingStart}}\",\n  \"end_at\": \"{{bookingEnd}}\",\n  \"attendees\": 2,\n  \"purpose\": \"Postman booking to cancel\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const start = new Date(Date.now() + 96 * 60 * 60 * 1000); start.setUTCMinutes(0, 0, 0); pm.environment.set('bookingStart', start.toISOString()); pm.environment.set('bookingEnd', new Date(start.getTime() + 60 * 60 * 1000).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) { pm.environment.set('cancelledBookingId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel booking",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/library/api/v1/bookings/{{cancelledBookingId}}/cancel"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create book (admin, save bookId)",
+          "request": {
+            "method": "POST",
+            "url": "{{gatewayUrl}}/library/api/v1/books",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman API Testing\",\n  \"author\": \"AMT Team\",\n  \"isbn\": \"{{testIsbn}}\",\n  \"category\": \"testing\",\n  \"description\": \"Disposable catalog record created by Postman.\",\n  \"published_year\": 2025,\n  \"copies\": 2,\n  \"shelf_location\": \"TEST-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
+                  "if (pm.response.code === 201) { pm.environment.set('bookId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List books",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/library/api/v1/books?skip=0&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get book",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/library/api/v1/books/{{bookId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update book (admin)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{gatewayUrl}}/library/api/v1/books/{{bookId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"copies\": 3,\n  \"shelf_location\": \"TEST-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete book (admin)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{gatewayUrl}}/library/api/v1/books/{{bookId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

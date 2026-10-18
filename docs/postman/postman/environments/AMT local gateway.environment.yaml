@@ -1,7 +1,7 @@
 name: AMT local gateway
 values:
   - key: gatewayUrl
-    value: 'http://localhost:4000'
+    value: 'http://localhost'
   - key: userEmail
     value: user@example.com
   - key: userPassword
@@ -24,3 +24,37 @@ values:
     value: ''
   - key: preScholarshipAcademicYear
     value: 2026-2027
+  - key: runPreScholarshipRegistration
+    value: 'false'
+  - key: runAttendanceMutation
+    value: 'false'
+  - key: memberUserId
+    value: ''
+  - key: memberDocumentId
+    value: ''
+  - key: roomId
+    value: ''
+  - key: disposableRoomId
+    value: ''
+  - key: bookingId
+    value: ''
+  - key: rejectedBookingId
+    value: ''
+  - key: cancelledBookingId
+    value: ''
+  - key: bookId
+    value: ''
+  - key: testRunId
+    value: ''
+  - key: bookingStart
+    value: ''
+  - key: bookingEnd
+    value: ''
+  - key: testIsbn
+    value: ''
+  - key: gateway1Url
+    value: 'http://localhost:4000'
+  - key: gateway2Url
+    value: 'http://localhost:4001'
+  - key: observedUpstreams
+    value: '[]'

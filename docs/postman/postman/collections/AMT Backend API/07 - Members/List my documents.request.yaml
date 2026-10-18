@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{gatewayUrl}}/members/api/v1/members/me/documents?skip=0&limit=20"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      pm.test('Has total count', function () { pm.expect(pm.response.headers.get('X-Total-Count')).to.exist; });
+      const documents = pm.response.json();
+      if (documents.length) { pm.environment.set('memberDocumentId', documents[0].id); }
+    language: text/javascript
+order: 5000

@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{gatewayUrl}}/library/api/v1/rooms"
+method: POST
+headers:
+  Content-Type: "application/json"
+body:
+  type: json
+  content: |-
+    {
+      "name": "Postman Disposable Room {{testRunId}}",
+      "description": "Disposable room created by Postman integration collection.",
+      "location": "Postman Lab",
+      "capacity": 20,
+      "amenities": [
+        "WiFi",
+        "Projector"
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 201', function () { pm.response.to.have.status(201); });
+      if (pm.response.code === 201) { pm.environment.set('disposableRoomId', pm.response.json().id); }
+    language: text/javascript
+order: 3000

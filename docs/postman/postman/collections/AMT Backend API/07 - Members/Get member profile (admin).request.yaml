@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{gatewayUrl}}/members/api/v1/members/{{memberUserId}}"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 8000

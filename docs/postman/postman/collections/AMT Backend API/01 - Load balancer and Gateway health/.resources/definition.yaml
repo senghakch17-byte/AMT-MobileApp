@@ -1,0 +1,3 @@
+$kind: collection
+order: 1000
+description: Run in order. Direct checks prove each Gateway port responds. Nginx checks collect X-Upstream values; final check requires both Gateway replicas.

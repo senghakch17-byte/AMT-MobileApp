@@ -4,8 +4,8 @@ method: GET
 queryParams:
   skip: "0"
   limit: "20"
-auth:
-  type: bearer
-  credentials:
-    token: "{{vault:json_web_token_18d9}}"
+scripts:
+  - type: afterResponse
+    code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
 order: 3000

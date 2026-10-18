@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{gatewayUrl}}/members/api/v1/members/me"
+method: PATCH
+headers:
+  Content-Type: "application/json"
+body:
+  type: json
+  content: |-
+    {
+      "full_name": "Postman Test User",
+      "phone": "+85512345678",
+      "address": "Phnom Penh",
+      "date_of_birth": "2000-01-01"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 3000

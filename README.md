@@ -77,6 +77,17 @@ docker compose down -v # also removes event uploads
 
 `depends_on` controls startup order, not readiness. No Compose health checks wait for MongoDB or upstream APIs.
 
+## Empty local/test MongoDB data
+
+`scripts/empty-mongodb.sh` deletes every document from every collection while preserving collections and indexes. It does not drop databases, collections, or indexes. Use only against an intended local/test database.
+
+```bash
+export MONGODB_URI='mongodb+srv://<username>:<password>@<cluster>.mongodb.net'
+./scripts/empty-mongodb.sh --execute final_project
+```
+
+Script refuses MongoDB system databases and requires typing target database name before deletion.
+
 ## Tests
 
 Run all service suites from repository root:

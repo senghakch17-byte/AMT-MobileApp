@@ -1,4 +1,11 @@
 $kind: http-request
 url: "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}"
 method: DELETE
+scripts:
+  - type: beforeRequest
+    code: if (!pm.environment.get('notificationId')) { pm.execution.skipRequest(); }
+    language: text/javascript
+  - type: afterResponse
+    code: pm.test('Expected 204', function () { pm.response.to.have.status(204); });
+    language: text/javascript
 order: 6000

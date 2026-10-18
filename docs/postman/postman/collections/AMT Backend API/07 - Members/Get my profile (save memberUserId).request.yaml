@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{gatewayUrl}}/members/api/v1/members/me"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      if (pm.response.code === 200) { pm.environment.set('memberUserId', pm.response.json().user_id); }
+    language: text/javascript
+order: 2000

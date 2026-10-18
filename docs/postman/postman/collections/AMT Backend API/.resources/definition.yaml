@@ -1,7 +1,10 @@
 $kind: collection
-description: Gateway collection for the AMT microservices. Set gatewayUrl, register/login, then run protected endpoints. Login requests store userToken or adminToken automatically.
+description: Nginx load-balancer and Gateway collection for AMT microservices. Run folder 01 to verify both Gateway replicas receive Nginx traffic, then register/login and run protected endpoints. Login requests store userToken or adminToken automatically.
 variables:
-  gatewayUrl: http://localhost:4000
+  gatewayUrl: http://localhost
+  gateway1Url: http://localhost:4000
+  gateway2Url: http://localhost:4001
+  observedUpstreams: '[]'
   userEmail: user@example.com
   userPassword: ChangeMe123!
   adminEmail: admin@example.com
@@ -13,6 +16,18 @@ variables:
   attendanceId: ""
   notificationId: ""
   preScholarshipAcademicYear: 2026-2027
+  memberUserId: ""
+  memberDocumentId: ""
+  roomId: ""
+  disposableRoomId: ""
+  bookingId: ""
+  rejectedBookingId: ""
+  cancelledBookingId: ""
+  bookId: ""
+  testRunId: ""
+  bookingStart: ""
+  bookingEnd: ""
+  testIsbn: ""
 auth:
   - id: a3ab0993-8967-4c9e-86f3-436507500e58
     type: bearer

@@ -1,4 +1,8 @@
 $kind: http-request
 url: "{{gatewayUrl}}/request/leave-requests/{{leaveRequestId}}/cancel"
 method: PATCH
+scripts:
+  - type: afterResponse
+    code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
 order: 6000

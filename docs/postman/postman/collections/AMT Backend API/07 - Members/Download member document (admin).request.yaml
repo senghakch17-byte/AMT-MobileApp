@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{gatewayUrl}}/members/api/v1/members/{{memberUserId}}/documents/{{memberDocumentId}}/download"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      if (!pm.environment.get('memberUserId') || !pm.environment.get('memberDocumentId')) {
+        throw new Error('memberUserId or memberDocumentId is empty. Run Get my profile and List member documents first.');
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 10000

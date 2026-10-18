@@ -1,4 +1,11 @@
 $kind: http-request
 url: "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}"
 method: GET
+scripts:
+  - type: beforeRequest
+    code: if (!pm.environment.get('notificationId')) { pm.execution.skipRequest(); }
+    language: text/javascript
+  - type: afterResponse
+    code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
 order: 3000

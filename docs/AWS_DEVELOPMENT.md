@@ -214,6 +214,14 @@ curl --fail --show-error "http://${EC2_C_IP}:8005/health"
 
 Notification health returns HTTP `503` until its Redis worker connects to EC2-A Redis. Check security group rule and `REDIS_URL` when this happens.
 
+Attendance publishes correction notifications to `http://notification-service:8005` inside EC2-C Compose network. After EC2-C deployment, use Postman through EC2-A Nginx only:
+
+1. Set `gatewayUrl` to `http://EC2_A_PUBLIC_IP`; do not expose or use EC2-C port `8002` publicly.
+2. Run Register user, Login user, Check in, and Check out. Checkout must return `200`.
+3. Run Login admin, then Update attendance (admin). It must return `200`.
+4. Run Verify attendance correction notification in Collection Runner. It retries up to five times and must find notification whose `data.attendance_id` matches `attendanceId`.
+5. If verification fails, inspect `attendance-service`, `notification-service`, and EC2-A Redis logs. Confirm EC2-C notification health returns `200` and security group permits EC2-C to EC2-A Redis port `6379`.
+
 ### EC2-D: library and member
 
 ```bash

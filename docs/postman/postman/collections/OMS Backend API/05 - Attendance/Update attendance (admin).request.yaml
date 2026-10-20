@@ -1,7 +1,7 @@
 $kind: http-request
 url: "{{gatewayUrl}}/attendance/{{attendanceId}}"
 method: PATCH
-description: Admin correction emits `attendance.corrected` after successful database update. Runs only when `runAttendanceMutation=true`.
+description: Admin correction emits `attendance.corrected` after successful database update.
 headers:
   Content-Type: application/json
 body:
@@ -17,10 +17,7 @@ auth:
 scripts:
   - type: beforeRequest
     code: |-
-      if (pm.environment.get('runAttendanceMutation') !== 'true' || !/^[a-f\d]{24}$/i.test(pm.environment.get('attendanceId') || '')) {
-        console.warn('Skipped: set runAttendanceMutation=true and get a current attendanceId from Check in or List my attendance.');
-        pm.execution.skipRequest();
-      }
+      pm.test('attendanceId exists', function () { pm.expect(pm.environment.get('attendanceId') || '').to.match(/^[a-f\d]{24}$/i); });
     language: text/javascript
   - type: afterResponse
     code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });

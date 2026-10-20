@@ -24,10 +24,6 @@ values:
     value: ''
   - key: preScholarshipAcademicYear
     value: 2026-2027
-  - key: runPreScholarshipRegistration
-    value: 'false'
-  - key: runAttendanceMutation
-    value: 'false'
   - key: memberUserId
     value: ''
   - key: memberDocumentId

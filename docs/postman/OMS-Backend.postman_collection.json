@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "f0d57f14-df7c-4c11-a8c5-amt-backend-api",
     "name": "OMS Backend API",
-    "description": "Nginx load-balancer and Gateway collection for OMS microservices. Run folder 01 to verify both Gateway replicas receive Nginx traffic, then register/login and run protected endpoints. Login requests store userToken or adminToken automatically.",
+    "description": "Nginx load-balancer and Gateway collection for OMS microservices. Every request runs. Run folder 01 to verify both Gateway replicas receive Nginx traffic, then register/login and run protected endpoints. Register user creates isolated user email for each run. Login requests store userToken or adminToken automatically.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -304,6 +304,17 @@
                   "pm.test('Registration creates user', function () { pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().user.role).to.eql('user'); });"
                 ]
               }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const runId = String(Date.now());",
+                  "pm.environment.set('testRunId', runId);",
+                  "pm.environment.set('userEmail', `postman-${runId}@example.com`);"
+                ]
+              }
             }
           ],
           "request": {
@@ -575,15 +586,6 @@
           },
           "event": [
             {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.environment.get('runPreScholarshipRegistration') !== 'true') { pm.execution.skipRequest(); }"
-                ]
-              }
-            },
-            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -718,7 +720,7 @@
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/notification/api/v1/notifications?type=event.published&skip=0&limit=20",
-            "description": "Public proof for report: finds notification produced after draft-to-published event mutation. Redis consumer is asynchronous; run this request once more if it reports no match. Internal ingestion endpoint remains service-to-service only."
+            "description": "Public proof for report: finds notification produced after draft-to-published event mutation. Collection Runner retries up to five times while Redis consumer processes event. Internal ingestion endpoint remains service-to-service only."
           },
           "event": [
             {
@@ -728,8 +730,15 @@
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
                   "const notification = pm.response.json().find((item) => item.data && item.data.event_id === pm.environment.get('eventId'));",
-                  "pm.test('Published event notification exists', function () { pm.expect(notification, 'Run this request again after Redis consumer processes event.').to.exist; });",
-                  "if (notification) { pm.environment.set('notificationId', notification.id); }"
+                  "if (notification) {",
+                  "  pm.environment.set('notificationId', notification.id);",
+                  "  pm.environment.unset('eventNotificationPolls');",
+                  "} else {",
+                  "  const polls = Number(pm.environment.get('eventNotificationPolls') || '0') + 1;",
+                  "  pm.environment.set('eventNotificationPolls', String(polls));",
+                  "  if (pm.info.iteration !== undefined && polls < 5) { pm.execution.setNextRequest(pm.info.requestName); }",
+                  "  else { pm.test('Published event notification exists', function () { pm.expect(notification, 'Redis consumer did not create event.published notification after five attempts.').to.exist; }); }",
+                  "}"
                 ]
               }
             }
@@ -822,15 +831,6 @@
           },
           "event": [
             {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.environment.get('runAttendanceMutation') !== 'true') { pm.execution.skipRequest(); }"
-                ]
-              }
-            },
-            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -912,7 +912,7 @@
                 }
               }
             },
-            "description": "Admin correction emits `attendance.corrected` after successful database update. Runs only when `runAttendanceMutation=true`."
+            "description": "Admin correction emits `attendance.corrected` after successful database update."
           },
           "event": [
             {
@@ -920,10 +920,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.environment.get('runAttendanceMutation') !== 'true' || !/^[a-f\\d]{24}$/i.test(pm.environment.get('attendanceId') || '')) {",
-                  "  console.warn('Skipped: set runAttendanceMutation=true and get a current attendanceId from Check in or List my attendance.');",
-                  "  pm.execution.skipRequest();",
-                  "}"
+                  "pm.test('attendanceId exists', function () { pm.expect(pm.environment.get('attendanceId') || '').to.match(/^[a-f\\d]{24}$/i); });"
                 ]
               }
             },
@@ -943,7 +940,7 @@
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/notification/api/v1/notifications?type=attendance.corrected&skip=0&limit=20",
-            "description": "Public proof for report: finds notification produced by admin attendance correction. Redis consumer is asynchronous; run this request once more if it reports no match."
+            "description": "Public proof for report: finds notification produced by admin attendance correction. Collection Runner retries up to five times while Redis consumer processes event."
           },
           "event": [
             {
@@ -951,10 +948,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.environment.get('runAttendanceMutation') !== 'true' || !/^[a-f\\d]{24}$/i.test(pm.environment.get('attendanceId') || '')) {",
-                  "  console.warn('Skipped: set runAttendanceMutation=true and get a current attendanceId from Check in or List my attendance.');",
-                  "  pm.execution.skipRequest();",
-                  "}"
+                  "pm.test('attendanceId exists', function () { pm.expect(pm.environment.get('attendanceId') || '').to.match(/^[a-f\\d]{24}$/i); });"
                 ]
               }
             },
@@ -965,8 +959,15 @@
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
                   "const notification = pm.response.json().find((item) => item.data && item.data.attendance_id === pm.environment.get('attendanceId'));",
-                  "pm.test('Attendance correction notification exists', function () { pm.expect(notification, 'Run this request again after Redis consumer processes event.').to.exist; });",
-                  "if (notification) { pm.environment.set('notificationId', notification.id); }"
+                  "if (notification) {",
+                  "  pm.environment.set('notificationId', notification.id);",
+                  "  pm.environment.unset('attendanceNotificationPolls');",
+                  "} else {",
+                  "  const polls = Number(pm.environment.get('attendanceNotificationPolls') || '0') + 1;",
+                  "  pm.environment.set('attendanceNotificationPolls', String(polls));",
+                  "  if (pm.info.iteration !== undefined && polls < 5) { pm.execution.setNextRequest(pm.info.requestName); }",
+                  "  else { pm.test('Attendance correction notification exists', function () { pm.expect(notification, 'Redis consumer did not create attendance.corrected notification after five attempts.').to.exist; }); }",
+                  "}"
                 ]
               }
             }
@@ -1033,7 +1034,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.environment.get('notificationId')) { pm.execution.skipRequest(); }"
+                  "pm.test('notificationId exists', function () { pm.expect(pm.environment.get('notificationId') || '').to.match(/^[a-f\\d]{24}$/i); });"
                 ]
               }
             },
@@ -1067,7 +1068,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.environment.get('notificationId')) { pm.execution.skipRequest(); }"
+                  "pm.test('notificationId exists', function () { pm.expect(pm.environment.get('notificationId') || '').to.match(/^[a-f\\d]{24}$/i); });"
                 ]
               }
             },
@@ -1094,7 +1095,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.environment.get('notificationId')) { pm.execution.skipRequest(); }"
+                  "pm.test('notificationId exists', function () { pm.expect(pm.environment.get('notificationId') || '').to.match(/^[a-f\\d]{24}$/i); });"
                 ]
               }
             },

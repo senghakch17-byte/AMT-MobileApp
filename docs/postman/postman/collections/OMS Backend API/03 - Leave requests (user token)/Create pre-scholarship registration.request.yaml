@@ -28,9 +28,6 @@ body:
       "document_urls": []
     }
 scripts:
-  - type: beforeRequest
-    code: if (pm.environment.get('runPreScholarshipRegistration') !== 'true') { pm.execution.skipRequest(); }
-    language: text/javascript
   - type: afterResponse
     code: pm.test('Expected 201', function () { pm.response.to.have.status(201); });
     language: text/javascript

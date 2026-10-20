@@ -1,5 +1,5 @@
 $kind: collection
-description: Nginx load-balancer and Gateway collection for OMS microservices. Run folder 01 to verify both Gateway replicas receive Nginx traffic, then register/login and run protected endpoints. Login requests store userToken or adminToken automatically.
+description: Nginx load-balancer and Gateway collection for OMS microservices. Every request runs. Run folder 01 to verify both Gateway replicas receive Nginx traffic, then register/login and run protected endpoints. Register user creates isolated user email for each run. Login requests store userToken or adminToken automatically.
 variables:
   gatewayUrl: http://localhost
   gateway1Url: http://localhost:4000

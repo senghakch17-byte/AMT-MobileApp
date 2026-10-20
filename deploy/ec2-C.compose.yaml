@@ -6,6 +6,7 @@ services:
     env_file: ./.env
     environment:
       PORT: "8002"
+      NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["${EC2_C_IP}:8002:8002"]
 
   notification-service:

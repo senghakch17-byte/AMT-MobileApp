@@ -2,9 +2,6 @@ $kind: http-request
 url: "{{gatewayUrl}}/attendance/check-out"
 method: POST
 scripts:
-  - type: beforeRequest
-    code: if (pm.environment.get('runAttendanceMutation') !== 'true') { pm.execution.skipRequest(); }
-    language: text/javascript
   - type: afterResponse
     code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });
     language: text/javascript

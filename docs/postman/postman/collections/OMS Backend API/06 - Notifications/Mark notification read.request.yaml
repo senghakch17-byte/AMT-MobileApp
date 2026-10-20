@@ -3,7 +3,7 @@ url: "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}/read"
 method: PATCH
 scripts:
   - type: beforeRequest
-    code: if (!pm.environment.get('notificationId')) { pm.execution.skipRequest(); }
+    code: pm.test('notificationId exists', function () { pm.expect(pm.environment.get('notificationId') || '').to.match(/^[a-f\d]{24}$/i); });
     language: text/javascript
   - type: afterResponse
     code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });

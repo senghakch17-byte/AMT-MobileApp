@@ -17,6 +17,12 @@ body:
 auth:
   type: noauth
 scripts:
+  - type: beforeRequest
+    code: |-
+      const runId = String(Date.now());
+      pm.environment.set('testRunId', runId);
+      pm.environment.set('userEmail', `postman-${runId}@example.com`);
+    language: text/javascript
   - type: afterResponse
     code: |-
       pm.test('Registration creates user', function () { pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().user.role).to.eql('user'); });

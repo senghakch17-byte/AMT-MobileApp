@@ -142,16 +142,99 @@ Expected response contains gateway status JSON. Use [Postman collection](postman
 
 This topology is configured but not deployed or production-verified. Each host must have repository checkout and identical ignored `deploy/.env`. Use private IPs only for service-to-service traffic. Place EC2 private addresses and shared application settings in `deploy/.env`, based on `deploy/.env.example`.
 
-On each host, create shared deployment environment file, set real values, validate, then start its Compose file. Deploy Compose passes `deploy/.env` to application containers; Python services receive `MONGODB_URI` from shared `MONGO_URI`, so no per-service `.env` files are needed:
+On each host, create shared deployment environment file and set real values. Deploy Compose passes `deploy/.env` to application containers; Python services receive `MONGODB_URI` from shared `MONGO_URI`, so no per-service `.env` files are needed:
 
 ```bash
 cp deploy/.env.example deploy/.env
 chmod 600 deploy/.env
-docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml config --quiet
-docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml up -d --build
 ```
 
-Replace `ec2-A` with current host suffix. EC2-A uses Nginx port `80`; EC2-B, EC2-C, EC2-D service ports and EC2-A Redis bind only to host private IP addresses. Redis has no persistence. `POST /notification/api/v1/internal/events` remains excluded from public gateway use.
+Run commands for matching host. Replace `git pull` with explicit release checkout when deploying a tagged release.
+
+### EC2-A: Nginx, gateways, registration, login, Redis
+
+```bash
+cd ~/AMT-MobileApp
+git pull
+docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml config --quiet
+docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml up -d --build
+docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml ps
+docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml logs --tail=200
+
+# Nginx and gateway reachability
+curl --fail --show-error http://localhost/health
+
+# Registration and login have no health endpoint. Confirm processes and inspect startup logs.
+docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml ps register login
+docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml logs --tail=100 register login
+
+```
+
+### EC2-B: request and event
+
+```bash
+cd ~/AMT-MobileApp
+git pull
+docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml config --quiet
+docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml up -d --build
+docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml ps
+docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml logs --tail=200
+
+EC2_B_IP="$(grep '^EC2_B_IP=' deploy/.env | cut -d= -f2-)"
+
+# Request health endpoint.
+curl --fail --show-error "http://${EC2_B_IP}:8000/health"
+
+# Event service has no health endpoint. Confirm process and inspect startup logs.
+docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml ps event-service
+docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml logs --tail=100 event-service
+
+```
+
+### EC2-C: attendance and notification
+
+```bash
+cd ~/AMT-MobileApp
+git pull
+docker compose --env-file deploy/.env -f deploy/ec2-C.compose.yaml config --quiet
+docker compose --env-file deploy/.env -f deploy/ec2-C.compose.yaml up -d --build
+docker compose --env-file deploy/.env -f deploy/ec2-C.compose.yaml ps
+docker compose --env-file deploy/.env -f deploy/ec2-C.compose.yaml logs --tail=200
+
+EC2_C_IP="$(grep '^EC2_C_IP=' deploy/.env | cut -d= -f2-)"
+curl --fail --show-error "http://${EC2_C_IP}:8002/health"
+curl --fail --show-error "http://${EC2_C_IP}:8005/health"
+
+```
+
+Notification health returns HTTP `503` until its Redis worker connects to EC2-A Redis. Check security group rule and `REDIS_URL` when this happens.
+
+### EC2-D: library and member
+
+```bash
+cd ~/AMT-MobileApp
+git pull
+docker compose --env-file deploy/.env -f deploy/ec2-D.compose.yaml config --quiet
+docker compose --env-file deploy/.env -f deploy/ec2-D.compose.yaml up -d --build
+docker compose --env-file deploy/.env -f deploy/ec2-D.compose.yaml ps
+docker compose --env-file deploy/.env -f deploy/ec2-D.compose.yaml logs --tail=200
+
+EC2_D_IP="$(grep '^EC2_D_IP=' deploy/.env | cut -d= -f2-)"
+curl --fail --show-error "http://${EC2_D_IP}:8003/health"
+curl --fail --show-error "http://${EC2_D_IP}:8004/health"
+
+```
+
+EC2-A uses Nginx port `80`; EC2-B, EC2-C, EC2-D service ports and EC2-A Redis bind only to host private IP addresses. Redis has no persistence. `POST /notification/api/v1/internal/events` remains excluded from public gateway use.
+
+Stop only matching host services:
+
+```bash
+docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml down
+docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml down
+docker compose --env-file deploy/.env -f deploy/ec2-C.compose.yaml down
+docker compose --env-file deploy/.env -f deploy/ec2-D.compose.yaml down
+```
 
 Multi-host security groups must allow only required private traffic:
 

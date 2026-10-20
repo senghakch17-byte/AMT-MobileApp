@@ -5,7 +5,7 @@
 1. Start the backend with `docker compose up --build`. The gateway should be reachable at `http://localhost`; MongoDB must be configured and reachable by the services.
 2. In Postman, import `OMS-Backend.postman_collection.json` and `OMS-local.postman_environment.json` (Import → Files). Select **OMS local gateway** in the environment selector.
 3. Set `userEmail` and `userPassword` to credentials for test account. **Register user** always sends role `user`; use fresh test email to expect `201`, or existing email to expect duplicate-account `400`. Keep `gatewayUrl` as is for local Docker, or change it to your deployed gateway URL.
-4. `runPreScholarshipRegistration` and `runAttendanceMutation` default to `false`, so these setup or daily-state mutations skip during repeat runs. Set each to `true` only in controlled test data. Run **Login user (save userToken)**; it automatically stores JWT in selected environment. It expires after one hour; run login again after expiry.
+4. `runPreScholarshipRegistration` and `runAttendanceMutation` default to `false`, so guarded setup and daily-state mutations skip during repeat runs. **Check in** always sends so it can show its real `201` or same-day `409`; set `runAttendanceMutation=true` before Check out, admin attendance update, or correction-notification verification. Run **Login user (save userToken)**; it automatically stores JWT in selected environment. It expires after one hour; run login again after expiry.
 5. Run folders in number order. Folder **01 - Load balancer and Gateway health** first: direct health checks verify `gateway1Url` and `gateway2Url`; four Nginx health requests collect `X-Upstream`, and final request fails unless two distinct Gateway upstreams served traffic. Collection auth sends `userToken` to protected endpoints. Admin requests explicitly use `adminToken`. **Members** uploads `docs/postman/fixtures/member-test-document.pdf`; select this file again if Postman cannot resolve path after import. **Library** creates booking history using separate time slots, then deletes only its disposable room and book.
 
 ## Admin token setup
@@ -72,8 +72,8 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 2. Register user → Login user.
 3. Create leave request → its test script saves `leaveRequestId`; use Get, Update, or Cancel while it is pending. A cancelled request cannot be changed.
 4. Set `runPreScholarshipRegistration=true` only when creating a new registration, then list registrations. An active duplicate for same academic year returns 409.
-5. Provision/login admin in controlled environment → Create event → update event to `published` → list/get as user → delete as admin. Create saves returned `id` into `eventId` automatically.
-6. Set `runAttendanceMutation=true` only when checking in/out for current UTC day. Collection saves `attendanceId` on check-in; list personal attendance always runs. Use admin token for list-all and update.
+5. Provision/login admin in controlled environment → Create event → update event to `published` → **Verify event publication notification** → list/get as user → delete as admin. Verification searches for notification with matching `data.event_id`; repeat once if Redis consumer has not processed it yet. Create saves returned `id` into `eventId` automatically.
+6. Run **Check in**. A `201` saves its `_id` as `attendanceId`. One record exists per user per UTC day, so a repeated check-in returns `409`; then run **List my attendance**, which saves today’s record `_id` as `attendanceId`. Confirm it is a 24-character MongoDB ID. Set `runAttendanceMutation=true` before Check out, admin correction, or **Verify attendance correction notification**. Admin correction proves matching `data.attendance_id`; repeat verification once if consumer is still processing. Use admin token for list-all and update.
 7. List notifications saves first returned `id` as `notificationId`. Item requests skip when no accessible notification exists. Preferences work without notification data. `POST /notification/api/v1/internal/events` is intentionally excluded: internal service-to-service route requires `x-internal-api-key` and must not be exposed through gateway.
 8. Members: get profile to save `memberUserId`. In **Upload my document**, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/member-test-document.pdf` for `file` after import, then upload/list/download. Upload or non-empty list saves `memberDocumentId`. Run admin member document list before its download; it saves both IDs. Upload leaves test document history in database.
 9. Library: create rooms, run pending/approved/rejected/cancelled booking flow, then create/update/delete catalog book. Booking room remains because booking history prevents room deletion.
@@ -84,7 +84,7 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 - `401`: token missing, invalid, or expired. Login again; verify the Login service, API Gateway, Request, and Event services share `JWT_SECRET`.
 - `403`: role mismatch at login or admin-only event or attendance route called using a user token.
 - `404`: unknown ID or resource not owned by the current user; regular users cannot view draft events.
-- `409`: overlapping active leave dates or duplicate active scholarship year.
+- `409`: overlapping active leave dates, duplicate active scholarship year, or second attendance check-in for same user and UTC day. Run **List my attendance** to recover today’s `attendanceId` for admin correction.
 - `422`: invalid body, date, enum, or query value.
 - `502`: gateway cannot reach the upstream service; check `docker compose ps` and logs.
 

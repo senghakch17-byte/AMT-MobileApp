@@ -21,6 +21,7 @@ from app.database.models import Event
 from app.schemas.event import EventBase, EventCreate, EventResponse, EventUpdate
 from app.utils.enums import EventCategory, EventStatus
 from app.utils.helpers import utcnow
+from app.utils.notifications import publish_notification
 from app.utils.storage import delete_image, save_image
 
 router = APIRouter(prefix="/events", tags=["Events"])
@@ -48,6 +49,13 @@ async def create_event(payload: EventCreate, admin: CurrentUser = Depends(requir
     event = Event(**payload.model_dump(), created_by=admin.id, created_by_email=admin.emailid)
     await event.insert()
     await invalidate_event()
+    if event.status == EventStatus.PUBLISHED:
+        await publish_notification({
+            "event_id": f"event-service:{event.id}:published",
+            "type": "event.published",
+            "recipient_role": "user",
+            "data": {"event_id": str(event.id), "screen": "event-details"},
+        })
     return event
 
 
@@ -58,6 +66,7 @@ async def update_event(
     _: CurrentUser = Depends(require_admin),
 ):
     event = await _get_or_404(event_id)
+    was_published = event.status == EventStatus.PUBLISHED
     changes = payload.model_dump(exclude_unset=True)
     if not changes:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "No fields to update")
@@ -75,6 +84,14 @@ async def update_event(
     event.updated_at = utcnow()
     await event.save()
     await invalidate_event(event.id)
+    if event.status == EventStatus.PUBLISHED:
+        event_type = "event.updated" if was_published else "event.published"
+        await publish_notification({
+            "event_id": f"event-service:{event.id}:{event_type.rsplit('.', 1)[1]}:{event.updated_at.isoformat()}",
+            "type": event_type,
+            "recipient_role": "user",
+            "data": {"event_id": str(event.id), "screen": "event-details"},
+        })
     return event
 
 

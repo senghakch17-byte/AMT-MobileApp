@@ -1,6 +1,6 @@
 const express = require('express');
 const { internalApiKey } = require('../config');
-const { publishEvent } = require('../services/eventConsumer');
+const eventConsumer = require('../services/eventConsumer');
 const { templates } = require('../services/templates');
 
 const router = express.Router();
@@ -21,7 +21,7 @@ router.post('/events', async (req, res) => {
     return res.status(400).json({ message: 'data must be an object' });
   }
 
-  const streamId = await publishEvent({
+  const streamId = await eventConsumer.publishEvent({
     event_id: eventId.trim(),
     type,
     recipient_id: recipientId?.trim(),

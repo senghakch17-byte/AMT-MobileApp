@@ -3,6 +3,13 @@ url: "{{gatewayUrl}}/attendance/me"
 method: GET
 scripts:
   - type: afterResponse
-    code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      if (pm.response.code === 200) {
+        const today = new Date().toISOString().slice(0, 10);
+        const attendance = pm.response.json().find((item) => item.attendanceDate && item.attendanceDate.slice(0, 10) === today);
+        if (attendance && /^[a-f\d]{24}$/i.test(attendance._id)) { pm.environment.set('attendanceId', attendance._id); }
+        else { pm.environment.unset('attendanceId'); }
+      }
     language: text/javascript
 order: 3000

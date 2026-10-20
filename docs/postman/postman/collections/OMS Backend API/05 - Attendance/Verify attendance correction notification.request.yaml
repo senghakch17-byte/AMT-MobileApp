@@ -1,0 +1,20 @@
+$kind: http-request
+description: "Public proof for report: finds notification produced by admin attendance correction. Redis consumer is asynchronous; run this request once more if it reports no match."
+url: "{{gatewayUrl}}/notification/api/v1/notifications?type=attendance.corrected&skip=0&limit=20"
+method: GET
+scripts:
+  - type: beforeRequest
+    code: |-
+      if (pm.environment.get('runAttendanceMutation') !== 'true' || !/^[a-f\d]{24}$/i.test(pm.environment.get('attendanceId') || '')) {
+        console.warn('Skipped: set runAttendanceMutation=true and get a current attendanceId from Check in or List my attendance.');
+        pm.execution.skipRequest();
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      const notification = pm.response.json().find((item) => item.data && item.data.attendance_id === pm.environment.get('attendanceId'));
+      pm.test('Attendance correction notification exists', function () { pm.expect(notification, 'Run this request again after Redis consumer processes event.').to.exist; });
+      if (notification) { pm.environment.set('notificationId', notification.id); }
+    language: text/javascript
+order: 5500

@@ -60,9 +60,10 @@ services:
         required: false
     environment:
       REDIS_URL: redis://redis:6379
+      NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["8001:8001"]
     volumes: [event_uploads:/backend/uploads]
-    depends_on: [redis]
+    depends_on: [redis, notification-service]
     networks: [app-net]
 
   attendance-service:
@@ -72,7 +73,10 @@ services:
     env_file:
       - path: ./apps/attendance-service/.env
         required: false
+    environment:
+      NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["8002:8002"]
+    depends_on: [notification-service]
     networks: [app-net]
 
   library-service:

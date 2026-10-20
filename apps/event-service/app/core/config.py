@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     CACHE_TTL_LIST: int = 30      # seconds
     CACHE_TTL_DETAIL: int = 120   # seconds
     RATE_LIMIT_READ: str = "60/minute"
+    NOTIFICATION_SERVICE_URL: str | None = None
+    INTERNAL_API_KEY: str | None = None
 
     # Reserved for future DB connection string (PostgreSQL/MongoDB)
     DATABASE_URL: str | None = None

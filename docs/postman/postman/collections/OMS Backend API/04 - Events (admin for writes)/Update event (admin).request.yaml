@@ -1,6 +1,7 @@
 $kind: http-request
 url: "{{gatewayUrl}}/event/events/{{eventId}}"
 method: PATCH
+description: Publishes draft event. Event service queues trusted `event.published` notification after successful database update.
 headers:
   Content-Type: application/json
 body:
@@ -15,6 +16,8 @@ auth:
     token: "{{adminToken}}"
 scripts:
   - type: afterResponse
-    code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      pm.test('Event is published', function () { pm.expect(pm.response.json().status).to.equal('published'); });
     language: text/javascript
 order: 3000

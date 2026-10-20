@@ -5,8 +5,10 @@ const jwt = require('jsonwebtoken');
 process.env.JWT_SECRET = 'attendance-test-secret';
 const app = require('../app');
 const Attendance = require('../models/attendance.model');
+const notifications = require('../utils/notifications');
 const { parseDateOnly, utcDayStart } = require('../utils/date');
 const original = Object.fromEntries(['create', 'findOneAndUpdate', 'exists', 'find', 'findById'].map((key) => [key, Attendance[key]]));
+const originalPublishNotification = notifications.publishNotification;
 let server;
 let url;
 
@@ -45,6 +47,7 @@ test.before(async () => {
 });
 test.after(async () => new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve())));
 test.beforeEach(() => Object.assign(Attendance, original));
+test.afterEach(() => { notifications.publishNotification = originalPublishNotification; });
 
 test('date helpers and schema enforce storage contract', () => {
   assert.equal(utcDayStart(new Date('2026-10-16T18:45:00Z')).toISOString(), '2026-10-16T00:00:00.000Z');
@@ -127,7 +130,9 @@ test('admin correction validates ID, allowed fields, missing records, values, or
   }
   Attendance.findById = async () => record({ checkIn: new Date('2026-10-16T10:00:00Z') });
   assert.equal((await request('/507f1f77bcf86cd799439011', { method: 'PATCH', auth: admin, body: { checkOut: '2026-10-16T09:00:00.000Z' } })).status, 400);
-  const attendance = record(); let saved = false; attendance.save = async () => { saved = true; };
+  const attendance = record({ updatedAt: new Date('2026-10-17T09:00:00.000Z') }); let saved = false; attendance.save = async () => { saved = true; };
+  let published;
+  notifications.publishNotification = async (event) => { published = event; };
   Attendance.findById = async () => attendance;
   const response = await request('/507f1f77bcf86cd799439011', { method: 'PATCH', auth: admin, body: { attendanceDate: '2026-10-17', checkIn: '2026-10-17T09:00:00.000Z', checkOut: null, status: 'late' } });
   assert.equal(response.status, 200);
@@ -135,6 +140,12 @@ test('admin correction validates ID, allowed fields, missing records, values, or
   assert.equal(attendance.checkOut, null);
   assert.equal(attendance.status, 'late');
   assert.ok(saved);
+  assert.deepEqual(published, {
+    event_id: 'attendance-service:507f1f77bcf86cd799439011:corrected:2026-10-17T09:00:00.000Z',
+    type: 'attendance.corrected',
+    recipient_id: 'user-1',
+    data: { attendance_id: '507f1f77bcf86cd799439011', screen: 'attendance-history' },
+  });
 });
 
 test('Mongoose validation errors return 400', async () => {

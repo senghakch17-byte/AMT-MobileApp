@@ -697,7 +697,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Publishes draft event. Event service queues trusted `event.published` notification after successful database update."
           },
           "event": [
             {
@@ -705,7 +706,30 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Event is published', function () { pm.expect(pm.response.json().status).to.equal('published'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify event publication notification",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/notification/api/v1/notifications?type=event.published&skip=0&limit=20",
+            "description": "Public proof for report: finds notification produced after draft-to-published event mutation. Redis consumer is asynchronous; run this request once more if it reports no match. Internal ingestion endpoint remains service-to-service only."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "const notification = pm.response.json().find((item) => item.data && item.data.event_id === pm.environment.get('eventId'));",
+                  "pm.test('Published event notification exists', function () { pm.expect(notification, 'Run this request again after Redis consumer processes event.').to.exist; });",
+                  "if (notification) { pm.environment.set('notificationId', notification.id); }"
                 ]
               }
             }
@@ -770,7 +794,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.environment.get('runAttendanceMutation') !== 'true') { pm.execution.skipRequest(); }"
+                  "pm.environment.unset('attendanceId');"
                 ]
               }
             },
@@ -780,7 +804,11 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
-                  "if (pm.response.code === 201) { pm.environment.set('attendanceId', pm.response.json()._id); }"
+                  "if (pm.response.code === 201) {",
+                  "  const attendanceId = pm.response.json()._id;",
+                  "  pm.test('Response contains attendance ID', function () { pm.expect(attendanceId).to.match(/^[a-f\\d]{24}$/i); });",
+                  "  if (/^[a-f\\d]{24}$/i.test(attendanceId)) { pm.environment.set('attendanceId', attendanceId); }",
+                  "}"
                 ]
               }
             }
@@ -825,7 +853,13 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const today = new Date().toISOString().slice(0, 10);",
+                  "  const attendance = pm.response.json().find((item) => item.attendanceDate && item.attendanceDate.slice(0, 10) === today);",
+                  "  if (attendance && /^[a-f\\d]{24}$/i.test(attendance._id)) { pm.environment.set('attendanceId', attendance._id); }",
+                  "  else { pm.environment.unset('attendanceId'); }",
+                  "}"
                 ]
               }
             }
@@ -877,8 +911,66 @@
                   "language": "json"
                 }
               }
+            },
+            "description": "Admin correction emits `attendance.corrected` after successful database update. Runs only when `runAttendanceMutation=true`."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.environment.get('runAttendanceMutation') !== 'true' || !/^[a-f\\d]{24}$/i.test(pm.environment.get('attendanceId') || '')) {",
+                  "  console.warn('Skipped: set runAttendanceMutation=true and get a current attendanceId from Check in or List my attendance.');",
+                  "  pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
             }
-          }
+          ]
+        },
+        {
+          "name": "Verify attendance correction notification",
+          "request": {
+            "method": "GET",
+            "url": "{{gatewayUrl}}/notification/api/v1/notifications?type=attendance.corrected&skip=0&limit=20",
+            "description": "Public proof for report: finds notification produced by admin attendance correction. Redis consumer is asynchronous; run this request once more if it reports no match."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.environment.get('runAttendanceMutation') !== 'true' || !/^[a-f\\d]{24}$/i.test(pm.environment.get('attendanceId') || '')) {",
+                  "  console.warn('Skipped: set runAttendanceMutation=true and get a current attendanceId from Check in or List my attendance.');",
+                  "  pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
+                  "const notification = pm.response.json().find((item) => item.data && item.data.attendance_id === pm.environment.get('attendanceId'));",
+                  "pm.test('Attendance correction notification exists', function () { pm.expect(notification, 'Run this request again after Redis consumer processes event.').to.exist; });",
+                  "if (notification) { pm.environment.set('notificationId', notification.id); }"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

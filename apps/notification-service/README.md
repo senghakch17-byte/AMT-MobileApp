@@ -36,7 +36,7 @@ The consumer group reads from `notification:events` by default. Events must cont
 
 Supported event types are `request.approved`, `request.rejected`, `attendance.absent`, `attendance.corrected`, `event.published`, and `event.updated`. The service owns message templates; producers only provide trusted event metadata.
 
-For producers that cannot publish directly to Redis yet, submit the same body to `POST /api/v1/internal/events` with `x-internal-api-key`. This endpoint queues the event in the Redis Stream and returns `202`. It is intended for internal service-to-service calls only, not the mobile app.
+Event service publishes `event.published` when an event becomes published and `event.updated` for later published-event changes. Attendance service publishes `attendance.absent` when an admin marks a record absent, otherwise `attendance.corrected` after an admin correction. Both call `POST /api/v1/internal/events` directly with `x-internal-api-key`; it is not exposed for mobile clients. Producer delivery has a three-second timeout and does not roll back completed source writes; retry failed deliveries from an outbox when guaranteed delivery is required.
 
 At-least-once Redis delivery is made idempotent using a unique `event_id` plus recipient constraint.
 

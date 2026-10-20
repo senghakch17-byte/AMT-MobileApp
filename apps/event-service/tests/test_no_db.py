@@ -35,13 +35,29 @@ async def test_admin_can_create_event_with_mocked_persistence(client, monkeypatc
     async def invalidate(*_):
         return None
 
+    published = []
+
+    async def publish(event):
+        published.append(event)
+
     monkeypatch.setattr(events, "Event", FakeEvent)
     monkeypatch.setattr(events, "invalidate_event", invalidate)
+    monkeypatch.setattr(events, "publish_notification", publish)
     token = jwt.encode({"id": "admin-1", "emailid": "admin@example.com", "role": "admin"}, "event-test-secret-0123456789abcdef", algorithm="HS256")
     payload = {"title": "Test event", "description": "Long enough event description", "location": "Hall", "start_at": "2026-01-02T00:00:00Z"}
     response = await client.post(API, json=payload, headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 201
     assert response.json()["created_by"] == "admin-1"
+    assert published == []
+
+    response = await client.post(
+        API,
+        json={**payload, "status": "published"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 201
+    assert published[0]["type"] == "event.published"
+    assert published[0]["recipient_role"] == "user"
 
 
 def test_event_schema_normalizes_timezone_and_rejects_inverted_dates():

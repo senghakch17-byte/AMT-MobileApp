@@ -83,7 +83,7 @@ docker ps
 Clone repository on EC2:
 
 ```bash
-git clone REPOSITORY_URL AMT-MobileApp
+git clone https://github.com/senghakch17-byte/AMT-MobileApp.git
 cd AMT-MobileApp
 ```
 
@@ -140,12 +140,13 @@ Expected response contains gateway status JSON. Use [Postman collection](postman
 | EC2-C | Attendance, notification |
 | EC2-D | Member, library |
 
-This topology is configured but not deployed or production-verified. Each host must have repository checkout and required service `.env` files. Use private IPs only for service-to-service traffic. Place EC2 private addresses in ignored `deploy/.env`, based on `deploy/.env.example`.
+This topology is configured but not deployed or production-verified. Each host must have repository checkout and identical ignored `deploy/.env`. Use private IPs only for service-to-service traffic. Place EC2 private addresses and shared application settings in `deploy/.env`, based on `deploy/.env.example`.
 
-On each host, copy only its service environments, create `deploy/.env`, validate, then start its Compose file:
+On each host, create shared deployment environment file, set real values, validate, then start its Compose file. Deploy Compose passes `deploy/.env` to application containers; Python services receive `MONGODB_URI` from shared `MONGO_URI`, so no per-service `.env` files are needed:
 
 ```bash
 cp deploy/.env.example deploy/.env
+chmod 600 deploy/.env
 docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml config --quiet
 docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml up -d --build
 ```

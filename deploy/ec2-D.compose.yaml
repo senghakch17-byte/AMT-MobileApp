@@ -3,13 +3,17 @@ services:
   library-service:
     extends: { file: common.yaml, service: base }
     build: ../apps/library-service
-    env_file: ../apps/library-service/.env
+    env_file: ./.env
+    environment:
+      MONGODB_URI: "${MONGO_URI}"
     ports: ["${EC2_D_IP}:8003:8003"]
 
   member-service:
     extends: { file: common.yaml, service: base }
     build: ../apps/member-service
-    env_file: ../apps/member-service/.env
+    env_file: ./.env
+    environment:
+      MONGODB_URI: "${MONGO_URI}"
     ports: ["${EC2_D_IP}:8004:8004"]
     volumes: [member_uploads:/backend/uploads]
 

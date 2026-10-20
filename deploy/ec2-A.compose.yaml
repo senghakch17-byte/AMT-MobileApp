@@ -3,7 +3,7 @@ x-gateway: &gateway
   extends: { file: common.yaml, service: base }
   image: api-gateway
   build: ../apps/api-gateway
-  env_file: ../apps/api-gateway/.env
+  env_file: ./.env
   environment:
     PORT: "4000"
     REGISTER_SERVICE_URL: http://register:5001
@@ -34,13 +34,13 @@ services:
   register:
     extends: { file: common.yaml, service: base }
     build: ../apps/registration-service
-    env_file: ../apps/registration-service/.env
+    env_file: ./.env
     environment: { PORT: "5001" }
 
   login:
     extends: { file: common.yaml, service: base }
     build: ../apps/login-service
-    env_file: ../apps/login-service/.env
+    env_file: ./.env
     environment: { PORT: "5002" }
 
   redis:

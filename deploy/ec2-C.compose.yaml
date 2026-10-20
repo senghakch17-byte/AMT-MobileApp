@@ -3,7 +3,7 @@ services:
   attendance-service:
     extends: { file: common.yaml, service: base }
     build: ../apps/attendance-service
-    env_file: ../apps/attendance-service/.env
+    env_file: ./.env
     environment:
       PORT: "8002"
     ports: ["${EC2_C_IP}:8002:8002"]
@@ -11,7 +11,7 @@ services:
   notification-service:
     extends: { file: common.yaml, service: base }
     build: ../apps/notification-service
-    env_file: ../apps/notification-service/.env
+    env_file: ./.env
     environment:
       PORT: "8005"
       REDIS_URL: redis://${EC2_A_IP}:6379

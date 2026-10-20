@@ -135,7 +135,7 @@ Expected response contains gateway status JSON. Use [Postman collection](postman
 
 | Host | Intended services |
 | --- | --- |
-| EC2-A | Nginx, two API gateways, registration, login, Redis |
+| EC2-A | Nginx, API gateway 1 (`4000`), API gateway 2 (`4001`), registration, login, Redis |
 | EC2-B | Request, event |
 | EC2-C | Attendance, notification |
 | EC2-D | Member, library |
@@ -161,8 +161,13 @@ docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml up -d --build
 docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml ps
 docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml logs --tail=200
 
-# Nginx and gateway reachability
+# Nginx and gateway reachability. Nginx balances gateway1:4000 and gateway2:4001.
 curl --fail --show-error http://localhost/health
+
+# Demo both gateway listeners through public Nginx. Expect X-Upstream values ending in :4000 and :4001.
+for i in 1 2 3 4; do
+  curl -sS -D - -o /dev/null http://localhost/health | grep -i '^X-Upstream:'
+done
 
 # Registration and login have no health endpoint. Confirm processes and inspect startup logs.
 docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml ps register login
@@ -225,7 +230,7 @@ curl --fail --show-error "http://${EC2_D_IP}:8004/health"
 
 ```
 
-EC2-A uses Nginx port `80`; EC2-B, EC2-C, EC2-D service ports and EC2-A Redis bind only to host private IP addresses. Redis has no persistence. `POST /notification/api/v1/internal/events` remains excluded from public gateway use.
+EC2-A uses Nginx port `80`; its Docker-internal gateways listen on `4000` and `4001`, respectively, and are reachable only through Nginx. EC2-B, EC2-C, EC2-D service ports and EC2-A Redis bind only to host private IP addresses. Redis has no persistence. `POST /notification/api/v1/internal/events` remains excluded from public gateway use.
 
 Stop only matching host services:
 

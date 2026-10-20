@@ -22,6 +22,8 @@ services:
     extends: { file: common.yaml, service: base }
     build: ../nginx
     ports: ["80:80"]
+    volumes:
+      - ./nginx.ec2-A.conf:/etc/nginx/nginx.conf:ro
     cap_add: [CHOWN, SETGID, SETUID, NET_BIND_SERVICE]
     tmpfs: [/var/cache/nginx, /run]
     depends_on: [gateway1, gateway2]
@@ -30,6 +32,17 @@ services:
     <<: *gateway
   gateway2:
     <<: *gateway
+    environment:
+      PORT: "4001"
+      REGISTER_SERVICE_URL: http://register:5001
+      LOGIN_SERVICE_URL: http://login:5002
+      REQUEST_SERVICE_URL: http://${EC2_B_IP}:8000
+      EVENT_SERVICE_URL: http://${EC2_B_IP}:8001
+      ATTENDANCE_SERVICE_URL: http://${EC2_C_IP}:8002
+      NOTIFICATION_SERVICE_URL: http://${EC2_C_IP}:8005
+      LIBRARY_SERVICE_URL: http://${EC2_D_IP}:8003
+      MEMBER_SERVICE_URL: http://${EC2_D_IP}:8004
+      REDIS_URL: redis://redis:6379
 
   register:
     extends: { file: common.yaml, service: base }

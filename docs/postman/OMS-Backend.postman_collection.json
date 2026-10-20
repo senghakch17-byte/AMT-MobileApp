@@ -295,6 +295,17 @@
       "item": [
         {
           "name": "Register user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Registration creates user', function () { pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().user.role).to.eql('user'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "url": "{{gatewayUrl}}/register/register",
@@ -316,9 +327,9 @@
                 }
               }
             },
-            "description": "Public. Creates a standard user; duplicate email returns 400."
+            "description": "Public. Exact role `admin` creates admin; all other or missing role values create user. This request creates user; duplicate email returns 400."
           },
-          "description": "Public. Creates a standard user; duplicate email returns 400."
+          "description": "Public. Exact role `admin` creates admin; all other or missing role values create user. This request creates user; duplicate email returns 400."
         },
         {
           "name": "Login user (save userToken)",

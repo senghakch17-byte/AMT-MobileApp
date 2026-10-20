@@ -4,13 +4,13 @@
 
 1. Start the backend with `docker compose up --build`. The gateway should be reachable at `http://localhost`; MongoDB must be configured and reachable by the services.
 2. In Postman, import `OMS-Backend.postman_collection.json` and `OMS-local.postman_environment.json` (Import → Files). Select **OMS local gateway** in the environment selector.
-3. Set `userEmail` and `userPassword` to credentials for test account. **Register user** always sends its request; use fresh test email to expect `201`, or existing email to expect duplicate-account `400`. Keep `gatewayUrl` as is for local Docker, or change it to your deployed gateway URL.
+3. Set `userEmail` and `userPassword` to credentials for test account. **Register user** always sends role `user`; use fresh test email to expect `201`, or existing email to expect duplicate-account `400`. Keep `gatewayUrl` as is for local Docker, or change it to your deployed gateway URL.
 4. `runPreScholarshipRegistration` and `runAttendanceMutation` default to `false`, so these setup or daily-state mutations skip during repeat runs. Set each to `true` only in controlled test data. Run **Login user (save userToken)**; it automatically stores JWT in selected environment. It expires after one hour; run login again after expiry.
 5. Run folders in number order. Folder **01 - Load balancer and Gateway health** first: direct health checks verify `gateway1Url` and `gateway2Url`; four Nginx health requests collect `X-Upstream`, and final request fails unless two distinct Gateway upstreams served traffic. Collection auth sends `userToken` to protected endpoints. Admin requests explicitly use `adminToken`. **Members** uploads `docs/postman/fixtures/member-test-document.pdf`; select this file again if Postman cannot resolve path after import. **Library** creates booking history using separate time slots, then deletes only its disposable room and book.
 
 ## Admin token setup
 
-An admin account is needed for event creation, update, and deletion. In a controlled local/test database only, set `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE` in `apps/registration-service/.env`, then run `cd apps/registration-service && npm run provision-admin`. Set matching `adminEmail` and `adminPassword` in Postman, then run **Login admin (save adminToken)**. Public registration always creates a `user`; it cannot self-provision admins. Event write requests read `adminToken`; user role tokens receive gateway `403`.
+An admin account is needed for event creation, update, and deletion. Public registration creates admin only for exact request role `admin`; all other or missing values create user. This allows public self-provisioning of administrators. Alternatively, set `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE` in `apps/registration-service/.env`, then run `cd apps/registration-service && npm run provision-admin`. Set matching `adminEmail` and `adminPassword` in Postman, then run **Login admin (save adminToken)**. Event write requests read `adminToken`; user role tokens receive gateway `403`.
 
 Both Request and Event services verify JWTs using the same `JWT_SECRET` as Login and the API Gateway. The gateway protects all `/request/*` and `/event/*` requests. Do not manually paste the token when using this collection; the login test script stores it, and collection/request auth sends it as `Authorization: Bearer <token>`.
 
@@ -21,7 +21,7 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 | Method and path | Auth | Use / notes |
 | --- | --- | --- |
 | `GET /health` | None | Gateway liveness check. |
-| `POST /register/register` | None | JSON: `name`, `emailid`, `pass`, `mobile`. Supplied `role` is ignored and response role is always `user`. Returns 201. Duplicate email returns 400. |
+| `POST /register/register` | None | JSON: `name`, `emailid`, `pass`, `mobile`, optional `role`. Exact `role: "admin"` creates admin; all other or missing values create user. Returns 201. Duplicate email returns 400. |
 | `POST /auth/login` | None | JSON: `emailid`, `pass`, and matching `role` (`user` or `admin`). Returns a one-hour JWT; collection stores the token. |
 | `GET /request/health` | User token | Request service health. |
 | `POST /request/leave-requests` | User token | JSON uses `leave_type` (`sick`, `personal`, etc. per API enum), ISO dates, reason of 10–500 chars, optional `attachment_urls`. Create returns an ID. Avoid overlapping active requests. |

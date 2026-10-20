@@ -1,5 +1,5 @@
 $kind: http-request
-description: Public. Creates a standard user; duplicate email returns 400.
+description: Public. Exact role `admin` creates admin; all other or missing role values create user. This request creates user; duplicate email returns 400.
 url: "{{gatewayUrl}}/register/register"
 method: POST
 headers:
@@ -16,4 +16,9 @@ body:
     }
 auth:
   type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Registration creates user', function () { pm.expect(pm.response.code).to.eql(201); pm.expect(pm.response.json().user.role).to.eql('user'); });
+    language: text/javascript
 order: 1000

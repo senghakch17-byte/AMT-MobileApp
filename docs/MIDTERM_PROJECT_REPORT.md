@@ -110,7 +110,7 @@ Detailed endpoint evidence is in **Appendix A**. Protected paths require `Author
 ### Authentication Flow
 
 1. A user registers through `POST /register/register`.
-2. Registration hashes the password and assigns the `user` role; public registration cannot create an administrator.
+2. Registration hashes the password and assigns `admin` only when request `role` is exactly `admin`; all other or missing values receive `user`. Public registration can create administrators.
 3. User or administrator logs in through `POST /auth/login` and receives a one-hour JWT containing the user ID, email, and role.
 4. The client sends the JWT in the `Authorization: Bearer <token>` header.
 5. The API Gateway validates the JWT before proxying protected routes and blocks admin-only routes for `user` tokens.

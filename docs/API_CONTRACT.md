@@ -23,7 +23,7 @@ Gateway health, registration, and login are public. Every `/request/*`, `/event/
 | POST | `/register/register` | `http://localhost:5001/register` | Public |
 | POST | `/auth/login` | `http://localhost:5002/login` | Public |
 
-Registration requires `name`, `emailid`, `pass`, and `mobile`; public registration always creates role `user` and ignores supplied `role`. Provision admins through controlled database access using `npm run provision-admin` with `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE` set in the registration service environment. Login requires `emailid`, `pass`, and `role`, and returns JWT valid for one hour.
+Registration requires `name`, `emailid`, `pass`, and `mobile`. Public registration creates role `admin` only when `role` is exactly `admin`; missing, `user`, and all other values create role `user`. This public endpoint allows self-provisioned administrator accounts. `npm run provision-admin` remains available for environment-based provisioning with `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE`. Login requires `emailid`, `pass`, and `role`, and returns JWT valid for one hour.
 
 ### Request service
 

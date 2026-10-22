@@ -5,7 +5,7 @@
 AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 
 - API style: REST
-- Public entry: `nginx` load balancer on port `80`, routing to gateway replicas on ports `4000` and `4001`
+- Public entry: `nginx` load balancer on port `80`, routing to gateway replicas on container port `4000`; host debug ports are `4000` and `4001`
 - Gateway: Node.js / Express in `apps/api-gateway`
 - Node services: registration, login, attendance, and notification
 - Python services: request, event, member, and library APIs using FastAPI

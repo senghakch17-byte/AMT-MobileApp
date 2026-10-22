@@ -4,7 +4,7 @@ Containerized microservices backend for registration, login, attendance, leave r
 
 ## Architecture
 
-Nginx on port `80` is public entry point. It load-balances requests between two API gateway replicas. Gateway debug ports are `4000` and `4001`.
+Nginx on port `80` is public entry point. It load-balances requests between two API gateway replicas. Both containers listen on port `4000`; host debug ports are `4000` and `4001`.
 
 ```text
 Mobile app
@@ -13,7 +13,7 @@ Mobile app
 Nginx :80
     |
     v
-API gateways :4000, :4001
+API gateways :4000 (container); host debug ports :4000, :4001
     |-- /register  -> Registration service :5001
     |-- /auth      -> Login service :5002
     |-- /request   -> Request service :8000
@@ -30,8 +30,8 @@ Event service -> event_uploads volume
 | Service | Compose service | Host port | Responsibility |
 | --- | --- | ---: | --- |
 | Nginx | `nginx` | 80 | Public entry point and gateway load balancer |
-| API gateway 1 | `gateway1` | 4000 | Routing and JWT authentication |
-| API gateway 2 | `gateway2` | 4001 | Routing and JWT authentication |
+| API gateway 1 | `gateway1` | 4000 → 4000 | Routing and JWT authentication |
+| API gateway 2 | `gateway2` | 4001 → 4000 | Routing and JWT authentication |
 | Redis | `redis` | 6379 | Shared Redis service |
 | Registration | `register` | 5001 | Account creation and password hashing |
 | Login | `login` | 5002 | Credential validation and JWT issuance |

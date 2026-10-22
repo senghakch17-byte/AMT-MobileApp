@@ -19,7 +19,7 @@ Internet
    |
 EC2 instance
    |- Nginx :80
-   |- API gateways :4000, :4001
+   |- API gateways :4000 (container); host debug ports :4000, :4001
    |- Application services
    `- Redis :6379
    |
@@ -161,10 +161,10 @@ docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml up -d --build
 docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml ps
 docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml logs --tail=200
 
-# Nginx and gateway reachability. Nginx balances gateway1:4000 and gateway2:4001.
+# Nginx and gateway reachability. Nginx balances gateway1:4000 and gateway2:4000.
 curl --fail --show-error http://localhost/health
 
-# Demo both gateway listeners through public Nginx. Expect X-Upstream values ending in :4000 and :4001.
+# Demo both gateway listeners through public Nginx. Expect both X-Upstream values ending in :4000.
 for i in 1 2 3 4; do
   curl -sS -D - -o /dev/null http://localhost/health | grep -i '^X-Upstream:'
 done

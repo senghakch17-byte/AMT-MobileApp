@@ -47,8 +47,9 @@ services:
         required: false
     environment:
       REDIS_URL: redis://redis:6379
+      NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["8000:8000"]
-    depends_on: [redis]
+    depends_on: [redis, notification-service]
     networks: [app-net]
 
   event-service:
@@ -96,6 +97,8 @@ services:
     env_file:
       - path: ./apps/member-service/.env
         required: false
+    environment:
+      REGISTRATION_SERVICE_URL: http://registration-service:5001
     ports: ["8004:8004"]
     volumes: [member_uploads:/backend/uploads]
     networks: [app-net]
@@ -131,7 +134,6 @@ services:
       - MEMBER_SERVICE_URL=http://member-service:8004
       - NOTIFICATION_SERVICE_URL=http://notification-service:8005
       - REDIS_URL=redis://redis:6379
-    ports: ["4000:4000"]
     depends_on: [register, login, request-service, event-service, attendance-service, library-service, member-service, notification-service, redis]
     networks: [app-net]
 
@@ -153,7 +155,6 @@ services:
       - MEMBER_SERVICE_URL=http://member-service:8004
       - NOTIFICATION_SERVICE_URL=http://notification-service:8005
       - REDIS_URL=redis://redis:6379
-    ports: ["4001:4000"]
     depends_on: [register, login, request-service, event-service, attendance-service, library-service, member-service, notification-service, redis]
     networks: [app-net]
 

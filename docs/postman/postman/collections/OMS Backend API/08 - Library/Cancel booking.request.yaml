@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/library/api/v1/bookings/{{cancelledBookingId}}/cancel"
+url: "{{gatewayUrl}}/booking/{{cancelledBookingId}}/cancel"
 method: POST
 scripts:
   - type: afterResponse

@@ -33,7 +33,12 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Include API v1 Router
+@app.get("/health", include_in_schema=False)
+async def health():
+    return {"status": "ok"}
+
+
+# Include application routes after static health routes so `/{id}` cannot capture /health.
 app.include_router(api_router)
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 

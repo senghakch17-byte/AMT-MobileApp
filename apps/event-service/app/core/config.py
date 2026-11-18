@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Request Service Backend Core"
+    PROJECT_NAME: str = "OMS Announcement Service"
     API_V1_STR: str = "/api/v1"
     DEBUG: bool = True
     ENVIRONMENT: str = "development"
@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     UPLOAD_DIR: str = "uploads"
-    PUBLIC_BASE_URL: str = "http://localhost:4000/events"  # gateway URL + route prefix
+    PUBLIC_BASE_URL: str = "http://localhost/announcement"  # gateway URL + route prefix
     MAX_IMAGE_MB: int = 5
     MAX_IMAGES_PER_EVENT: int = 10
     REDIS_URL: str = "redis://localhost:6379"

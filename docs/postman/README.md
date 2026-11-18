@@ -6,13 +6,13 @@
 2. In Postman, import `OMS-Backend.postman_collection.json` and `OMS-local.postman_environment.json` (Import → Files). Select **OMS local gateway** in the environment selector.
 3. Set `userPassword` plus admin credentials. **Register user** creates unique `postman-<timestamp>@example.com` value each run, then **Login user** uses it. Do not set `userEmail` manually when running full collection. Keep `gatewayUrl` for local Docker, or set it to deployed Nginx URL such as `http://EC2_A_PUBLIC_IP`.
 4. Every collection request sends; no mutation request skips. Run **Login user (save userToken)** after registration. It stores JWT in selected environment and expires after one hour. Admin requests require working `adminEmail` and `adminPassword`.
-5. Run folders in number order. Folder **01 - Load balancer and Gateway health** first for local or single-host deployment: direct health checks verify `gateway1Url` and `gateway2Url`; four Nginx health requests collect `X-Upstream`, and final request fails unless two distinct Gateway upstreams served traffic. In multi-host EC2, Gateway listeners stay private; run only four Nginx health requests through `gatewayUrl`. Collection auth sends `userToken` to protected endpoints. Admin requests explicitly use `adminToken`. **Members** uploads `docs/postman/fixtures/member-test-document.pdf`; select this file again if Postman cannot resolve path after import. **Library** creates booking history using separate time slots, then deletes only its disposable room and book.
+5. Run folders in number order. Folder **01 - Load balancer and Gateway health** first for local or single-host deployment: direct health checks verify `gateway1Url` and `gateway2Url`; four Nginx health requests collect `X-Upstream`, and final request fails unless two distinct Gateway upstreams served traffic. In multi-host EC2, Gateway listeners stay private; run only four Nginx health requests through `gatewayUrl`. Collection auth sends `userToken` to protected endpoints. Admin requests explicitly use `adminToken`. **Members** uploads `docs/postman/fixtures/user-test-document.pdf`; select this file again if Postman cannot resolve path after import. **Library** creates booking history using separate time slots, then deletes only its disposable room and book.
 
 ## Admin token setup
 
 An admin account is needed for event creation, update, and deletion. Public registration creates admin only for exact request role `admin`; all other or missing values create user. This allows public self-provisioning of administrators. Alternatively, set `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE` in `apps/registration-service/.env`, then run `cd apps/registration-service && npm run provision-admin`. Set matching `adminEmail` and `adminPassword` in Postman, then run **Login admin (save adminToken)**. Event write requests read `adminToken`; user role tokens receive gateway `403`.
 
-Both Request and Event services verify JWTs using the same `JWT_SECRET` as Login and the API Gateway. The gateway protects all `/request/*` and `/event/*` requests. Do not manually paste the token when using this collection; the login test script stores it, and collection/request auth sends it as `Authorization: Bearer <token>`.
+Both Request and Event services verify JWTs using the same `JWT_SECRET` as Login and the API Gateway. The gateway protects all `/request/*` and `/announcement/*` requests. Do not manually paste the token when using this collection; the login test script stores it, and collection/request auth sends it as `Authorization: Bearer <token>`.
 
 ## Endpoints and what to send
 
@@ -21,8 +21,8 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 | Method and path | Auth | Use / notes |
 | --- | --- | --- |
 | `GET /health` | None | Gateway liveness check. |
-| `POST /register/register` | None | JSON: `name`, `emailid`, `pass`, `mobile`, optional `role`. Exact `role: "admin"` creates admin; all other or missing values create user. Returns 201. Duplicate email returns 400. |
-| `POST /auth/login` | None | JSON: `emailid`, `pass`, and matching `role` (`user` or `admin`). Returns a one-hour JWT; collection stores the token. |
+| `POST /register` | None | JSON: `name`, `emailid`, `pass`, `mobile`, optional `role`. Exact `role: "admin"` creates admin; all other or missing values create user. Returns 201. Duplicate email returns 400. |
+| `POST /login` | None | JSON: `emailid`, `pass`, and matching `role` (`user` or `admin`). Returns a one-hour JWT; collection stores the token. |
 | `GET /request/health` | User token | Request service health. |
 | `POST /request/leave-requests` | User token | JSON uses `leave_type` (`sick`, `personal`, etc. per API enum), ISO dates, reason of 10–500 chars, optional `attachment_urls`. Create returns an ID. Avoid overlapping active requests. |
 | `GET /request/leave-requests` | User token | Lists only your requests. Optional `status`, `skip`, `limit` (1–100). |
@@ -31,11 +31,11 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 | `PATCH /request/leave-requests/{{leaveRequestId}}/cancel` | User token | Cancel a pending request. |
 | `POST /request/pre-scholarship-registrations` | User token | Send required student/guardian/contact/school fields and `statement` (20–1500 chars). `academic_year` format `YYYY-YYYY`; `need_based` requires `monthly_family_income`; `merit` requires `academic_average`. |
 | `GET /request/pre-scholarship-registrations` | User token | Lists your registrations; optional `status`, `skip`, `limit`. |
-| `POST /event/events` | Admin token | Create an event. Use ISO datetimes; `status` defaults to `draft`. |
-| `GET /event/events` | Any token | Lists events. Non-admins see published events only. Supports `category`, `upcoming`, `status` (admin filtering), `skip`, `limit`. |
-| `GET /event/events/{{eventId}}` | Any token | Gets a published event for users; admins can see drafts. |
-| `PATCH /event/events/{{eventId}}` | Admin token | Update supplied event fields; e.g. publish using `{"status":"published"}`. |
-| `DELETE /event/events/{{eventId}}` | Admin token | Deletes event; successful response is 204. |
+| `POST /announcement` | Admin token | Create an event. Use ISO datetimes; `status` defaults to `draft`. |
+| `GET /announcement` | Any token | Lists events. Non-admins see published events only. Supports `category`, `upcoming`, `status` (admin filtering), `skip`, `limit`. |
+| `GET /announcement/{{eventId}}` | Any token | Gets a published event for users; admins can see drafts. |
+| `PATCH /announcement/{{eventId}}` | Admin token | Update supplied event fields; e.g. publish using `{"status":"published"}`. |
+| `DELETE /announcement/{{eventId}}` | Admin token | Deletes event; successful response is 204. |
 | `GET /attendance/health` | User token | Attendance service health through gateway. |
 | `POST /attendance/check-in` | User token | Creates current user's daily attendance. Collection saves returned `_id` as `attendanceId`. |
 | `POST /attendance/check-out` | User token | Closes current user's attendance for today. |
@@ -43,28 +43,28 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 | `GET /attendance/` | Admin token | Lists records; supports optional `userID`, `from`, and `to` filters. |
 | `PATCH /attendance/{{attendanceId}}` | Admin token | Updates `attendanceDate`, `checkIn`, `checkOut`, or `status`. |
 | `GET /notification/health` | User token | Notification service health through gateway. |
-| `GET /notification/api/v1/notifications` | User token | Lists accessible notifications. Optional `type`, `read`, `skip`, and `limit`. |
-| `GET /notification/api/v1/notifications/unread-count` | User token | Returns unread count. |
-| `GET /notification/api/v1/notifications/{{notificationId}}` | User token | Gets accessible notification; set `notificationId` from test data. |
-| `PATCH /notification/api/v1/notifications/read-all` | User token | Marks all accessible unread notifications read. |
-| `PATCH /notification/api/v1/notifications/{{notificationId}}/read` | User token | Marks notification read. |
-| `DELETE /notification/api/v1/notifications/{{notificationId}}` | User token | Hides notification for current user. |
-| `GET /notification/api/v1/notification-preferences/me` | User token | Gets current user's preferences. |
-| `PATCH /notification/api/v1/notification-preferences/me` | User token | Updates `inAppEnabled` and/or supported `mutedTypes`. |
-| `GET /members/health` | User token | Member service health through gateway. |
-| `GET`, `PATCH /members/api/v1/members/me` | User token | Gets or updates own lazily-created profile. |
-| `POST`, `GET /members/api/v1/members/me/documents` | User token | Uploads PDF/JPEG/PNG/WEBP document or lists own documents. After import, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/member-test-document.pdf` in `file` form-data field; Postman does not embed local file content in collection exports. A successful upload or non-empty list saves `memberDocumentId`. |
-| `GET /members/api/v1/members/me/documents/{{memberDocumentId}}/download` | User token | Downloads own document. Request stops with clear error until `memberDocumentId` exists. |
-| `GET /members/api/v1/members`, `/members/{{memberUserId}}`, and member document routes | Admin token | Lists members, gets profile, and accesses member document history/download. |
-| `GET /library/health` | User token | Library service health through gateway. |
-| `POST`, `GET /library/api/v1/rooms`; `GET /rooms/{{roomId}}`; `PATCH`, `DELETE /rooms/{{roomId}}`; `GET /rooms/{{roomId}}/availability` | User token; admin for writes | Room catalog and availability. |
-| `POST /library/api/v1/bookings`; `GET /bookings/me`; `GET /bookings/{{bookingId}}`; `POST /bookings/{{bookingId}}/cancel` | User token | Creates, lists, gets, or cancels own booking. |
-| `GET /library/api/v1/bookings`; `POST /bookings/{{bookingId}}/approve`; `POST /bookings/{{bookingId}}/reject` | Admin token | Booking history and decisions. |
-| `POST`, `GET /library/api/v1/books`; `GET /books/{{bookId}}`; `PATCH`, `DELETE /books/{{bookId}}` | User token; admin for writes | Book catalog. |
+| `GET /notification` | User token | Lists accessible notifications. Optional `type`, `read`, `skip`, and `limit`. |
+| `GET /notification/unread-count` | User token | Returns unread count. |
+| `GET /notification/{{notificationId}}` | User token | Gets accessible notification; set `notificationId` from test data. |
+| `PATCH /notification/read-all` | User token | Marks all accessible unread notifications read. |
+| `PATCH /notification/{{notificationId}}/read` | User token | Marks notification read. |
+| `DELETE /notification/{{notificationId}}` | User token | Hides notification for current user. |
+| `GET /notification/preferences/me` | User token | Gets current user's preferences. |
+| `PATCH /notification/preferences/me` | User token | Updates `inAppEnabled` and/or supported `mutedTypes`. |
+| `GET /user/health` | User token | Member service health through gateway. |
+| `GET`, `PATCH /user/me` | User token | Gets or updates own lazily-created profile. |
+| `POST`, `GET /user/me/documents` | User token | Uploads PDF/JPEG/PNG/WEBP document or lists own documents. After import, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf` in `file` form-data field; Postman does not embed local file content in collection exports. A successful upload or non-empty list saves `memberDocumentId`. |
+| `GET /user/me/documents/{{memberDocumentId}}/download` | User token | Downloads own document. Request stops with clear error until `memberDocumentId` exists. |
+| `GET /user`, `/user/{{memberUserId}}`, and member document routes | Admin token | Lists members, gets profile, and accesses member document history/download. |
+| `GET /booking/health` | User token | Library service health through gateway. |
+| `POST`, `GET /booking/rooms`; `GET /rooms/{{roomId}}`; `PATCH`, `DELETE /rooms/{{roomId}}`; `GET /rooms/{{roomId}}/availability` | User token; admin for writes | Room catalog and availability. |
+| `POST /booking`; `GET /bookings/me`; `GET /bookings/{{bookingId}}`; `POST /bookings/{{bookingId}}/cancel` | User token | Creates, lists, gets, or cancels own booking. |
+| `GET /booking`; `POST /bookings/{{bookingId}}/approve`; `POST /bookings/{{bookingId}}/reject` | Admin token | Booking history and decisions. |
+| `POST`, `GET /booking/books`; `GET /books/{{bookId}}`; `PATCH`, `DELETE /books/{{bookId}}` | User token; admin for writes | Book catalog. |
 
 ## Load balancer and scope
 
-`gatewayUrl` defaults to `http://localhost`, Nginx public entry point on port 80. Folder 01 tests this path and requires at least two distinct `X-Upstream` response header values, proving Nginx forwarded requests to both Gateway replicas. `gateway1Url` (`http://localhost:4000`) and `gateway2Url` (`http://localhost:4001`) are direct health checks only; do not use them for API workflow requests. Collection covers every public gateway endpoint, including Member and Library routes. Internal `POST /notification/api/v1/internal/events` is excluded because it is service-to-service only.
+`gatewayUrl` defaults to `http://localhost`, Nginx public entry point on port 80. Folder 01 tests this path and requires at least two distinct `X-Upstream` response header values, proving Nginx forwarded requests to both Gateway replicas. `gateway1Url` (`http://localhost:4000`) and `gateway2Url` (`http://localhost:4001`) are direct health checks only; do not use them for API workflow requests. Collection covers every public gateway endpoint, including Member and Library routes. Internal `POST /notification/api/v1/internal/announcements` is excluded because it is service-to-service only.
 
 ## Running requests in order
 
@@ -74,8 +74,8 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 4. Create pre-scholarship registration, then list registrations. Unique test user prevents active duplicate academic-year conflict.
 5. Provision/login admin in controlled environment → Create event → update event to `published` → **Verify event publication notification** → list/get as user → delete as admin. Verification searches matching `data.event_id`; Collection Runner retries up to five requests while Redis consumer processes event. Create saves returned `id` into `eventId` automatically.
 6. Run **Check in** → **Check out** → **List my attendance** → admin update → **Verify attendance correction notification**. Check-in saves `_id` as `attendanceId`; checkout expects `200`. Admin correction proves matching `data.attendance_id`. Collection Runner retries notification check up to five requests. Use admin token for list-all and update.
-7. List notifications saves first returned `id` as `notificationId`, then get, mark-read, and delete use it. If notification creation failed, dependent requests fail with `notificationId exists`; fix producer or Redis instead of skipping. Preferences work without notification data. `POST /notification/api/v1/internal/events` is intentionally excluded: internal service-to-service route requires `x-internal-api-key` and must not be exposed through gateway.
-8. Members: get profile to save `memberUserId`. In **Upload my document**, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/member-test-document.pdf` for `file` after import, then upload/list/download. Upload or non-empty list saves `memberDocumentId`. Run admin member document list before its download; it saves both IDs. Upload leaves test document history in database.
+7. List notifications saves first returned `id` as `notificationId`, then get, mark-read, and delete use it. If notification creation failed, dependent requests fail with `notificationId exists`; fix producer or Redis instead of skipping. Preferences work without notification data. `POST /notification/api/v1/internal/announcements` is intentionally excluded: internal service-to-service route requires `x-internal-api-key` and must not be exposed through gateway.
+8. Members: get profile to save `memberUserId`. In **Upload my document**, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf` for `file` after import, then upload/list/download. Upload or non-empty list saves `memberDocumentId`. Run admin member document list before its download; it saves both IDs. Upload leaves test document history in database.
 9. Library: create rooms, run pending/approved/rejected/cancelled booking flow, then create/update/delete catalog book. Booking room remains because booking history prevents room deletion.
 10. Optional filters: add `?status=pending`, `?skip=0&limit=20`, `?category=announcement`, or `?upcoming=true` as applicable. Enum values are defined by API schemas.
 

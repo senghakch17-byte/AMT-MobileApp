@@ -29,6 +29,10 @@ class LeaveRequestUpdate(BaseModel):
     attachment_urls: list[str] | None = None
 
 
+class LeaveRequestDecision(BaseModel):
+    note: str | None = Field(default=None, min_length=1, max_length=500)
+
+
 class LeaveRequestResponse(LeaveRequestBase, RequestMeta):
     id: PydanticObjectId
     model_config = ConfigDict(from_attributes=True)

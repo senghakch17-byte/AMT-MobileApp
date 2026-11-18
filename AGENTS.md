@@ -2,13 +2,13 @@
 
 ## Project Overview
 
-AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
+OMS is a Docker Compose microservices backend for a mobile app.
 
 - API style: REST
-- Public entry: `nginx` load balancer on port `80`, routing to gateway replicas on container port `4000`; host debug ports are `4000` and `4001`
+- Public entry: `nginx` load balancer on port `80`, routing to gateway replicas on container port `4000`.
 - Gateway: Node.js / Express in `apps/api-gateway`
 - Node services: registration, login, attendance, and notification
-- Python services: request, event, member, and library APIs using FastAPI
+- Python services: request, announcement, user, and booking APIs using FastAPI
 - Database: external MongoDB
 - Deployment: local Docker Compose; EC2 Compose files exist but remain incomplete and unverified for production
 
@@ -20,9 +20,9 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 - `apps/attendance-service/` — Express/Mongoose attendance check-in, check-out, and administration API.
 - `apps/notification-service/` — Express/Mongoose in-app notifications, receipt state, preferences, and Redis event consumer.
 - `apps/request-service/` — FastAPI/Beanie request APIs.
-- `apps/event-service/` — FastAPI/Beanie event APIs and uploads.
-- `apps/member-service/` — FastAPI/Beanie member profiles and document history APIs.
-- `apps/library-service/` — FastAPI/Beanie room booking and book catalog APIs.
+- `apps/event-service/` — FastAPI/Beanie announcement APIs and uploads.
+- `apps/member-service/` — FastAPI/Beanie user profiles and document history APIs.
+- `apps/library-service/` — FastAPI/Beanie room booking APIs.
 - `nginx/` — public load balancer configuration connected to root Compose.
 - `deploy/` — EC2 compose placeholders. Do not claim production deployment is complete from these files alone.
 
@@ -51,13 +51,13 @@ AMT-MobileApp is a Docker Compose microservices backend for a mobile app.
 
 - Preserve public gateway prefixes unless explicitly asked to break them:
 	- `/register`
-	- `/auth`
+	- `/login`
 	- `/request`
-	- `/event`
+	- `/announcement`
 	- `/attendance`
 	- `/notification`
-	- `/members`
-	- `/library`
+	- `/user`
+	- `/booking`
 	- `/health`
 - Follow REST conventions and use appropriate HTTP status codes.
 - Keep response shapes stable for mobile clients.

@@ -19,4 +19,4 @@ Confirm target service and gateway service URL.
 
 ### `401 Access Denied`
 
-Use token returned by `/auth/login` in exact `Authorization: Bearer <token>` header. All token-verifying services must share `JWT_SECRET`.
+Use token returned by `/login` in exact `Authorization: Bearer <token>` header. All token-verifying services must share `JWT_SECRET`.

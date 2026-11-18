@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/event/events?skip=0&limit=20"
+url: "{{gatewayUrl}}/announcement?skip=0&limit=20"
 method: GET
 queryParams:
   skip: "0"

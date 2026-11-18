@@ -94,10 +94,10 @@ cp apps/registration-service/.env.example apps/registration-service/.env
 cp apps/login-service/.env.example apps/login-service/.env
 cp apps/attendance-service/.env.example apps/attendance-service/.env
 cp apps/request-service/.env.example apps/request-service/.env
-cp apps/event-service/.env.example apps/event-service/.env
+cp apps/announcement-service/.env.example apps/announcement-service/.env
 cp apps/notification-service/.env.example apps/notification-service/.env
-cp apps/member-service/.env.example apps/member-service/.env
-cp apps/library-service/.env.example apps/library-service/.env
+cp apps/user-service/.env.example apps/user-service/.env
+cp apps/booking-service/.env.example apps/booking-service/.env
 cp apps/api-gateway/.env.example apps/api-gateway/.env
 ```
 
@@ -238,7 +238,7 @@ curl --fail --show-error "http://${EC2_D_IP}:8004/health"
 
 ```
 
-EC2-A uses Nginx port `80`; its Docker-internal gateways listen on `4000` and `4001`, respectively, and are reachable only through Nginx. EC2-B, EC2-C, EC2-D service ports and EC2-A Redis bind only to host private IP addresses. Redis has no persistence. `POST /notification/api/v1/internal/events` remains excluded from public gateway use.
+EC2-A uses Nginx port `80`; its Docker-internal gateways listen on `4000` and `4001`, respectively, and are reachable only through Nginx. EC2-B, EC2-C, EC2-D service ports and EC2-A Redis bind only to host private IP addresses. Redis has no persistence. `POST /notification/api/v1/internal/announcements` remains excluded from public gateway use.
 
 Stop only matching host services:
 

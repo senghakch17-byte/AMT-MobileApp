@@ -41,10 +41,10 @@ test('internal event ingestion requires key and queues valid producer events', a
   let queued;
   eventConsumer.publishEvent = async (event) => { queued = event; return '1-0'; };
   try {
-    const denied = await fetch(`${url}/api/v1/internal/events`, { method: 'POST' });
+    const denied = await fetch(`${url}/internal/events`, { method: 'POST' });
     assert.equal(denied.status, 401);
 
-    const accepted = await fetch(`${url}/api/v1/internal/events`, {
+    const accepted = await fetch(`${url}/internal/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-internal-api-key': 'notification-test-key' },
       body: JSON.stringify({ event_id: 'event-service:1:published', type: 'event.published', recipient_role: 'user' }),
@@ -83,23 +83,23 @@ test('receipt schema and user mutations keep role notifications shared', async (
   NotificationReceipt.bulkWrite = async (operations) => { bulkOperations = operations; };
 
   try {
-    const read = await request(`/api/v1/notifications/${notificationId}/read`, { method: 'PATCH' });
+    const read = await request(`/${notificationId}/read`, { method: 'PATCH' });
     assert.equal(read.status, 200);
     assert.deepEqual(receiptUpdates[0].filter, { notificationId, userId: 'user-1' });
     assert.equal(receiptUpdates[0].update.$setOnInsert.deletedAt, null);
 
-    const otherUserRead = await request(`/api/v1/notifications/${notificationId}/read`, {
+    const otherUserRead = await request(`/${notificationId}/read`, {
       method: 'PATCH', auth: token({ id: 'user-2' }),
     });
     assert.equal(otherUserRead.status, 200);
     assert.deepEqual(receiptUpdates[1].filter, { notificationId, userId: 'user-2' });
 
-    const all = await request('/api/v1/notifications/read-all', { method: 'PATCH' });
+    const all = await request('/read-all', { method: 'PATCH' });
     assert.deepEqual(all, { status: 200, body: { markedRead: 1 } });
     assert.equal(bulkOperations[0].updateOne.filter.userId, 'user-1');
     assert.equal(bulkOperations[0].updateOne.filter.notificationId, notificationId);
 
-    const deleted = await request(`/api/v1/notifications/${notificationId}`, { method: 'DELETE' });
+    const deleted = await request(`/${notificationId}`, { method: 'DELETE' });
     assert.equal(deleted.status, 204);
     assert.deepEqual(receiptUpdates[2].filter, { notificationId, userId: 'user-1' });
     assert.ok(receiptUpdates[2].update.$set.deletedAt instanceof Date);

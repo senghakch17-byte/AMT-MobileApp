@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/library/api/v1/bookings?skip=0&limit=20"
+url: "{{gatewayUrl}}/booking?skip=0&limit=20"
 method: GET
 auth:
   type: bearer

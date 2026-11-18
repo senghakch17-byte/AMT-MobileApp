@@ -4,7 +4,9 @@ function registerProxyRoutes(app, proxy, services, middleware) {
   app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
   services.forEach((service) => {
-    const middlewareStack = service.protected || service.role ? [authenticate] : [];
+    const middlewareStack = service.protected || service.role ? [(req, res, next) => (
+      service.publicPaths?.includes(req.path) ? next() : authenticate(req, res, next)
+    )] : [];
 
     if (service.role) {
       middlewareStack.push(authorize(service.role));

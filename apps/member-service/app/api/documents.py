@@ -23,7 +23,7 @@ from app.schemas.document import DocumentResponse
 from app.utils.enums import DocumentType
 from app.utils.storage import delete_document_file, document_path, save_document
 
-router = APIRouter(prefix="/members", tags=["Member Documents"])
+router = APIRouter(tags=["User Documents"])
 
 
 def _serialize(doc: MemberDocument) -> DocumentResponse:
@@ -31,7 +31,7 @@ def _serialize(doc: MemberDocument) -> DocumentResponse:
     data["document_date"] = doc.document_date.date() if doc.document_date else None
     data["download_url"] = (
         f"{settings.PUBLIC_BASE_URL}{settings.API_V1_STR}"
-        f"/members/{doc.user_id}/documents/{doc.id}/download"
+        f"/{doc.user_id}/documents/{doc.id}/download"
     )
     return DocumentResponse.model_validate(data)
 

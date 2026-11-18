@@ -5,7 +5,7 @@ import jwt
 from app.main import app
 from app.schemas.event import EventBase
 
-API = "/events"
+API = ""
 
 
 async def test_event_routes_require_authentication(client):
@@ -73,6 +73,6 @@ def test_event_schema_normalizes_timezone_and_rejects_inverted_dates():
 
 def test_active_event_routes_are_registered():
     paths = app.openapi()["paths"]
-    assert API in paths
+    assert "/" in paths
     assert f"{API}/{{event_id}}" in paths
     assert f"{API}/{{event_id}}/images" not in paths

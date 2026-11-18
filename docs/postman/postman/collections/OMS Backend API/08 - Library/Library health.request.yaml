@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/library/health"
+url: "{{gatewayUrl}}/booking/health"
 method: GET
 scripts:
   - type: afterResponse

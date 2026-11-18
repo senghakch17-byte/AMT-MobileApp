@@ -7,10 +7,10 @@ cp apps/registration-service/.env.example apps/registration-service/.env
 cp apps/attendance-service/.env.example apps/attendance-service/.env
 cp apps/login-service/.env.example apps/login-service/.env
 cp apps/request-service/.env.example apps/request-service/.env
-cp apps/event-service/.env.example apps/event-service/.env
+cp apps/announcement-service/.env.example apps/announcement-service/.env
 cp apps/notification-service/.env.example apps/notification-service/.env
-cp apps/member-service/.env.example apps/member-service/.env
-cp apps/library-service/.env.example apps/library-service/.env
+cp apps/user-service/.env.example apps/user-service/.env
+cp apps/booking-service/.env.example apps/booking-service/.env
 cp apps/api-gateway/.env.example apps/api-gateway/.env
 ```
 
@@ -21,7 +21,7 @@ Public registration creates role `admin` only for exact request value `role: "ad
 Event image URLs should use gateway prefix:
 
 ```dotenv
-PUBLIC_BASE_URL=http://localhost/event
+PUBLIC_BASE_URL=http://localhost/announcement
 UPLOAD_DIR=uploads
 MAX_IMAGE_MB=5
 MAX_IMAGES_PER_EVENT=10

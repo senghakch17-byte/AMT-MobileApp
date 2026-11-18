@@ -24,7 +24,7 @@ from app.utils.helpers import utcnow
 from app.utils.notifications import publish_notification
 from app.utils.storage import delete_image, save_image
 
-router = APIRouter(prefix="/events", tags=["Events"])
+router = APIRouter(tags=["Announcements"])
 
 _event_adapter = TypeAdapter(EventResponse)
 _events_adapter = TypeAdapter(list[EventResponse])
@@ -44,7 +44,7 @@ async def _get_or_404(event_id: PydanticObjectId) -> Event:
 
 # ---------- Admin: create / update / delete ----------
 
-@router.post("", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
 async def create_event(payload: EventCreate, admin: CurrentUser = Depends(require_admin)):
     event = Event(**payload.model_dump(), created_by=admin.id, created_by_email=admin.emailid)
     await event.insert()
@@ -155,7 +155,7 @@ async def delete_event(event_id: PydanticObjectId, _: CurrentUser = Depends(requ
 
 # ---------- Any logged-in user: read (cached + rate-limited) ----------
 
-@router.get("", response_model=list[EventResponse])
+@router.get("/", response_model=list[EventResponse])
 @limiter.limit(settings.RATE_LIMIT_READ)
 async def list_events(
     request: Request,  # required by slowapi
@@ -193,6 +193,16 @@ async def list_events(
     )
     await cache_set(key, body, settings.CACHE_TTL_LIST)
     return Response(body, media_type="application/json")
+
+
+@router.get("/all", response_model=list[EventResponse])
+async def list_all_announcements(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    _: CurrentUser = Depends(require_admin),
+):
+    """Administrative view that always includes drafts and published announcements."""
+    return await Event.find().sort("-created_at").skip(skip).limit(limit).to_list()
 
 
 @router.get("/{event_id}", response_model=EventResponse)

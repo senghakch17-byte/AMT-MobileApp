@@ -8,13 +8,16 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.post('/login', async (req, res) => {
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+app.post('/', async (req, res) => {
   const { emailid, pass, role } = req.body;
   if (!emailid || !pass || !role) return res.status(400).json({ message: 'Please provide emailid, pass, and role' });
 
   try {
     const person = await Person.findOne({ emailid });
     if (!person) return res.status(400).json({ message: 'Invalid credentials' });
+    if (person.active === false) return res.status(403).json({ message: 'Account is inactive' });
     if (person.role !== role) return res.status(403).json({ message: 'Access denied: Role mismatch' });
     if (!await bcrypt.compare(pass, person.pass)) return res.status(400).json({ message: 'Invalid credentials' });
 

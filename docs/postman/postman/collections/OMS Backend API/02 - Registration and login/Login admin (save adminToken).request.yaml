@@ -1,6 +1,6 @@
 $kind: http-request
 description: Creates an admin bearer token when the admin account exists.
-url: "{{gatewayUrl}}/auth/login"
+url: "{{gatewayUrl}}/login"
 method: POST
 headers:
   Content-Type: application/json

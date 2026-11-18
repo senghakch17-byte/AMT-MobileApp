@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/members/api/v1/members/me"
+url: "{{gatewayUrl}}/user/me"
 method: PATCH
 headers:
   Content-Type: "application/json"

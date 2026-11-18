@@ -31,7 +31,7 @@ async function checkIn(req, res) {
 }
 
 async function checkOut(req, res) {
-  const filter = { userID: req.user.id, attendanceDate: utcDayStart(new Date()) };
+  const filter = { userID: req.user.id, attendanceDate: utcDayStart(new Date()), deletedAt: null };
   const attendance = await Attendance.findOneAndUpdate(
     { ...filter, checkOut: null },
     { $set: { checkOut: new Date() } },
@@ -45,7 +45,7 @@ async function checkOut(req, res) {
 }
 
 async function listMine(req, res) {
-  const filter = { userID: req.user.id };
+  const filter = { userID: req.user.id, deletedAt: null };
   const range = dateRange(req.query);
   if (range) filter.attendanceDate = range;
 
@@ -54,7 +54,7 @@ async function listMine(req, res) {
 }
 
 async function listAll(req, res) {
-  const filter = {};
+  const filter = { deletedAt: null };
   if (req.query.userID) filter.userID = req.query.userID;
   const range = dateRange(req.query);
   if (range) filter.attendanceDate = range;
@@ -81,7 +81,7 @@ async function updateAttendance(req, res) {
   }
 
   const attendance = await Attendance.findById(req.params.id);
-  if (!attendance) throw new AppError(404, 'Attendance record not found');
+  if (!attendance || attendance.deletedAt) throw new AppError(404, 'Attendance record not found');
 
   if ('attendanceDate' in req.body) attendance.attendanceDate = parseDateOnly(req.body.attendanceDate, 'attendanceDate');
   if ('checkIn' in req.body) attendance.checkIn = parseTimestamp(req.body.checkIn, 'checkIn');
@@ -105,4 +105,39 @@ async function updateAttendance(req, res) {
   res.json(attendance);
 }
 
-module.exports = { checkIn, checkOut, listMine, listAll, updateAttendance };
+async function createAttendance(req, res) {
+  const { userID, userEmail, attendanceDate, checkIn = null, checkOut = null, status = 'present' } = req.body;
+  if (!userID || !userEmail || !attendanceDate || !STATUSES.includes(status)) {
+    throw new AppError(400, 'userID, userEmail, attendanceDate, and a valid status are required');
+  }
+  const attendance = await Attendance.create({
+    userID, userEmail, attendanceDate: parseDateOnly(attendanceDate, 'attendanceDate'),
+    checkIn: checkIn === null ? null : parseTimestamp(checkIn, 'checkIn'),
+    checkOut: checkOut === null ? null : parseTimestamp(checkOut, 'checkOut'), status,
+  });
+  if (attendance.checkIn && attendance.checkOut && attendance.checkOut < attendance.checkIn) {
+    await Attendance.deleteOne({ _id: attendance._id });
+    throw new AppError(400, 'checkOut cannot be before checkIn');
+  }
+  res.status(201).json(attendance);
+}
+
+async function getAttendance(req, res, next) {
+  if (!mongoose.isValidObjectId(req.params.id)) return next();
+  const attendance = await Attendance.findById(req.params.id);
+  if (!attendance || attendance.deletedAt || (req.user.role !== 'admin' && attendance.userID !== req.user.id)) {
+    throw new AppError(404, 'Attendance record not found');
+  }
+  res.json(attendance);
+}
+
+async function deleteAttendance(req, res) {
+  if (!mongoose.isValidObjectId(req.params.id)) throw new AppError(400, 'Invalid attendance ID');
+  const attendance = await Attendance.findOneAndUpdate(
+    { _id: req.params.id, deletedAt: null }, { $set: { deletedAt: new Date() } }, { new: true }
+  );
+  if (!attendance) throw new AppError(404, 'Attendance record not found');
+  res.status(204).send();
+}
+
+module.exports = { checkIn, checkOut, listMine, listAll, createAttendance, getAttendance, updateAttendance, deleteAttendance };

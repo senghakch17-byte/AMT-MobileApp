@@ -7,7 +7,8 @@ const PersonSchema = schema_mongoose.Schema(
        emailid: { type: String }, 
        pass: { type: String }, 
        mobile: { type: Number }, 
-       role: { type: String } 
+       role: { type: String },
+       active: { type: Boolean, default: true }
     },  
     { 
        timestamps: true 

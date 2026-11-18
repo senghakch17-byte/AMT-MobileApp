@@ -24,13 +24,12 @@ app = FastAPI(
     root_path=settings.ROOT_PATH,
 )
 
-# Include API v1 Router
-app.include_router(api_router, prefix=settings.API_V1_STR)
-
-
 @app.get("/health", response_model=HealthCheck, tags=["Health"])
 async def health():
     return HealthCheck(status="ok", environment=settings.ENVIRONMENT)
+
+
+app.include_router(api_router)
 
 
 @app.get("/", include_in_schema=False)

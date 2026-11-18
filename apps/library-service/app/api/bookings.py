@@ -12,7 +12,7 @@ from app.schemas.booking import BookingCreate, BookingDecision, BookingResponse
 from app.utils.enums import BookingStatus
 from app.utils.helpers import to_utc, utcnow
 
-router = APIRouter(prefix="/bookings", tags=["Bookings"])
+router = APIRouter(tags=["Bookings"])
 
 ACTIVE = [BookingStatus.PENDING, BookingStatus.APPROVED]
 
@@ -70,7 +70,7 @@ async def _approve(booking: Booking, decided_by: str, note: str | None = None) -
 
 # ---------- User: make a booking ----------
 
-@router.post("", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
 async def create_booking(payload: BookingCreate, user: CurrentUser = Depends(get_current_user)):
     # cheap checks that need no database first
     if payload.start_at <= utcnow():
@@ -141,7 +141,7 @@ async def list_my_bookings(
 
 # ---------- Admin: booking history ----------
 
-@router.get("", response_model=list[BookingResponse])
+@router.get("/", response_model=list[BookingResponse])
 async def list_all_bookings(
     response: Response,
     status_filter: BookingStatus | None = Query(None, alias="status", description="pending = approval queue"),

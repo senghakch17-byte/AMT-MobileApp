@@ -8,7 +8,7 @@ from datetime import date
 
 from tests.conftest import make_token
 
-API = "/api/v1/members"
+API = ""
 PDF = b"%PDF-1.4\n%fake but correctly-signed pdf\n"
 
 

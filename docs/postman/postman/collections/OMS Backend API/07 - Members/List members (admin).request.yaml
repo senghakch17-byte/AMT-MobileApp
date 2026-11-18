@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/members/api/v1/members?skip=0&limit=20"
+url: "{{gatewayUrl}}/user?skip=0&limit=20"
 method: GET
 auth:
   type: bearer

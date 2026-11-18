@@ -31,20 +31,20 @@ test.after(async () => Promise.all([new Promise((resolve) => appServer.close(res
 
 test('health and public routes work through proxy', async () => {
   assert.deepEqual(await request('/health'), { status: 200, body: { status: 'ok' } });
-  assert.deepEqual(await request('/auth/login'), { status: 200, body: { path: '/login', method: 'GET' } });
+  assert.deepEqual(await request('/login'), { status: 200, body: { path: '/', method: 'GET' } });
 });
 
 test('protected routes reject bad tokens and proxy valid JWT', async () => {
-  assert.equal((await request('/request/api/v1/health')).status, 401);
-  assert.equal((await request('/request/api/v1/health', 'bad')).status, 401);
+  assert.deepEqual(await request('/request/health'), { status: 200, body: { path: '/health', method: 'GET' } });
+  assert.equal((await request('/request/anything')).status, 401);
   const token = jwt.sign({ id: 'user-1', emailid: 'user@example.com', role: 'user' }, process.env.JWT_SECRET);
-  assert.deepEqual(await request('/request/api/v1/health', token), { status: 200, body: { path: '/api/v1/health', method: 'GET' } });
+  assert.deepEqual(await request('/request/anything', token), { status: 200, body: { path: '/anything', method: 'GET' } });
 });
 
 test('gateway blocks users from admin routes and proxies allowed roles', async () => {
   const user = jwt.sign({ id: 'user-1', emailid: 'user@example.com', role: 'user' }, process.env.JWT_SECRET);
   const admin = jwt.sign({ id: 'admin-1', emailid: 'admin@example.com', role: 'admin' }, process.env.JWT_SECRET);
-  assert.equal((await request('/event/events', user, 'POST')).status, 403);
-  assert.deepEqual(await request('/event/events', admin, 'POST'), { status: 200, body: { path: '/events', method: 'POST' } });
-  assert.deepEqual(await request('/library/api/v1/books', user), { status: 200, body: { path: '/api/v1/books', method: 'GET' } });
+  assert.equal((await request('/announcement', user, 'POST')).status, 403);
+  assert.deepEqual(await request('/announcement', admin, 'POST'), { status: 200, body: { path: '/', method: 'POST' } });
+  assert.deepEqual(await request('/booking/rooms', user), { status: 200, body: { path: '/rooms', method: 'GET' } });
 });

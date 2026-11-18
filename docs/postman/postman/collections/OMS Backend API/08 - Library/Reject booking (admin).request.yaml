@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/library/api/v1/bookings/{{rejectedBookingId}}/reject"
+url: "{{gatewayUrl}}/booking/{{rejectedBookingId}}/reject"
 method: POST
 headers:
   Content-Type: "application/json"

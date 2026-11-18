@@ -1,6 +1,6 @@
 $kind: http-request
 description: Public. Exact role `admin` creates admin; all other or missing role values create user. This request creates user; duplicate email returns 400.
-url: "{{gatewayUrl}}/register/register"
+url: "{{gatewayUrl}}/register"
 method: POST
 headers:
   Content-Type: application/json

@@ -3,7 +3,7 @@ from pymongo import AsyncMongoClient
 from pymongo.errors import ServerSelectionTimeoutError
 
 from app.core.config import settings
-from app.database.models import LeaveRequest, PreScholarshipRegistration
+from app.database.models import LeaveRequest
 
 client: AsyncMongoClient | None = None
 
@@ -19,7 +19,7 @@ async def init_db() -> None:
         await client.admin.command("ping")
         await init_beanie(
             database=client[settings.MONGODB_DB_NAME],
-            document_models=[LeaveRequest, PreScholarshipRegistration],
+            document_models=[LeaveRequest],
         )
     except ServerSelectionTimeoutError as exc:
         await client.close()
@@ -36,4 +36,3 @@ async def init_db() -> None:
 async def close_db() -> None:
     if client is not None:
         await client.close()
-

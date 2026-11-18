@@ -45,9 +45,9 @@ OMS is a backend-only Organization Management System. It manages accounts, leave
 
 | Team member | Student ID | Assigned microservice 1 | Assigned microservice 2 |
 | --- | --- | --- | --- |
-| Panhaseth SUY | 2024060 | **[Complete]** | **[Complete]** |
-| Senghak CHOEUN | 2024010 | **[Complete]** | **[Complete]** |
-| Sreypov THIM | 2024018 | **[Complete]** | **[Complete]** |
+| Panhaseth SUY | 2024060 | **Attendance** | **Notification** |
+| Senghak CHOEUN | 2024010 | **Event** | **Request** |
+| Sreypov THIM | 2024018 | **Library** | **Members** |
 
 ### 2.2 Architecture
 

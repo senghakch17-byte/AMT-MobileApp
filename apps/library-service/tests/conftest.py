@@ -16,7 +16,7 @@ import pytest_asyncio  # noqa: E402
 
 from app.main import app  # noqa: E402
 
-COLLECTIONS = ("rooms", "bookings", "books")
+COLLECTIONS = ("rooms", "bookings")
 
 
 def make_token(user_id: str, role: str = "member", email: str | None = None) -> dict:

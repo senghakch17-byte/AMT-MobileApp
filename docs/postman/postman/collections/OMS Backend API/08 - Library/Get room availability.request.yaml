@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/library/api/v1/rooms/{{roomId}}/availability?start={{bookingStart}}&end={{bookingEnd}}"
+url: "{{gatewayUrl}}/booking/rooms/{{roomId}}/availability?start={{bookingStart}}&end={{bookingEnd}}"
 method: GET
 scripts:
   - type: afterResponse

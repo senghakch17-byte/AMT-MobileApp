@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/members/api/v1/members/{{memberUserId}}/documents/{{memberDocumentId}}/download"
+url: "{{gatewayUrl}}/user/{{memberUserId}}/documents/{{memberDocumentId}}/download"
 method: GET
 auth:
   type: bearer

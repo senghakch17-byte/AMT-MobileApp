@@ -13,11 +13,13 @@ const attendanceSchema = new mongoose.Schema(
       default: 'present',
       required: true,
     },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
 
 attendanceSchema.index({ userID: 1, attendanceDate: 1 }, { unique: true });
 attendanceSchema.index({ attendanceDate: -1, status: 1 });
+attendanceSchema.index({ deletedAt: 1 });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);

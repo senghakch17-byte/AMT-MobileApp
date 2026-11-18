@@ -30,10 +30,8 @@ services:
 
   gateway1:
     <<: *gateway
-    ports: ["4000:4000"]
   gateway2:
     <<: *gateway
-    ports: ["4001:4000"]
 
   register:
     extends: { file: common.yaml, service: base }

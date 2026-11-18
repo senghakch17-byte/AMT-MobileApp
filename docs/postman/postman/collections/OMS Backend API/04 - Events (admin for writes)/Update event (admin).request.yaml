@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/event/events/{{eventId}}"
+url: "{{gatewayUrl}}/announcement/{{eventId}}"
 method: PATCH
 description: Publishes draft event. Event service queues trusted `event.published` notification after successful database update.
 headers:

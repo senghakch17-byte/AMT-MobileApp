@@ -7,7 +7,7 @@ async function publishNotification(event) {
   }
 
   try {
-    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/v1/internal/events`, {
+    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/internal/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-internal-api-key': apiKey },
       body: JSON.stringify(event),

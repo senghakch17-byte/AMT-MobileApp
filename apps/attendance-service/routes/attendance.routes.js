@@ -10,7 +10,10 @@ router.use(authenticate);
 router.post('/check-in', controller.checkIn);
 router.post('/check-out', controller.checkOut);
 router.get('/me', controller.listMine);
+router.post('/', requireAdmin, controller.createAttendance);
 router.get('/', requireAdmin, controller.listAll);
+router.get('/:id', controller.getAttendance);
 router.patch('/:id', requireAdmin, controller.updateAttendance);
+router.delete('/:id', requireAdmin, controller.deleteAttendance);
 
 module.exports = router;

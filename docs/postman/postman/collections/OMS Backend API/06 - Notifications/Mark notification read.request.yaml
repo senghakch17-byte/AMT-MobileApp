@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}/read"
+url: "{{gatewayUrl}}/notification/{{notificationId}}/read"
 method: PATCH
 scripts:
   - type: beforeRequest

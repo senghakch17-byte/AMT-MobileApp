@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/members/api/v1/members/me/documents/{{memberDocumentId}}/download"
+url: "{{gatewayUrl}}/user/me/documents/{{memberDocumentId}}/download"
 method: GET
 scripts:
   - type: beforeRequest

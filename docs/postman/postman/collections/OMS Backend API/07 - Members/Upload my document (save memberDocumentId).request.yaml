@@ -1,13 +1,13 @@
 $kind: http-request
-description: "Select `file` again after import: `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/member-test-document.pdf`. Postman exports file paths, not file content. Keep field type `file`; do not set `Content-Type` manually."
-url: "{{gatewayUrl}}/members/api/v1/members/me/documents"
+description: "Select `file` again after import: `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf`. Postman exports file paths, not file content. Keep field type `file`; do not set `Content-Type` manually."
+url: "{{gatewayUrl}}/user/me/documents"
 method: POST
 body:
   type: form-data
   form:
     - key: file
       type: file
-      src: "docs/postman/fixtures/member-test-document.pdf"
+      src: "docs/postman/fixtures/user-test-document.pdf"
     - key: title
       type: text
       value: "Postman test document"

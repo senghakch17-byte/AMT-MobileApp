@@ -2,9 +2,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Member Service Backend Core"
-    API_V1_STR: str = "/api/v1"
-    ROOT_PATH: str = "/members"  # prefix the gateway strips before forwarding
+    PROJECT_NAME: str = "OMS User Service"
+    API_V1_STR: str = ""
+    ROOT_PATH: str = "/user"  # prefix the gateway strips before forwarding
     DEBUG: bool = True
     ENVIRONMENT: str = "development"
     MONGODB_URI: str
@@ -12,8 +12,10 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     UPLOAD_DIR: str = "uploads"
-    PUBLIC_BASE_URL: str = "http://localhost:4000/members"  # gateway URL + route prefix
+    PUBLIC_BASE_URL: str = "http://localhost/user"  # gateway URL + route prefix
     MAX_DOCUMENT_MB: int = 10
+    REGISTRATION_SERVICE_URL: str | None = None
+    INTERNAL_API_KEY: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -14,7 +14,7 @@ async def publish_notification(event: dict) -> None:
 
     def send() -> None:
         request = Request(
-            f"{settings.NOTIFICATION_SERVICE_URL.rstrip('/')}/api/v1/internal/events",
+            f"{settings.NOTIFICATION_SERVICE_URL.rstrip('/')}/internal/events",
             data=json.dumps(event).encode(),
             headers={"Content-Type": "application/json", "x-internal-api-key": settings.INTERNAL_API_KEY},
             method="POST",

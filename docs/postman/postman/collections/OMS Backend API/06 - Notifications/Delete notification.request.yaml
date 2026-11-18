@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}"
+url: "{{gatewayUrl}}/notification/{{notificationId}}"
 method: DELETE
 scripts:
   - type: beforeRequest

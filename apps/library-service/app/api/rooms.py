@@ -60,12 +60,8 @@ async def update_room(
 @router.delete("/{room_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_room(room_id: PydanticObjectId, user: CurrentUser = Depends(require_admin)):
     room = await _get_or_404(room_id, user)
-    if await Booking.find(Booking.room_id == room.id).count():
-        raise HTTPException(
-            status.HTTP_409_CONFLICT,
-            "Room has booking history and cannot be deleted; set is_active to false instead",
-        )
-    await room.delete()
+    room.is_active = False
+    await room.save()
 
 
 # ---------- Any logged-in user: read ----------

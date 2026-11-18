@@ -1,5 +1,4 @@
 """End-to-end flows against a real MongoDB. Skipped automatically when none is reachable.
-
     MONGODB_TEST_URI=mongodb://localhost:27017 uv run pytest
 
 Uses the throwaway database `library_service_test` (dropped afterwards).
@@ -8,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.core.config import settings
 
-API = "/api/v1"
+API = ""
 
 
 def slot(day: int = 1, hour: int = 9, hours: int = 1) -> dict:
@@ -205,42 +204,3 @@ async def test_auto_approval_when_approval_not_required(db_client, admin_headers
     assert (await book(db_client, other_headers, room)).status_code == 409
     history = await db_client.get(f"{API}/bookings", headers=admin_headers)
     assert history.headers["X-Total-Count"] == "1"  # the refused request left no trace
-
-
-# ---------- books ----------
-
-async def test_book_catalog(db_client, admin_headers, member_headers):
-    dune = await db_client.post(
-        f"{API}/books", headers=admin_headers,
-        json={"title": "Dune", "author": "Frank Herbert", "isbn": "978-0-441-17271-9", "category": "Sci-Fi", "copies": 3},
-    )
-    assert dune.status_code == 201
-    dune = dune.json()
-    assert dune["isbn"] == "9780441172719" and dune["category"] == "sci-fi"
-
-    dup = await db_client.post(
-        f"{API}/books", headers=admin_headers,
-        json={"title": "Dune (2nd copy)", "author": "Frank Herbert", "isbn": "9780441172719"},
-    )
-    assert dup.status_code == 409
-
-    # books without an ISBN don't collide with each other
-    for title in ("Local Folk Tales", "Khmer Cooking"):
-        r = await db_client.post(
-            f"{API}/books", headers=admin_headers, json={"title": title, "author": "Various", "category": "culture"}
-        )
-        assert r.status_code == 201
-
-    listing = await db_client.get(f"{API}/books", headers=member_headers)
-    assert [b["title"] for b in listing.json()] == ["Dune", "Khmer Cooking", "Local Folk Tales"]
-    assert listing.headers["X-Total-Count"] == "3"
-    assert [b["title"] for b in (await db_client.get(f"{API}/books", params={"q": "herbert"}, headers=member_headers)).json()] == ["Dune"]
-    cats = await db_client.get(f"{API}/books", params={"category": "Culture"}, headers=member_headers)
-    assert len(cats.json()) == 2
-
-    patched = await db_client.patch(f"{API}/books/{dune['id']}", headers=admin_headers, json={"copies": 5})
-    assert patched.json()["copies"] == 5
-    assert (await db_client.get(f"{API}/books/{dune['id']}", headers=member_headers)).json()["copies"] == 5
-
-    assert (await db_client.delete(f"{API}/books/{dune['id']}", headers=admin_headers)).status_code == 204
-    assert (await db_client.get(f"{API}/books/{dune['id']}", headers=member_headers)).status_code == 404

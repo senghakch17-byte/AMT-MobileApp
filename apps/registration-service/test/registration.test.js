@@ -12,7 +12,7 @@ let server;
 let url;
 
 async function request(body) {
-  const response = await fetch(`${url}/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const response = await fetch(`${url}/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   return { status: response.status, body: await response.json() };
 }
 
@@ -51,12 +51,12 @@ test('registration hashes password, defaults role, and excludes password respons
   assert.ok(saved);
 });
 
-test('registration creates admins only for exact admin role', async () => {
+test('registration ignores a supplied admin role', async () => {
   Person.findOne = async () => null;
-  Person.prototype.save = async function save() { this._id = 'admin-1'; };
+  Person.prototype.save = async function save() { this._id = 'user-1'; };
   const response = await request({ ...valid, role: 'admin' });
   assert.equal(response.status, 201);
-  assert.equal(response.body.user.role, 'admin');
+  assert.equal(response.body.user.role, 'user');
 });
 
 test('registration defaults missing or other roles to user', async () => {

@@ -1,10 +1,10 @@
 # OMS Microservice Backend
 
-Containerized microservices backend for registration, login, attendance, leave requests, events, notifications, member profiles, and library bookings.
+Containerized OMS backend for registration, login, attendance, leave requests, announcements, notifications, user profiles, and room bookings.
 
 ## Architecture
 
-Nginx on port `80` is public entry point. It load-balances requests between two API gateway replicas. Both containers listen on port `4000`; host debug ports are `4000` and `4001`.
+Nginx on port `80` is the public entry point. It load-balances requests between two API gateway replicas, both listening on container port `4000`.
 
 ```text
 Mobile app
@@ -13,15 +13,15 @@ Mobile app
 Nginx :80
     |
     v
-API gateways :4000 (container); host debug ports :4000, :4001
+API gateways :4000 (container)
     |-- /register  -> Registration service :5001
-    |-- /auth      -> Login service :5002
+    |-- /login     -> Login service :5002
     |-- /request   -> Request service :8000
-    |-- /event     -> Event service :8001
+    |-- /announcement     -> Event service :8001
     |-- /attendance -> Attendance service :8002
     |-- /notification -> Notification service :8005
-    |-- /members    -> Member service :8004
-    `-- /library    -> Library service :8003
+    |-- /user    -> Member service :8004
+    `-- /booking    -> Library service :8003
 
 All application services -> external MongoDB
 Event service -> event_uploads volume
@@ -30,16 +30,16 @@ Event service -> event_uploads volume
 | Service | Compose service | Host port | Responsibility |
 | --- | --- | ---: | --- |
 | Nginx | `nginx` | 80 | Public entry point and gateway load balancer |
-| API gateway 1 | `gateway1` | 4000 → 4000 | Routing and JWT authentication |
-| API gateway 2 | `gateway2` | 4001 → 4000 | Routing and JWT authentication |
+| API gateway 1 | `gateway1` | — | Routing and JWT authentication through Nginx |
+| API gateway 2 | `gateway2` | — | Routing and JWT authentication through Nginx |
 | Redis | `redis` | 6379 | Shared Redis service |
 | Registration | `register` | 5001 | Account creation and password hashing |
 | Login | `login` | 5002 | Credential validation and JWT issuance |
-| Request | `request-service` | 8000 | Leave requests and pre-scholarship registrations |
-| Event | `event-service` | 8001 | Event management and image storage |
+| Request | `request-service` | 8000 | Leave requests and approval workflow |
+| Announcement | `event-service` | 8001 | Announcement management and image storage |
 | Attendance | `attendance-service` | 8002 | User check-in, check-out, history, and admin corrections |
-| Library | `library-service` | 8003 | Room bookings and book catalog |
-| Member | `member-service` | 8004 | Member profiles and protected document history |
+| Booking | `library-service` | 8003 | Room bookings and approval workflow |
+| User | `member-service` | 8004 | User profiles and protected document history |
 | Notification | `notification-service` | 8005 | In-app notifications and user receipt state |
 
 MongoDB is external; Compose does not provision it. Node services use `MONGO_URI`; Python services use `MONGODB_URI`.
@@ -125,8 +125,8 @@ apps/
   request-service/      FastAPI request APIs
   event-service/        FastAPI event API and uploads
   attendance-service/   Express attendance API
-  library-service/      FastAPI library booking and catalog API
-  member-service/       FastAPI member profile and document API
+  library-service/      FastAPI room booking API
+  member-service/       FastAPI user profile and document API
 deploy/                 EC2 Docker Compose configuration
 nginx/                  Nginx load balancer configuration
 docs/                   API, configuration, development, and Postman docs

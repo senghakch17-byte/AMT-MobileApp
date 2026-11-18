@@ -2,9 +2,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Library Service Backend Core"
-    API_V1_STR: str = "/api/v1"
-    ROOT_PATH: str = "/library"  # prefix the gateway strips before forwarding
+    PROJECT_NAME: str = "OMS Booking Service"
+    API_V1_STR: str = ""
+    ROOT_PATH: str = "/booking"  # prefix the gateway strips before forwarding
     DEBUG: bool = True
     ENVIRONMENT: str = "development"
     MONGODB_URI: str

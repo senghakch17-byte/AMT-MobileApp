@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/event/events"
+url: "{{gatewayUrl}}/announcement"
 method: POST
 headers:
   Content-Type: application/json

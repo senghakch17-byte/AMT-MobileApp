@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/notification/api/v1/notification-preferences/me"
+url: "{{gatewayUrl}}/notification/preferences/me"
 method: PATCH
 headers:
   Content-Type: application/json

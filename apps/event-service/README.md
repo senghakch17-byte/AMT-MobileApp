@@ -38,24 +38,24 @@ Required configuration includes `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, 
 ## URLs
 
 - Direct API base: `http://localhost:8001`
-- Gateway API base: `http://localhost:4000/event`
+- Gateway API base: `http://localhost/announcement`
 - Direct uploads: `http://localhost:8001/uploads`
-- Gateway uploads: `http://localhost:4000/event/uploads`
+- Gateway uploads: `http://localhost/announcement/uploads`
 - Direct OpenAPI: `http://localhost:8001/openapi.json`
 
-Gateway proxy strips `/event` before forwarding to direct-service routes.
+Gateway proxy strips `/announcement` before forwarding to direct-service routes.
 
-All gateway `/event/*` traffic requires JWT. Event handlers also enforce authenticated-user or admin access.
+All gateway `/announcement/*` traffic requires JWT. Event handlers also enforce authenticated-user or admin access.
 
 ## Active routes
 
 | Method | Relative path | Access and behavior |
 | --- | --- | --- |
-| POST | `/events` | Admin; create event |
-| GET | `/events` | Authenticated; non-admin users receive published events |
-| GET | `/events/{event_id}` | Authenticated; non-admin users can view published events |
-| PATCH | `/events/{event_id}` | Admin; update event |
-| DELETE | `/events/{event_id}` | Admin; delete event and referenced images |
+| POST | `/announcements` | Admin; create event |
+| GET | `/announcements` | Authenticated; non-admin users receive published events |
+| GET | `/announcements/{event_id}` | Authenticated; non-admin users can view published events |
+| PATCH | `/announcements/{event_id}` | Admin; update event |
+| DELETE | `/announcements/{event_id}` | Admin; delete event and referenced images |
 | GET | `/uploads/*` | Static files; gateway access requires JWT |
 
 Image upload and removal handlers are disabled in source and are not available routes. Existing uploaded files remain served by static mount.

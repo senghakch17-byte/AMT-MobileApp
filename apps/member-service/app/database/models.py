@@ -15,6 +15,8 @@ class Member(MemberBase, Document):
     user_id: str  # `id` claim from the JWT issued by the auth service
     email: str
     role: str
+    active: bool = True
+    deleted_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 

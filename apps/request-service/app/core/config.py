@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     MONGODB_SERVER_SELECTION_TIMEOUT_MS: int = 10000
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
+    NOTIFICATION_SERVICE_URL: str | None = None
+    INTERNAL_API_KEY: str | None = None
 
     # Reserved for future DB connection string (PostgreSQL/MongoDB)
     DATABASE_URL: str | None = None

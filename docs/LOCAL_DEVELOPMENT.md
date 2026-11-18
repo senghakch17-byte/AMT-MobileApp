@@ -8,7 +8,7 @@ cd apps/registration-service && npm ci && node index.js
 cd apps/login-service && npm ci && node index.js
 cd apps/attendance-service && npm ci && node server.js
 cd apps/request-service && uv sync && uv run uvicorn app.main:app --reload --port 8000
-cd apps/event-service && uv sync && uv run uvicorn app.main:app --reload --port 8001
+cd apps/announcement-service && uv sync && uv run uvicorn app.main:app --reload --port 8001
 ```
 
 Run service tests:
@@ -23,9 +23,9 @@ cd apps/login-service && npm test
 cd apps/attendance-service && npm test
 cd apps/notification-service && npm test
 cd apps/request-service && uv sync && uv run pytest
-cd apps/event-service && uv sync && uv run pytest
-cd apps/member-service && uv sync && uv run pytest
-cd apps/library-service && uv sync && uv run pytest
+cd apps/announcement-service && uv sync && uv run pytest
+cd apps/user-service && uv sync && uv run pytest
+cd apps/booking-service && uv sync && uv run pytest
 ```
 
 For local processes, gateway service URLs must use `http://localhost:<port>` instead of Compose hostnames.

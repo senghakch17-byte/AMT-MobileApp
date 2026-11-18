@@ -1,6 +1,6 @@
 $kind: http-request
 description: "Public proof for report: finds notification produced by admin attendance correction. Collection Runner retries up to five times while Redis consumer processes event."
-url: "{{gatewayUrl}}/notification/api/v1/notifications?type=attendance.corrected&skip=0&limit=20"
+url: "{{gatewayUrl}}/notification?type=attendance.corrected&skip=0&limit=20"
 method: GET
 scripts:
   - type: beforeRequest

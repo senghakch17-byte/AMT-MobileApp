@@ -8,7 +8,7 @@ from app.main import app
 from app.schemas.member import MemberBase, MemberResponse
 from app.utils.storage import _sniff_type
 
-API = "/api/v1/members"
+API = ""
 PDF = b"%PDF-1.4\n%fake but correctly-signed pdf\n"
 
 

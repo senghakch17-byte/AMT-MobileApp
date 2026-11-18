@@ -3,13 +3,14 @@ const mongoose = require('mongoose');
 const Notification = require('../models/notification.model');
 const NotificationReceipt = require('../models/notificationReceipt.model');
 const authenticate = require('../middleware/authenticate');
+const requireAdmin = require('../middleware/requireAdmin');
 const { deliveryFilter } = require('../services/preferences');
 
 const router = express.Router();
 router.use(authenticate);
 
 async function accessibleFilter(user) {
-  return deliveryFilter(user);
+  return { ...(await deliveryFilter(user)), deletedAt: null };
 }
 
 function receiptLookup(userId) {
@@ -91,6 +92,16 @@ router.get('/', async (req, res) => {
   res.json(await Notification.aggregate(pipeline));
 });
 
+router.post('/', requireAdmin, async (req, res) => {
+  const { recipientId, recipientRole, type, title, message, data = {}, expiresAt } = req.body || {};
+  if ((!recipientId && !recipientRole) || (recipientId && recipientRole) || !type || !title || !message) {
+    return res.status(400).json({ message: 'Provide exactly one recipientId or recipientRole, plus type, title, and message' });
+  }
+  const eventId = `admin:${req.user.id}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+  const notification = await Notification.create({ recipientId, recipientRole, eventId, type, title, message, data, expiresAt });
+  return res.status(201).json(notification);
+});
+
 router.get('/unread-count', async (req, res) => {
   const [result] = await Notification.aggregate([
     { $match: await accessibleFilter(req.user) },
@@ -145,9 +156,24 @@ router.patch('/:notificationId/read', async (req, res) => {
   return res.json(notification);
 });
 
+router.patch('/:notificationId', requireAdmin, async (req, res) => {
+  if (!mongoose.isObjectIdOrHexString(req.params.notificationId)) return res.status(404).json({ message: 'Notification not found' });
+  const allowed = ['title', 'message', 'data', 'expiresAt'];
+  const updates = Object.fromEntries(Object.entries(req.body || {}).filter(([key]) => allowed.includes(key)));
+  if (!Object.keys(updates).length) return res.status(400).json({ message: 'Provide title, message, data, or expiresAt' });
+  const notification = await Notification.findOneAndUpdate({ _id: req.params.notificationId, deletedAt: null }, { $set: updates }, { new: true, runValidators: true });
+  if (!notification) return res.status(404).json({ message: 'Notification not found' });
+  return res.json(notification);
+});
+
 router.delete('/:notificationId', async (req, res) => {
   if (!mongoose.isObjectIdOrHexString(req.params.notificationId)) {
     return res.status(404).json({ message: 'Notification not found' });
+  }
+  if (req.user.role === 'admin') {
+    const deleted = await Notification.findOneAndUpdate({ _id: req.params.notificationId, deletedAt: null }, { $set: { deletedAt: new Date() } });
+    if (!deleted) return res.status(404).json({ message: 'Notification not found' });
+    return res.status(204).send();
   }
   const notification = await findAccessibleNotification(req.params.notificationId, req.user);
   if (!notification) return res.status(404).json({ message: 'Notification not found' });

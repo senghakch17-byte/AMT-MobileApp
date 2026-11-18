@@ -319,7 +319,7 @@
           ],
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/register/register",
+            "url": "{{gatewayUrl}}/register",
             "auth": {
               "type": "noauth"
             },
@@ -358,7 +358,7 @@
           ],
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/auth/login",
+            "url": "{{gatewayUrl}}/login",
             "auth": {
               "type": "noauth"
             },
@@ -396,7 +396,7 @@
           ],
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/auth/login",
+            "url": "{{gatewayUrl}}/login",
             "auth": {
               "type": "noauth"
             },
@@ -561,58 +561,6 @@
               }
             }
           ]
-        },
-        {
-          "name": "Create pre-scholarship registration",
-          "request": {
-            "method": "POST",
-            "url": "{{gatewayUrl}}/request/pre-scholarship-registrations",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"scholarship_type\": \"need_based\",\n  \"academic_year\": \"{{preScholarshipAcademicYear}}\",\n  \"full_name\": \"Example Student\",\n  \"date_of_birth\": \"2010-04-15\",\n  \"gender\": \"female\",\n  \"phone\": \"+85512345678\",\n  \"address\": \"123 Example Street, Phnom Penh\",\n  \"school_name\": \"Example High School\",\n  \"grade_level\": \"Grade 10\",\n  \"guardian_name\": \"Example Guardian\",\n  \"guardian_phone\": \"+85512345679\",\n  \"guardian_relationship\": \"parent\",\n  \"monthly_family_income\": 300,\n  \"number_of_dependents\": 4,\n  \"academic_average\": 85,\n  \"achievements\": [],\n  \"statement\": \"Our family needs support so I can continue my education.\",\n  \"document_urls\": []\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "Use scholarship_type need_based with monthly_family_income, or merit with academic_average. Active duplicate academic_year returns 409."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "List my pre-scholarship registrations",
-          "request": {
-            "method": "GET",
-            "url": "{{gatewayUrl}}/request/pre-scholarship-registrations?skip=0&limit=20"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
         }
       ]
     },
@@ -623,7 +571,7 @@
           "name": "Create event (admin)",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/event/events",
+            "url": "{{gatewayUrl}}/announcement",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -667,14 +615,14 @@
           "name": "List events (user or admin)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/event/events?skip=0&limit=20"
+            "url": "{{gatewayUrl}}/announcement?skip=0&limit=20"
           }
         },
         {
           "name": "Update event (admin)",
           "request": {
             "method": "PATCH",
-            "url": "{{gatewayUrl}}/event/events/{{eventId}}",
+            "url": "{{gatewayUrl}}/announcement/{{eventId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -719,7 +667,7 @@
           "name": "Verify event publication notification",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/notification/api/v1/notifications?type=event.published&skip=0&limit=20",
+            "url": "{{gatewayUrl}}/notification?type=event.published&skip=0&limit=20",
             "description": "Public proof for report: finds notification produced after draft-to-published event mutation. Collection Runner retries up to five times while Redis consumer processes event. Internal ingestion endpoint remains service-to-service only."
           },
           "event": [
@@ -748,7 +696,7 @@
           "name": "Get event by ID (user sees published only)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/event/events/{{eventId}}"
+            "url": "{{gatewayUrl}}/announcement/{{eventId}}"
           },
           "event": [
             {
@@ -766,7 +714,7 @@
           "name": "Delete event (admin)",
           "request": {
             "method": "DELETE",
-            "url": "{{gatewayUrl}}/event/events/{{eventId}}",
+            "url": "{{gatewayUrl}}/announcement/{{eventId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -939,7 +887,7 @@
           "name": "Verify attendance correction notification",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/notification/api/v1/notifications?type=attendance.corrected&skip=0&limit=20",
+            "url": "{{gatewayUrl}}/notification?type=attendance.corrected&skip=0&limit=20",
             "description": "Public proof for report: finds notification produced by admin attendance correction. Collection Runner retries up to five times while Redis consumer processes event."
           },
           "event": [
@@ -989,7 +937,7 @@
           "name": "List notifications",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/notification/api/v1/notifications?skip=0&limit=20"
+            "url": "{{gatewayUrl}}/notification?skip=0&limit=20"
           },
           "event": [
             {
@@ -1008,7 +956,7 @@
           "name": "Get unread count",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/notification/api/v1/notifications/unread-count"
+            "url": "{{gatewayUrl}}/notification/unread-count"
           },
           "event": [
             {
@@ -1026,7 +974,7 @@
           "name": "Get notification by ID",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}"
+            "url": "{{gatewayUrl}}/notification/{{notificationId}}"
           },
           "event": [
             {
@@ -1053,14 +1001,14 @@
           "name": "Mark all notifications read",
           "request": {
             "method": "PATCH",
-            "url": "{{gatewayUrl}}/notification/api/v1/notifications/read-all"
+            "url": "{{gatewayUrl}}/notification/read-all"
           }
         },
         {
           "name": "Mark notification read",
           "request": {
             "method": "PATCH",
-            "url": "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}/read"
+            "url": "{{gatewayUrl}}/notification/{{notificationId}}/read"
           },
           "event": [
             {
@@ -1087,7 +1035,7 @@
           "name": "Delete notification",
           "request": {
             "method": "DELETE",
-            "url": "{{gatewayUrl}}/notification/api/v1/notifications/{{notificationId}}"
+            "url": "{{gatewayUrl}}/notification/{{notificationId}}"
           },
           "event": [
             {
@@ -1114,14 +1062,14 @@
           "name": "Get notification preferences",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/notification/api/v1/notification-preferences/me"
+            "url": "{{gatewayUrl}}/notification/preferences/me"
           }
         },
         {
           "name": "Update notification preferences",
           "request": {
             "method": "PATCH",
-            "url": "{{gatewayUrl}}/notification/api/v1/notification-preferences/me",
+            "url": "{{gatewayUrl}}/notification/preferences/me",
             "header": [
               {
                 "key": "Content-Type",
@@ -1149,7 +1097,7 @@
           "name": "Member health",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/members/health"
+            "url": "{{gatewayUrl}}/user/health"
           },
           "event": [
             {
@@ -1167,7 +1115,7 @@
           "name": "Get my profile (save memberUserId)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/members/api/v1/members/me"
+            "url": "{{gatewayUrl}}/user/me"
           },
           "event": [
             {
@@ -1186,7 +1134,7 @@
           "name": "Update my profile",
           "request": {
             "method": "PATCH",
-            "url": "{{gatewayUrl}}/members/api/v1/members/me",
+            "url": "{{gatewayUrl}}/user/me",
             "header": [
               {
                 "key": "Content-Type",
@@ -1217,17 +1165,17 @@
         },
         {
           "name": "Upload my document (save memberDocumentId)",
-          "description": "Select `file` again after import: `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/member-test-document.pdf`. Postman exports file paths, not file content. Keep field type `file`; do not set `Content-Type` manually.",
+          "description": "Select `file` again after import: `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf`. Postman exports file paths, not file content. Keep field type `file`; do not set `Content-Type` manually.",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/members/api/v1/members/me/documents",
+            "url": "{{gatewayUrl}}/user/me/documents",
             "body": {
               "mode": "formdata",
               "formdata": [
                 {
                   "key": "file",
                   "type": "file",
-                  "src": "docs/postman/fixtures/member-test-document.pdf"
+                  "src": "docs/postman/fixtures/user-test-document.pdf"
                 },
                 {
                   "key": "title",
@@ -1269,7 +1217,7 @@
           "name": "List my documents",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/members/api/v1/members/me/documents?skip=0&limit=20"
+            "url": "{{gatewayUrl}}/user/me/documents?skip=0&limit=20"
           },
           "event": [
             {
@@ -1290,7 +1238,7 @@
           "name": "Download my document",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/members/api/v1/members/me/documents/{{memberDocumentId}}/download"
+            "url": "{{gatewayUrl}}/user/me/documents/{{memberDocumentId}}/download"
           },
           "event": [
             {
@@ -1320,7 +1268,7 @@
           "name": "List members (admin)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/members/api/v1/members?skip=0&limit=20",
+            "url": "{{gatewayUrl}}/user?skip=0&limit=20",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1348,7 +1296,7 @@
           "name": "Get member profile (admin)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/members/api/v1/members/{{memberUserId}}",
+            "url": "{{gatewayUrl}}/user/{{memberUserId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1376,7 +1324,7 @@
           "name": "List member documents (admin)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/members/api/v1/members/{{memberUserId}}/documents?skip=0&limit=20",
+            "url": "{{gatewayUrl}}/user/{{memberUserId}}/documents?skip=0&limit=20",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1409,7 +1357,7 @@
           "name": "Download member document (admin)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/members/api/v1/members/{{memberUserId}}/documents/{{memberDocumentId}}/download",
+            "url": "{{gatewayUrl}}/user/{{memberUserId}}/documents/{{memberDocumentId}}/download",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1454,7 +1402,7 @@
           "name": "Library health",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/library/health"
+            "url": "{{gatewayUrl}}/booking/health"
           },
           "event": [
             {
@@ -1472,7 +1420,7 @@
           "name": "Create booking room (admin, save roomId)",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/library/api/v1/rooms",
+            "url": "{{gatewayUrl}}/booking/rooms",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1532,7 +1480,7 @@
           "name": "Create disposable room (admin, save disposableRoomId)",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/library/api/v1/rooms",
+            "url": "{{gatewayUrl}}/booking/rooms",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1576,7 +1524,7 @@
           "name": "List rooms",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/library/api/v1/rooms?skip=0&limit=20"
+            "url": "{{gatewayUrl}}/booking/rooms?skip=0&limit=20"
           },
           "event": [
             {
@@ -1594,7 +1542,7 @@
           "name": "Get room",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/library/api/v1/rooms/{{roomId}}"
+            "url": "{{gatewayUrl}}/booking/rooms/{{roomId}}"
           },
           "event": [
             {
@@ -1612,7 +1560,7 @@
           "name": "Get room availability",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/library/api/v1/rooms/{{roomId}}/availability?start={{bookingStart}}&end={{bookingEnd}}"
+            "url": "{{gatewayUrl}}/booking/rooms/{{roomId}}/availability?start={{bookingStart}}&end={{bookingEnd}}"
           },
           "event": [
             {
@@ -1630,7 +1578,7 @@
           "name": "Update disposable room (admin)",
           "request": {
             "method": "PATCH",
-            "url": "{{gatewayUrl}}/library/api/v1/rooms/{{disposableRoomId}}",
+            "url": "{{gatewayUrl}}/booking/rooms/{{disposableRoomId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1673,7 +1621,7 @@
           "name": "Delete disposable room (admin)",
           "request": {
             "method": "DELETE",
-            "url": "{{gatewayUrl}}/library/api/v1/rooms/{{disposableRoomId}}",
+            "url": "{{gatewayUrl}}/booking/rooms/{{disposableRoomId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1701,7 +1649,7 @@
           "name": "Create booking for approval (save bookingId)",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/library/api/v1/bookings",
+            "url": "{{gatewayUrl}}/booking",
             "header": [
               {
                 "key": "Content-Type",
@@ -1735,7 +1683,7 @@
           "name": "List my bookings",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/library/api/v1/bookings/me?skip=0&limit=20"
+            "url": "{{gatewayUrl}}/booking/me?skip=0&limit=20"
           },
           "event": [
             {
@@ -1753,7 +1701,7 @@
           "name": "List all bookings (admin)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/library/api/v1/bookings?skip=0&limit=20",
+            "url": "{{gatewayUrl}}/booking?skip=0&limit=20",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1781,7 +1729,7 @@
           "name": "Get booking",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/library/api/v1/bookings/{{bookingId}}"
+            "url": "{{gatewayUrl}}/booking/{{bookingId}}"
           },
           "event": [
             {
@@ -1799,7 +1747,7 @@
           "name": "Approve booking (admin)",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/library/api/v1/bookings/{{bookingId}}/approve",
+            "url": "{{gatewayUrl}}/booking/{{bookingId}}/approve",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1842,7 +1790,7 @@
           "name": "Create booking for rejection (save rejectedBookingId)",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/library/api/v1/bookings",
+            "url": "{{gatewayUrl}}/booking",
             "header": [
               {
                 "key": "Content-Type",
@@ -1885,7 +1833,7 @@
           "name": "Reject booking (admin)",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/library/api/v1/bookings/{{rejectedBookingId}}/reject",
+            "url": "{{gatewayUrl}}/booking/{{rejectedBookingId}}/reject",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1928,7 +1876,7 @@
           "name": "Create booking for cancellation (save cancelledBookingId)",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/library/api/v1/bookings",
+            "url": "{{gatewayUrl}}/booking",
             "header": [
               {
                 "key": "Content-Type",
@@ -1971,7 +1919,7 @@
           "name": "Cancel booking",
           "request": {
             "method": "POST",
-            "url": "{{gatewayUrl}}/library/api/v1/bookings/{{cancelledBookingId}}/cancel"
+            "url": "{{gatewayUrl}}/booking/{{cancelledBookingId}}/cancel"
           },
           "event": [
             {
@@ -1980,157 +1928,6 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Create book (admin, save bookId)",
-          "request": {
-            "method": "POST",
-            "url": "{{gatewayUrl}}/library/api/v1/books",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Postman API Testing\",\n  \"author\": \"OMS Team\",\n  \"isbn\": \"{{testIsbn}}\",\n  \"category\": \"testing\",\n  \"description\": \"Disposable catalog record created by Postman.\",\n  \"published_year\": 2025,\n  \"copies\": 2,\n  \"shelf_location\": \"TEST-01\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
-                  "if (pm.response.code === 201) { pm.environment.set('bookId', pm.response.json().id); }"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "List books",
-          "request": {
-            "method": "GET",
-            "url": "{{gatewayUrl}}/library/api/v1/books?skip=0&limit=20"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Get book",
-          "request": {
-            "method": "GET",
-            "url": "{{gatewayUrl}}/library/api/v1/books/{{bookId}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Update book (admin)",
-          "request": {
-            "method": "PATCH",
-            "url": "{{gatewayUrl}}/library/api/v1/books/{{bookId}}",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"copies\": 3,\n  \"shelf_location\": \"TEST-02\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Delete book (admin)",
-          "request": {
-            "method": "DELETE",
-            "url": "{{gatewayUrl}}/library/api/v1/books/{{bookId}}",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminToken}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Expected 204', function () { pm.response.to.have.status(204); });"
                 ]
               }
             }

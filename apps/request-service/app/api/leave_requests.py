@@ -1,10 +1,10 @@
-from datetime import date
+from datetime import date, datetime, timezone
 
 from beanie import PydanticObjectId
 from beanie.operators import In
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_admin
 from app.core.cache import bump_version, cached_list
 from app.core.limiter import limiter
 from app.core.security import CurrentUser
@@ -12,6 +12,7 @@ from app.database.models import LeaveRequest
 from app.schemas.leave_request import (
     LeaveRequestBase,
     LeaveRequestResponse,
+    LeaveRequestDecision,
     LeaveRequestUpdate,
 )
 from app.utils.enums import RequestStatus
@@ -21,6 +22,7 @@ from app.utils.helpers import (
     get_owned_or_404,
     mark_cancelled,
 )
+from app.utils.notifications import publish_notification
 
 router = APIRouter(prefix="/leave-requests", tags=["Leave Requests"])
 
@@ -71,7 +73,8 @@ async def list_my_leave_requests(
     user: CurrentUser = Depends(get_current_user),
 ):
     async def load():
-        query = LeaveRequest.find(LeaveRequest.student_id == user.id)
+        conditions = [] if user.role == "admin" else [LeaveRequest.student_id == user.id]
+        query = LeaveRequest.find(*conditions)
         if status_filter:
             query = query.find(LeaveRequest.status == status_filter)
         docs = await query.sort("-created_at").skip(skip).limit(limit).to_list()
@@ -91,7 +94,10 @@ async def get_leave_request(
     request_id: PydanticObjectId,
     user: CurrentUser = Depends(get_current_user),
 ):
-    return await get_owned_or_404(LeaveRequest, request_id, user)
+    doc = await LeaveRequest.get(request_id)
+    if doc is None or (user.role != "admin" and doc.student_id != user.id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Leave request not found")
+    return doc
 
 
 @router.patch("/{request_id}", response_model=LeaveRequestResponse)
@@ -121,3 +127,42 @@ async def cancel_leave_request(
     await doc.save()
     await bump_version(NS, user.id)
     return doc
+
+
+async def _review_request(request_id: PydanticObjectId, status_value: RequestStatus,
+                          payload: LeaveRequestDecision | None, admin: CurrentUser) -> LeaveRequest:
+    doc = await LeaveRequest.get(request_id)
+    if doc is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Leave request not found")
+    ensure_pending(doc)
+    doc.status = status_value
+    doc.reviewed_by = admin.id
+    doc.reviewed_at = datetime.now(timezone.utc)
+    doc.review_comment = payload.note if payload else None
+    await doc.save()
+    await bump_version(NS, doc.student_id)
+    await publish_notification({
+        "event_id": f"request-service:{doc.id}:{status_value.value}:{doc.reviewed_at.isoformat()}",
+        "type": f"request.{status_value.value}",
+        "recipient_id": doc.student_id,
+        "data": {"request_id": str(doc.id), "screen": "leave-requests"},
+    })
+    return doc
+
+
+@router.post("/{request_id}/approve", response_model=LeaveRequestResponse)
+async def approve_leave_request(
+    request_id: PydanticObjectId,
+    payload: LeaveRequestDecision | None = None,
+    admin: CurrentUser = Depends(require_admin),
+):
+    return await _review_request(request_id, RequestStatus.APPROVED, payload, admin)
+
+
+@router.post("/{request_id}/reject", response_model=LeaveRequestResponse)
+async def reject_leave_request(
+    request_id: PydanticObjectId,
+    payload: LeaveRequestDecision,
+    admin: CurrentUser = Depends(require_admin),
+):
+    return await _review_request(request_id, RequestStatus.REJECTED, payload, admin)

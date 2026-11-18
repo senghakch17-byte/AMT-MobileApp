@@ -2,7 +2,7 @@ from beanie import init_beanie
 from pymongo import AsyncMongoClient
 
 from app.core.config import settings
-from app.database.models import Book, Booking, Room
+from app.database.models import Booking, Room
 
 client: AsyncMongoClient | None = None
 
@@ -15,7 +15,7 @@ async def init_db() -> None:
     await client.admin.command("ping")  # fail at startup if Mongo is unreachable
     await init_beanie(
         database=client[settings.MONGODB_DB_NAME],
-        document_models=[Room, Booking, Book],
+        document_models=[Room, Booking],
     )
 
 

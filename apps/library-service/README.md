@@ -2,7 +2,7 @@
 
 FastAPI + MongoDB (Beanie) service for **room booking** and the **book catalog**.
 Same layout and conventions as `event-service` / `member-service`: JWT bearer tokens issued
-elsewhere (`id`, `emailid`, `role` claims), routed through the gateway under `/library`.
+elsewhere (`id`, `emailid`, `role` claims), routed through the gateway under `/booking`.
 
 ## Endpoints (`/api/v1`)
 

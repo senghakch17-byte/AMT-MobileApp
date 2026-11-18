@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/library/api/v1/rooms/{{disposableRoomId}}"
+url: "{{gatewayUrl}}/booking/rooms/{{disposableRoomId}}"
 method: PATCH
 headers:
   Content-Type: "application/json"

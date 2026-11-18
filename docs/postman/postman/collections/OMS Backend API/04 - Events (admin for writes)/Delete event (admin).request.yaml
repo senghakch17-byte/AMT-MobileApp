@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{gatewayUrl}}/event/events/{{eventId}}"
+url: "{{gatewayUrl}}/announcement/{{eventId}}"
 method: DELETE
 auth:
   type: bearer

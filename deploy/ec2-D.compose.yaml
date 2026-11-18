@@ -1,21 +1,21 @@
-# EC2-D: library-service and member-service
+# EC2-D: booking-service and user-service
 services:
-  library-service:
+  booking-service:
     extends: { file: common.yaml, service: base }
-    build: ../apps/library-service
+    build: ../apps/booking-service
     env_file: ./.env
     environment:
       MONGODB_URI: "${MONGO_URI}"
     ports: ["${EC2_D_IP}:8003:8003"]
 
-  member-service:
+  user-service:
     extends: { file: common.yaml, service: base }
-    build: ../apps/member-service
+    build: ../apps/user-service
     env_file: ./.env
     environment:
       MONGODB_URI: "${MONGO_URI}"
     ports: ["${EC2_D_IP}:8004:8004"]
-    volumes: [member_uploads:/backend/uploads]
+    volumes: [user_uploads:/backend/uploads]
 
 volumes:
-  member_uploads:
+  user_uploads:

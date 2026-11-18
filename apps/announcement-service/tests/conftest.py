@@ -1,0 +1,21 @@
+import os
+import tempfile
+
+os.environ["JWT_SECRET"] = "announcement-test-secret-0123456789abcdef"
+os.environ["MONGODB_URI"] = "mongodb://localhost:27017"
+os.environ["MONGODB_DB_NAME"] = "announcement_service_test"
+os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="announcement-service-uploads-")
+os.environ["NOTIFICATION_SERVICE_URL"] = "http://notification-service:8005"
+os.environ["INTERNAL_API_KEY"] = "notification-test-key"
+
+import httpx  # noqa: E402
+import pytest_asyncio  # noqa: E402
+
+from app.main import app  # noqa: E402
+
+
+@pytest_asyncio.fixture
+async def client():
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as test_client:
+        yield test_client

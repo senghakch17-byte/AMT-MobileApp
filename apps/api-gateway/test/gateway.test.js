@@ -21,7 +21,7 @@ test.before(async () => {
   upstream = http.createServer((req, res) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ path: req.url, method: req.method })); });
   await listen(upstream);
   const target = `http://127.0.0.1:${upstream.address().port}`;
-  process.env.REGISTER_SERVICE_URL = target; process.env.LOGIN_SERVICE_URL = target; process.env.REQUEST_SERVICE_URL = target; process.env.EVENT_SERVICE_URL = target; process.env.ATTENDANCE_SERVICE_URL = target; process.env.NOTIFICATION_SERVICE_URL = target; process.env.MEMBER_SERVICE_URL = target; process.env.LIBRARY_SERVICE_URL = target;
+  process.env.REGISTER_SERVICE_URL = target; process.env.LOGIN_SERVICE_URL = target; process.env.REQUEST_SERVICE_URL = target; process.env.ANNOUNCEMENT_SERVICE_URL = target; process.env.ATTENDANCE_SERVICE_URL = target; process.env.NOTIFICATION_SERVICE_URL = target; process.env.USER_SERVICE_URL = target; process.env.BOOKING_SERVICE_URL = target;
   const app = require('../app');
   appServer = app.listen(0);
   await new Promise((resolve) => appServer.once('listening', resolve));

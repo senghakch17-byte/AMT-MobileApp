@@ -15,36 +15,36 @@ const templates = {
     title: 'Attendance updated',
     message: 'Your attendance record has been corrected.',
   },
-  'event.published': {
-    title: 'New event published',
-    message: 'A new event has been published.',
+  'announcement.published': {
+    title: 'New announcement published',
+    message: 'A new announcement has been published.',
   },
-  'event.updated': {
-    title: 'Event updated',
-    message: 'An event you may be interested in was updated.',
+  'announcement.updated': {
+    title: 'Announcement updated',
+    message: 'An announcement you may be interested in was updated.',
   },
 };
 
-function createNotification(event) {
-  const template = templates[event.type];
+function createNotification(notification) {
+  const template = templates[notification.type];
   if (!template) {
-    throw new Error(`Unsupported notification event type: ${event.type}`);
+    throw new Error(`Unsupported notification type: ${notification.type}`);
   }
 
-  const recipientId = typeof event.recipient_id === 'string' ? event.recipient_id.trim() : '';
-  const recipientRole = typeof event.recipient_role === 'string' ? event.recipient_role.trim() : '';
+  const recipientId = typeof notification.recipient_id === 'string' ? notification.recipient_id.trim() : '';
+  const recipientRole = typeof notification.recipient_role === 'string' ? notification.recipient_role.trim() : '';
   if (!recipientId && !recipientRole) {
-    throw new Error('Notification event requires recipient_id or recipient_role');
+    throw new Error('Notification requires recipient_id or recipient_role');
   }
 
   return {
-    eventId: event.event_id,
-    type: event.type,
+    notificationKey: notification.notification_key,
+    type: notification.type,
     recipientId: recipientId || undefined,
     recipientRole: recipientRole || undefined,
     title: template.title,
     message: template.message,
-    data: event.data || {},
+    data: notification.data || {},
   };
 }
 

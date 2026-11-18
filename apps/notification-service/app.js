@@ -3,7 +3,7 @@ const express = require('express');
 const notificationsRouter = require('./routes/notifications');
 const internalRouter = require('./routes/internal');
 const preferencesRouter = require('./routes/preferences');
-const { redisReady } = require('./services/eventConsumer');
+const { redisReady } = require('./services/notificationConsumer');
 
 const app = express();
 app.use(cors());

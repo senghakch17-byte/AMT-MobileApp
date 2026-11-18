@@ -136,9 +136,9 @@ Expected response contains gateway status JSON. Use [Postman collection](postman
 | Host | Intended services |
 | --- | --- |
 | EC2-A | Nginx, API gateway 1 (`4000`), API gateway 2 (`4001`), registration, login, Redis |
-| EC2-B | Request, event |
+| EC2-B | Request, announcement |
 | EC2-C | Attendance, notification |
-| EC2-D | Member, library |
+| EC2-D | User, booking |
 
 This topology is configured but not deployed or production-verified. Each host must have repository checkout and identical ignored `deploy/.env`. Use private IPs only for service-to-service traffic. Place EC2 private addresses and shared application settings in `deploy/.env`, based on `deploy/.env.example`.
 
@@ -175,7 +175,7 @@ docker compose --env-file deploy/.env -f deploy/ec2-A.compose.yaml logs --tail=1
 
 ```
 
-### EC2-B: request and event
+### EC2-B: request and announcement
 
 ```bash
 cd ~/AMT-MobileApp
@@ -190,9 +190,9 @@ EC2_B_IP="$(grep '^EC2_B_IP=' deploy/.env | cut -d= -f2-)"
 # Request health endpoint.
 curl --fail --show-error "http://${EC2_B_IP}:8000/health"
 
-# Event service has no health endpoint. Confirm process and inspect startup logs.
-docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml ps event-service
-docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml logs --tail=100 event-service
+# Announcement service has no health endpoint. Confirm process and inspect startup logs.
+docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml ps announcement-service
+docker compose --env-file deploy/.env -f deploy/ec2-B.compose.yaml logs --tail=100 announcement-service
 
 ```
 
@@ -222,7 +222,7 @@ Attendance publishes correction notifications to `http://notification-service:80
 4. Run Verify attendance correction notification in Collection Runner. It retries up to five times and must find notification whose `data.attendance_id` matches `attendanceId`.
 5. If verification fails, inspect `attendance-service`, `notification-service`, and EC2-A Redis logs. Confirm EC2-C notification health returns `200` and security group permits EC2-C to EC2-A Redis port `6379`.
 
-### EC2-D: library and member
+### EC2-D: booking and user
 
 ```bash
 cd ~/AMT-MobileApp
@@ -238,7 +238,7 @@ curl --fail --show-error "http://${EC2_D_IP}:8004/health"
 
 ```
 
-EC2-A uses Nginx port `80`; its Docker-internal gateways listen on `4000` and `4001`, respectively, and are reachable only through Nginx. EC2-B, EC2-C, EC2-D service ports and EC2-A Redis bind only to host private IP addresses. Redis has no persistence. `POST /notification/api/v1/internal/announcements` remains excluded from public gateway use.
+EC2-A uses Nginx port `80`; its Docker-internal gateways listen on `4000` and `4001`, respectively, and are reachable only through Nginx. EC2-B, EC2-C, EC2-D service ports and EC2-A Redis bind only to host private IP addresses. Redis has no persistence. `POST /notification/api/v1/internal/events` remains excluded from public gateway use.
 
 Stop only matching host services:
 
@@ -257,9 +257,9 @@ Multi-host security groups must allow only required private traffic:
 | EC2-A Redis | 6379 | EC2-B and EC2-C security groups only |
 | EC2-B services | 8000, 8001 | EC2-A gateway only |
 | EC2-C Attendance | 8002 | EC2-A gateway only |
-| EC2-C Notification | 8005 | EC2-A gateway and EC2-B service group for internal events |
-| EC2-D Library | 8003 | EC2-A gateway only |
-| EC2-D Member | 8004 | EC2-A gateway only |
+| EC2-C Notification | 8005 | EC2-A gateway and EC2-B service group for internal announcements |
+| EC2-D Booking | 8003 | EC2-A gateway only |
+| EC2-D User | 8004 | EC2-A gateway only |
 
 SSH access remains restricted to your current public IP. Never publish direct service or Redis ports to internet.
 

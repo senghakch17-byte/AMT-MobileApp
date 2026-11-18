@@ -6,13 +6,13 @@
 2. In Postman, import `OMS-Backend.postman_collection.json` and `OMS-local.postman_environment.json` (Import → Files). Select **OMS local gateway** in the environment selector.
 3. Set `userPassword` plus admin credentials. **Register user** creates unique `postman-<timestamp>@example.com` value each run, then **Login user** uses it. Do not set `userEmail` manually when running full collection. Keep `gatewayUrl` for local Docker, or set it to deployed Nginx URL such as `http://EC2_A_PUBLIC_IP`.
 4. Every collection request sends; no mutation request skips. Run **Login user (save userToken)** after registration. It stores JWT in selected environment and expires after one hour. Admin requests require working `adminEmail` and `adminPassword`.
-5. Run folders in number order. Folder **01 - Load balancer and Gateway health** first for local or single-host deployment: direct health checks verify `gateway1Url` and `gateway2Url`; four Nginx health requests collect `X-Upstream`, and final request fails unless two distinct Gateway upstreams served traffic. In multi-host EC2, Gateway listeners stay private; run only four Nginx health requests through `gatewayUrl`. Collection auth sends `userToken` to protected endpoints. Admin requests explicitly use `adminToken`. **Members** uploads `docs/postman/fixtures/user-test-document.pdf`; select this file again if Postman cannot resolve path after import. **Library** creates booking history using separate time slots, then deletes only its disposable room and book.
+5. Run folders in number order. Folder **01 - Load balancer and Gateway health** first for local or single-host deployment: direct health checks verify `gateway1Url` and `gateway2Url`; four Nginx health requests collect `X-Upstream`, and final request fails unless two distinct Gateway upstreams served traffic. In multi-host EC2, Gateway listeners stay private; run only four Nginx health requests through `gatewayUrl`. Collection auth sends `userToken` to protected endpoints. Admin requests explicitly use `adminToken`. **Users** uploads `docs/postman/fixtures/user-test-document.pdf`; select this file again if Postman cannot resolve path after import. **Booking** creates booking history using separate time slots, then deletes only its disposable room and book.
 
 ## Admin token setup
 
-An admin account is needed for event creation, update, and deletion. Public registration creates admin only for exact request role `admin`; all other or missing values create user. This allows public self-provisioning of administrators. Alternatively, set `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE` in `apps/registration-service/.env`, then run `cd apps/registration-service && npm run provision-admin`. Set matching `adminEmail` and `adminPassword` in Postman, then run **Login admin (save adminToken)**. Event write requests read `adminToken`; user role tokens receive gateway `403`.
+An admin account is needed for announcement creation, update, and deletion. Public registration creates admin only for exact request role `admin`; all other or missing values create user. This allows public self-provisioning of administrators. Alternatively, set `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE` in `apps/registration-service/.env`, then run `cd apps/registration-service && npm run provision-admin`. Set matching `adminEmail` and `adminPassword` in Postman, then run **Login admin (save adminToken)**. Announcement write requests read `adminToken`; user role tokens receive gateway `403`.
 
-Both Request and Event services verify JWTs using the same `JWT_SECRET` as Login and the API Gateway. The gateway protects all `/request/*` and `/announcement/*` requests. Do not manually paste the token when using this collection; the login test script stores it, and collection/request auth sends it as `Authorization: Bearer <token>`.
+Both Request and Announcement services verify JWTs using the same `JWT_SECRET` as Login and the API Gateway. The gateway protects all `/request/*` and `/announcement/*` requests. Do not manually paste the token when using this collection; the login test script stores it, and collection/request auth sends it as `Authorization: Bearer <token>`.
 
 ## Endpoints and what to send
 
@@ -31,11 +31,11 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 | `PATCH /request/leave-requests/{{leaveRequestId}}/cancel` | User token | Cancel a pending request. |
 | `POST /request/pre-scholarship-registrations` | User token | Send required student/guardian/contact/school fields and `statement` (20–1500 chars). `academic_year` format `YYYY-YYYY`; `need_based` requires `monthly_family_income`; `merit` requires `academic_average`. |
 | `GET /request/pre-scholarship-registrations` | User token | Lists your registrations; optional `status`, `skip`, `limit`. |
-| `POST /announcement` | Admin token | Create an event. Use ISO datetimes; `status` defaults to `draft`. |
-| `GET /announcement` | Any token | Lists events. Non-admins see published events only. Supports `category`, `upcoming`, `status` (admin filtering), `skip`, `limit`. |
-| `GET /announcement/{{eventId}}` | Any token | Gets a published event for users; admins can see drafts. |
-| `PATCH /announcement/{{eventId}}` | Admin token | Update supplied event fields; e.g. publish using `{"status":"published"}`. |
-| `DELETE /announcement/{{eventId}}` | Admin token | Deletes event; successful response is 204. |
+| `POST /announcement` | Admin token | Create an announcement. Use ISO datetimes; `status` defaults to `draft`. |
+| `GET /announcement` | Any token | Lists announcements. Non-admins see published announcements only. Supports `category`, `upcoming`, `status` (admin filtering), `skip`, `limit`. |
+| `GET /announcement/{{announcementId}}` | Any token | Gets a published announcement for users; admins can see drafts. |
+| `PATCH /announcement/{{announcementId}}` | Admin token | Update supplied announcement fields; e.g. publish using `{"status":"published"}`. |
+| `DELETE /announcement/{{announcementId}}` | Admin token | Deletes announcement; successful response is 204. |
 | `GET /attendance/health` | User token | Attendance service health through gateway. |
 | `POST /attendance/check-in` | User token | Creates current user's daily attendance. Collection saves returned `_id` as `attendanceId`. |
 | `POST /attendance/check-out` | User token | Closes current user's attendance for today. |
@@ -51,12 +51,12 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 | `DELETE /notification/{{notificationId}}` | User token | Hides notification for current user. |
 | `GET /notification/preferences/me` | User token | Gets current user's preferences. |
 | `PATCH /notification/preferences/me` | User token | Updates `inAppEnabled` and/or supported `mutedTypes`. |
-| `GET /user/health` | User token | Member service health through gateway. |
+| `GET /user/health` | User token | User service health through gateway. |
 | `GET`, `PATCH /user/me` | User token | Gets or updates own lazily-created profile. |
-| `POST`, `GET /user/me/documents` | User token | Uploads PDF/JPEG/PNG/WEBP document or lists own documents. After import, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf` in `file` form-data field; Postman does not embed local file content in collection exports. A successful upload or non-empty list saves `memberDocumentId`. |
-| `GET /user/me/documents/{{memberDocumentId}}/download` | User token | Downloads own document. Request stops with clear error until `memberDocumentId` exists. |
-| `GET /user`, `/user/{{memberUserId}}`, and member document routes | Admin token | Lists members, gets profile, and accesses member document history/download. |
-| `GET /booking/health` | User token | Library service health through gateway. |
+| `POST`, `GET /user/me/documents` | User token | Uploads PDF/JPEG/PNG/WEBP document or lists own documents. After import, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf` in `file` form-data field; Postman does not embed local file content in collection exports. A successful upload or non-empty list saves `userDocumentId`. |
+| `GET /user/me/documents/{{userDocumentId}}/download` | User token | Downloads own document. Request stops with clear error until `userDocumentId` exists. |
+| `GET /user`, `/user/{{userUserId}}`, and user document routes | Admin token | Lists users, gets profile, and accesses user document history/download. |
+| `GET /booking/health` | User token | Booking service health through gateway. |
 | `POST`, `GET /booking/rooms`; `GET /rooms/{{roomId}}`; `PATCH`, `DELETE /rooms/{{roomId}}`; `GET /rooms/{{roomId}}/availability` | User token; admin for writes | Room catalog and availability. |
 | `POST /booking`; `GET /bookings/me`; `GET /bookings/{{bookingId}}`; `POST /bookings/{{bookingId}}/cancel` | User token | Creates, lists, gets, or cancels own booking. |
 | `GET /booking`; `POST /bookings/{{bookingId}}/approve`; `POST /bookings/{{bookingId}}/reject` | Admin token | Booking history and decisions. |
@@ -64,26 +64,26 @@ All URLs below are gateway URLs. `{{gatewayUrl}}` defaults to `http://localhost`
 
 ## Load balancer and scope
 
-`gatewayUrl` defaults to `http://localhost`, Nginx public entry point on port 80. Folder 01 tests this path and requires at least two distinct `X-Upstream` response header values, proving Nginx forwarded requests to both Gateway replicas. `gateway1Url` (`http://localhost:4000`) and `gateway2Url` (`http://localhost:4001`) are direct health checks only; do not use them for API workflow requests. Collection covers every public gateway endpoint, including Member and Library routes. Internal `POST /notification/api/v1/internal/announcements` is excluded because it is service-to-service only.
+`gatewayUrl` defaults to `http://localhost`, Nginx public entry point on port 80. Folder 01 tests this path and requires at least two distinct `X-Upstream` response header values, proving Nginx forwarded requests to both Gateway replicas. `gateway1Url` (`http://localhost:4000`) and `gateway2Url` (`http://localhost:4001`) are direct health checks only; do not use them for API workflow requests. Collection covers every public gateway endpoint, including User and Booking routes. Internal `POST /notification/api/v1/internal/events` is excluded because it is service-to-service only.
 
 ## Running requests in order
 
 1. Run **01 - Load balancer and Gateway health** in request order. Final request requires two distinct `X-Upstream` values.
 2. Register user → Login user.
 3. Create leave request → its test script saves `leaveRequestId`; use Get, Update, or Cancel while it is pending. A cancelled request cannot be changed.
-4. Create pre-scholarship registration, then list registrations. Unique test user prevents active duplicate academic-year conflict.
-5. Provision/login admin in controlled environment → Create event → update event to `published` → **Verify event publication notification** → list/get as user → delete as admin. Verification searches matching `data.event_id`; Collection Runner retries up to five requests while Redis consumer processes event. Create saves returned `id` into `eventId` automatically.
+4. Create pre-scholarship registration, then list registrations. Unique test user prannouncements active duplicate academic-year conflict.
+5. Provision/login admin in controlled environment → Create announcement → update announcement to `published` → **Verify announcement publication notification** → list/get as user → delete as admin. Verification searches matching `data.announcement_id`; Collection Runner retries up to five requests while Redis consumer processes announcement. Create saves returned `id` into `announcementId` automatically.
 6. Run **Check in** → **Check out** → **List my attendance** → admin update → **Verify attendance correction notification**. Check-in saves `_id` as `attendanceId`; checkout expects `200`. Admin correction proves matching `data.attendance_id`. Collection Runner retries notification check up to five requests. Use admin token for list-all and update.
-7. List notifications saves first returned `id` as `notificationId`, then get, mark-read, and delete use it. If notification creation failed, dependent requests fail with `notificationId exists`; fix producer or Redis instead of skipping. Preferences work without notification data. `POST /notification/api/v1/internal/announcements` is intentionally excluded: internal service-to-service route requires `x-internal-api-key` and must not be exposed through gateway.
-8. Members: get profile to save `memberUserId`. In **Upload my document**, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf` for `file` after import, then upload/list/download. Upload or non-empty list saves `memberDocumentId`. Run admin member document list before its download; it saves both IDs. Upload leaves test document history in database.
-9. Library: create rooms, run pending/approved/rejected/cancelled booking flow, then create/update/delete catalog book. Booking room remains because booking history prevents room deletion.
+7. List notifications saves first returned `id` as `notificationId`, then get, mark-read, and delete use it. If notification creation failed, dependent requests fail with `notificationId exists`; fix producer or Redis instead of skipping. Preferences work without notification data. `POST /notification/api/v1/internal/events` is intentionally excluded: internal service-to-service route requires `x-internal-api-key` and must not be exposed through gateway.
+8. Users: get profile to save `userUserId`. In **Upload my document**, select `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf` for `file` after import, then upload/list/download. Upload or non-empty list saves `userDocumentId`. Run admin user document list before its download; it saves both IDs. Upload leaves test document history in database.
+9. Booking: create rooms, run pending/approved/rejected/cancelled booking flow, then create/update/delete catalog book. Booking room remains because booking history prannouncements room deletion.
 10. Optional filters: add `?status=pending`, `?skip=0&limit=20`, `?category=announcement`, or `?upcoming=true` as applicable. Enum values are defined by API schemas.
 
 ## Common responses
 
-- `401`: token missing, invalid, or expired. Login again; verify the Login service, API Gateway, Request, and Event services share `JWT_SECRET`.
-- `403`: role mismatch at login or admin-only event or attendance route called using a user token.
-- `404`: unknown ID or resource not owned by the current user; regular users cannot view draft events.
+- `401`: token missing, invalid, or expired. Login again; verify the Login service, API Gateway, Request, and Announcement services share `JWT_SECRET`.
+- `403`: role mismatch at login or admin-only announcement or attendance route called using a user token.
+- `404`: unknown ID or resource not owned by the current user; regular users cannot view draft announcements.
 - `409`: overlapping active leave dates, duplicate active scholarship year, or second attendance check-in for same user and UTC day. Run **List my attendance** to recover today’s `attendanceId` for admin correction.
 - `422`: invalid body, date, enum, or query value.
 - `502`: gateway cannot reach the upstream service; check `docker compose ps` and logs.

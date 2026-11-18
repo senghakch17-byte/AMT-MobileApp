@@ -142,7 +142,7 @@ async def _review_request(request_id: PydanticObjectId, status_value: RequestSta
     await doc.save()
     await bump_version(NS, doc.student_id)
     await publish_notification({
-        "event_id": f"request-service:{doc.id}:{status_value.value}:{doc.reviewed_at.isoformat()}",
+        "notification_key": f"request-service:{doc.id}:{status_value.value}:{doc.reviewed_at.isoformat()}",
         "type": f"request.{status_value.value}",
         "recipient_id": doc.student_id,
         "data": {"request_id": str(doc.id), "screen": "leave-requests"},

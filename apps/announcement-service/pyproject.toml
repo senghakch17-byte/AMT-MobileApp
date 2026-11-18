@@ -1,0 +1,30 @@
+[project]
+name = "announcement-service"
+version = "0.1.0"
+description = "Announcement management and image storage service"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beanie>=2.2.0",
+    "fastapi>=0.142.2",
+    "PyJWT>=2.10.1",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "python-dotenv>=1.2.4",
+    "python-multipart>=0.0.32",
+    "slowapi>=0.1.10",
+    "uvicorn>=0.54.0",
+    "redis>=8.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]

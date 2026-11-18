@@ -5,7 +5,7 @@ metadata:
   namespace: oms
 data:
   nginx.conf: |
-    events {}
+    announcements {}
     http {
       access_log /shared-logs/access.log;
       error_log /shared-logs/error.log;

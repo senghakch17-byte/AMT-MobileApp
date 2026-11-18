@@ -15,11 +15,11 @@ const DEFAULT_SERVICE_ROUTES = [
   { prefix: 'register', env: 'REGISTER_SERVICE_URL', protected: false },
   { prefix: 'login', env: 'LOGIN_SERVICE_URL', protected: false },
   { prefix: 'request', env: 'REQUEST_SERVICE_URL', protected: true, publicPaths: ['/health'] },
-  { prefix: 'announcement', env: 'EVENT_SERVICE_URL', protected: true, publicPaths: ['/health'], adminRoute: isAdminRoute.announcement },
+  { prefix: 'announcement', env: 'ANNOUNCEMENT_SERVICE_URL', protected: true, publicPaths: ['/health'], adminRoute: isAdminRoute.announcement },
   { prefix: 'attendance', env: 'ATTENDANCE_SERVICE_URL', protected: true, publicPaths: ['/health'], adminRoute: isAdminRoute.attendance },
   { prefix: 'notification', env: 'NOTIFICATION_SERVICE_URL', protected: true, publicPaths: ['/health'] },
-  { prefix: 'user', env: 'MEMBER_SERVICE_URL', protected: true, publicPaths: ['/health'] },
-  { prefix: 'booking', env: 'LIBRARY_SERVICE_URL', protected: true, publicPaths: ['/health'], adminRoute: isAdminRoute.booking },
+  { prefix: 'user', env: 'USER_SERVICE_URL', protected: true, publicPaths: ['/health'] },
+  { prefix: 'booking', env: 'BOOKING_SERVICE_URL', protected: true, publicPaths: ['/health'], adminRoute: isAdminRoute.booking },
 ];
 
 // Resolve each service target from its environment variable name.

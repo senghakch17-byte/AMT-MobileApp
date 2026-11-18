@@ -3,7 +3,7 @@ require('dotenv').config();
 const app = require('./app');
 const { port } = require('./config');
 const { connectDatabase, disconnectDatabase } = require('./db');
-const { startConsumer, stopConsumer } = require('./services/eventConsumer');
+const { startConsumer, stopConsumer } = require('./services/notificationConsumer');
 
 let server;
 

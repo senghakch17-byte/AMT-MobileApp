@@ -1,4 +1,4 @@
-# EC2-B: request-service, event-service
+# EC2-B: request-service, announcement-service
 x-env: &env
   REDIS_URL: redis://${EC2_A_IP}:6379
 
@@ -10,13 +10,13 @@ services:
     environment: { <<: *env, PORT: "8000", MONGODB_URI: "${MONGO_URI}" }
     ports: ["${EC2_B_IP}:8000:8000"]
 
-  event-service:
+  announcement-service:
     extends: { file: common.yaml, service: base }
-    build: ../apps/event-service
+    build: ../apps/announcement-service
     env_file: ./.env
     environment: { <<: *env, PORT: "8001", MONGODB_URI: "${MONGO_URI}" }
     ports: ["${EC2_B_IP}:8001:8001"]
-    volumes: [event_uploads:/backend/uploads]
+    volumes: [announcement_uploads:/backend/uploads]
 
 volumes:
-  event_uploads:
+  announcement_uploads:

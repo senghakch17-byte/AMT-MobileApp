@@ -11,10 +11,10 @@ declare -a images=(
   'oms-registration-service:latest apps/registration-service'
   'oms-login-service:latest apps/login-service'
   'oms-request-service:latest apps/request-service'
-  'oms-announcement-service:latest apps/event-service'
+  'oms-announcement-service:latest apps/announcement-service'
   'oms-attendance-service:latest apps/attendance-service'
-  'oms-booking-service:latest apps/library-service'
-  'oms-user-service:latest apps/member-service'
+  'oms-booking-service:latest apps/booking-service'
+  'oms-user-service:latest apps/user-service'
   'oms-notification-service:latest apps/notification-service'
 )
 

@@ -54,7 +54,7 @@ function responseShape() {
     $project: {
       _id: 0,
       id: { $toString: '$_id' },
-      eventId: 1,
+      notificationKey: 1,
       type: 1,
       title: 1,
       message: 1,
@@ -97,8 +97,8 @@ router.post('/', requireAdmin, async (req, res) => {
   if ((!recipientId && !recipientRole) || (recipientId && recipientRole) || !type || !title || !message) {
     return res.status(400).json({ message: 'Provide exactly one recipientId or recipientRole, plus type, title, and message' });
   }
-  const eventId = `admin:${req.user.id}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
-  const notification = await Notification.create({ recipientId, recipientRole, eventId, type, title, message, data, expiresAt });
+  const notificationKey = `admin:${req.user.id}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+  const notification = await Notification.create({ recipientId, recipientRole, notificationKey, type, title, message, data, expiresAt });
   return res.status(201).json(notification);
 });
 

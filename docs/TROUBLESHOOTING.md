@@ -3,7 +3,7 @@
 ### `Application startup failed`
 
 ```bash
-docker compose logs --tail=200 request-service event-service
+docker compose logs --tail=200 request-service announcement-service
 ```
 
 Confirm MongoDB URI, credentials, database name, network access, and DNS connectivity.

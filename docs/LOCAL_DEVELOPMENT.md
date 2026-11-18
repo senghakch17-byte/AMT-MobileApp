@@ -35,5 +35,5 @@ Direct endpoints:
 - Gateway health: `http://localhost:4000/health`
 - Request health: `http://localhost:8000/health`
 - Request OpenAPI: `http://localhost:8000/openapi.json`
-- Event OpenAPI: `http://localhost:8001/openapi.json`
+- Announcement OpenAPI: `http://localhost:8001/openapi.json`
 - Attendance health: `http://localhost:8002/health`

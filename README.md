@@ -24,7 +24,7 @@ API gateways :4000 (container)
     `-- /booking    -> Library service :8003
 
 All application services -> external MongoDB
-Event service -> event_uploads volume
+Event service -> announcement_uploads volume
 ```
 
 | Service | Compose service | Host port | Responsibility |
@@ -36,10 +36,10 @@ Event service -> event_uploads volume
 | Registration | `register` | 5001 | Account creation and password hashing |
 | Login | `login` | 5002 | Credential validation and JWT issuance |
 | Request | `request-service` | 8000 | Leave requests and approval workflow |
-| Announcement | `event-service` | 8001 | Announcement management and image storage |
+| Announcement | `announcement-service` | 8001 | Announcement management and image storage |
 | Attendance | `attendance-service` | 8002 | User check-in, check-out, history, and admin corrections |
-| Booking | `library-service` | 8003 | Room bookings and approval workflow |
-| User | `member-service` | 8004 | User profiles and protected document history |
+| Booking | `booking-service` | 8003 | Room bookings and approval workflow |
+| User | `user-service` | 8004 | User profiles and protected document history |
 | Notification | `notification-service` | 8005 | In-app notifications and user receipt state |
 
 MongoDB is external; Compose does not provision it. Node services use `MONGO_URI`; Python services use `MONGODB_URI`.
@@ -74,7 +74,7 @@ Useful commands:
 ```bash
 docker compose up -d --build
 docker compose logs -f api-gateway
-docker compose logs -f register login request-service event-service
+docker compose logs -f register login request-service announcement-service
 docker compose down
 docker compose down -v # also removes event uploads
 ```
@@ -125,10 +125,10 @@ apps/
   registration-service/ Express registration API
   login-service/        Express login API and JWT issuance
   request-service/      FastAPI request APIs
-  event-service/        FastAPI event API and uploads
+  announcement-service/        FastAPI event API and uploads
   attendance-service/   Express attendance API
-  library-service/      FastAPI room booking API
-  member-service/       FastAPI user profile and document API
+  booking-service/      FastAPI room booking API
+  user-service/       FastAPI user profile and document API
 deploy/                 EC2 Docker Compose configuration
 nginx/                  Nginx load balancer configuration
 docs/                   API, configuration, development, and Postman docs

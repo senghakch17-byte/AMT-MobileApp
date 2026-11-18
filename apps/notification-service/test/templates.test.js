@@ -2,9 +2,9 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const { createNotification } = require('../services/templates');
 
-test('builds a direct notification from a supported event', () => {
+test('builds a direct notification from a supported announcement', () => {
   const notification = createNotification({
-    event_id: 'request:123:approved',
+    notification_key: 'request:123:approved',
     type: 'request.approved',
     recipient_id: 'student-1',
     data: { request_id: '123' },
@@ -17,8 +17,8 @@ test('builds a direct notification from a supported event', () => {
 
 test('builds a role-targeted notification', () => {
   const notification = createNotification({
-    event_id: 'event:123:published',
-    type: 'event.published',
+    notification_key: 'announcement:123:published',
+    type: 'announcement.published',
     recipient_role: 'user',
   });
 
@@ -26,9 +26,9 @@ test('builds a role-targeted notification', () => {
   assert.equal(notification.recipientId, undefined);
 });
 
-test('rejects an event without a recipient', () => {
+test('rejects an announcement without a recipient', () => {
   assert.throws(
-    () => createNotification({ event_id: 'event:123', type: 'event.published' }),
+    () => createNotification({ notification_key: 'announcement:123', type: 'announcement.published' }),
     /recipient_id or recipient_role/,
   );
 });

@@ -20,9 +20,9 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - `apps/attendance-service/` — Express/Mongoose attendance check-in, check-out, and administration API.
 - `apps/notification-service/` — Express/Mongoose in-app notifications, receipt state, preferences, and Redis event consumer.
 - `apps/request-service/` — FastAPI/Beanie request APIs.
-- `apps/event-service/` — FastAPI/Beanie announcement APIs and uploads.
-- `apps/member-service/` — FastAPI/Beanie user profiles and document history APIs.
-- `apps/library-service/` — FastAPI/Beanie room booking APIs.
+- `apps/announcement-service/` — FastAPI/Beanie announcement APIs and uploads.
+- `apps/user-service/` — FastAPI/Beanie user profiles and document history APIs.
+- `apps/booking-service/` — FastAPI/Beanie room booking APIs.
 - `nginx/` — public load balancer configuration connected to root Compose.
 - `deploy/` — EC2 Compose placeholders and generic Kubernetes manifests in `deploy/k8s/`. Do not claim production deployment is complete from these files alone.
 
@@ -91,7 +91,7 @@ OMS is a Docker Compose microservices backend for a mobile app.
 
 - MongoDB is external. Docker Compose does not provision MongoDB.
 - Missing `.env` files may cause runtime failures even when Compose starts.
-- Gateway service targets come from environment variables such as `REGISTER_SERVICE_URL`, `LOGIN_SERVICE_URL`, `REQUEST_SERVICE_URL`, `EVENT_SERVICE_URL`, `ATTENDANCE_SERVICE_URL`, and `NOTIFICATION_SERVICE_URL`.
+- Gateway service targets come from environment variables such as `REGISTER_SERVICE_URL`, `LOGIN_SERVICE_URL`, `REQUEST_SERVICE_URL`, `ANNOUNCEMENT_SERVICE_URL`, `ATTENDANCE_SERVICE_URL`, and `NOTIFICATION_SERVICE_URL`.
 
 ## Testing And Verification
 
@@ -104,9 +104,9 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - Useful checks:
 	- `docker compose config`
 	- `docker compose logs -f api-gateway`
-	- `docker compose logs -f request-service event-service`
+	- `docker compose logs -f request-service announcement-service`
 	- `cd apps/request-service && uv run uvicorn app.main:app --reload --port 8000`
-	- `cd apps/event-service && uv run uvicorn app.main:app --reload --port 8001`
+	- `cd apps/announcement-service && uv run uvicorn app.main:app --reload --port 8001`
 	- `cd apps/attendance-service && npm test`
 	- `cd apps/notification-service && npm test`
 

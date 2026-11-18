@@ -10,7 +10,7 @@ const app = require('../app');
 const Notification = require('../models/notification.model');
 const NotificationPreference = require('../models/preference.model');
 const NotificationReceipt = require('../models/notificationReceipt.model');
-const eventConsumer = require('../services/eventConsumer');
+const notificationConsumer = require('../services/notificationConsumer');
 
 const notificationId = '507f1f77bcf86cd799439011';
 let server;
@@ -36,10 +36,10 @@ test.before(async () => {
 
 test.after(async () => new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve())));
 
-test('internal event ingestion requires key and queues valid producer events', async () => {
-  const originalPublishEvent = eventConsumer.publishEvent;
+test('internal event ingestion requires key and queues valid producer notifications', async () => {
+  const originalPublishNotification = notificationConsumer.publishNotification;
   let queued;
-  eventConsumer.publishEvent = async (event) => { queued = event; return '1-0'; };
+  notificationConsumer.publishNotification = async (notification) => { queued = notification; return '1-0'; };
   try {
     const denied = await fetch(`${url}/internal/events`, { method: 'POST' });
     assert.equal(denied.status, 401);
@@ -47,12 +47,12 @@ test('internal event ingestion requires key and queues valid producer events', a
     const accepted = await fetch(`${url}/internal/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-internal-api-key': 'notification-test-key' },
-      body: JSON.stringify({ event_id: 'event-service:1:published', type: 'event.published', recipient_role: 'user' }),
+      body: JSON.stringify({ notification_key: 'announcement-service:1:published', type: 'announcement.published', recipient_role: 'user' }),
     });
     assert.deepEqual(await accepted.json(), { status: 'queued', streamId: '1-0' });
-    assert.deepEqual(queued, { event_id: 'event-service:1:published', type: 'event.published', recipient_id: undefined, recipient_role: 'user', data: {} });
+    assert.deepEqual(queued, { notification_key: 'announcement-service:1:published', type: 'announcement.published', recipient_id: undefined, recipient_role: 'user', data: {} });
   } finally {
-    eventConsumer.publishEvent = originalPublishEvent;
+    notificationConsumer.publishNotification = originalPublishNotification;
   }
 });
 
@@ -74,7 +74,7 @@ test('receipt schema and user mutations keep role notifications shared', async (
   NotificationPreference.findOne = async () => null;
   Notification.aggregate = async (pipeline) => {
     if (pipeline.some((stage) => stage.$project?._id === 1)) return [{ _id: notificationId }];
-    return [{ id: notificationId, type: 'event.published', readAt: null }];
+    return [{ id: notificationId, type: 'announcement.published', readAt: null }];
   };
   NotificationReceipt.findOneAndUpdate = async (filter, update) => {
     receiptUpdates.push({ filter, update });

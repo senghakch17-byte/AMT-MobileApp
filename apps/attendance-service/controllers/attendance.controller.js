@@ -97,7 +97,7 @@ async function updateAttendance(req, res) {
   await attendance.save();
   const type = attendance.status === 'absent' ? 'attendance.absent' : 'attendance.corrected';
   await notifications.publishNotification({
-    event_id: `attendance-service:${attendance._id}:${type.split('.').pop()}:${attendance.updatedAt.toISOString()}`,
+    notification_key: `attendance-service:${attendance._id}:${type.split('.').pop()}:${attendance.updatedAt.toISOString()}`,
     type,
     recipient_id: attendance.userID,
     data: { attendance_id: String(attendance._id), screen: 'attendance-history' },

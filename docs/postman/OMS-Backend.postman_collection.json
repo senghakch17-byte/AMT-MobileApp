@@ -49,7 +49,7 @@
       "value": ""
     },
     {
-      "key": "eventId",
+      "key": "announcementId",
       "value": ""
     },
     {
@@ -65,11 +65,11 @@
       "value": ""
     },
     {
-      "key": "memberUserId",
+      "key": "userUserId",
       "value": ""
     },
     {
-      "key": "memberDocumentId",
+      "key": "userDocumentId",
       "value": ""
     },
     {
@@ -131,7 +131,7 @@
       "item": [
         {
           "name": "Gateway 1 direct health",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -153,7 +153,7 @@
         },
         {
           "name": "Gateway 2 direct health",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -175,7 +175,7 @@
         },
         {
           "name": "Load balancer health 1 (reset upstreams)",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -204,7 +204,7 @@
         },
         {
           "name": "Load balancer health 2",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -232,7 +232,7 @@
         },
         {
           "name": "Load balancer health 3",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -260,7 +260,7 @@
         },
         {
           "name": "Load balancer health 4 (assert both Gateways)",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -295,7 +295,7 @@
       "item": [
         {
           "name": "Register user",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -344,7 +344,7 @@
         },
         {
           "name": "Login user (save userToken)",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -382,7 +382,7 @@
         },
         {
           "name": "Login admin (save adminToken)",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -429,7 +429,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/request/health"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -443,7 +443,7 @@
         },
         {
           "name": "Create leave request",
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -481,7 +481,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/request/leave-requests?skip=0&limit=20"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -499,7 +499,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/request/leave-requests/{{leaveRequestId}}"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -532,7 +532,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -550,7 +550,7 @@
             "method": "PATCH",
             "url": "{{gatewayUrl}}/request/leave-requests/{{leaveRequestId}}/cancel"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -565,10 +565,10 @@
       ]
     },
     {
-      "name": "04 - Events (admin for writes)",
+      "name": "04 - Announcements (admin for writes)",
       "item": [
         {
-          "name": "Create event (admin)",
+          "name": "Create announcement (admin)",
           "request": {
             "method": "POST",
             "url": "{{gatewayUrl}}/announcement",
@@ -598,31 +598,31 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
-                  "if (pm.response.code === 201) { pm.environment.set('eventId', pm.response.json().id); }"
+                  "if (pm.response.code === 201) { pm.environment.set('announcementId', pm.response.json().id); }"
                 ]
               }
             }
           ]
         },
         {
-          "name": "List events (user or admin)",
+          "name": "List announcements (user or admin)",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/announcement?skip=0&limit=20"
           }
         },
         {
-          "name": "Update event (admin)",
+          "name": "Update announcement (admin)",
           "request": {
             "method": "PATCH",
-            "url": "{{gatewayUrl}}/announcement/{{eventId}}",
+            "url": "{{gatewayUrl}}/announcement/{{announcementId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -648,44 +648,44 @@
                 }
               }
             },
-            "description": "Publishes draft event. Event service queues trusted `event.published` notification after successful database update."
+            "description": "Publishes draft announcement. Announcement service queues trusted `announcement.published` notification after successful database update."
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Event is published', function () { pm.expect(pm.response.json().status).to.equal('published'); });"
+                  "pm.test('Announcement is published', function () { pm.expect(pm.response.json().status).to.equal('published'); });"
                 ]
               }
             }
           ]
         },
         {
-          "name": "Verify event publication notification",
+          "name": "Verify announcement publication notification",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/notification?type=event.published&skip=0&limit=20",
-            "description": "Public proof for report: finds notification produced after draft-to-published event mutation. Collection Runner retries up to five times while Redis consumer processes event. Internal ingestion endpoint remains service-to-service only."
+            "url": "{{gatewayUrl}}/notification?type=announcement.published&skip=0&limit=20",
+            "description": "Public proof for report: finds notification produced after draft-to-published announcement mutation. Collection Runner retries up to five times while Redis consumer processes announcement. Internal ingestion endpoint remains service-to-service only."
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
-                  "const notification = pm.response.json().find((item) => item.data && item.data.event_id === pm.environment.get('eventId'));",
+                  "const notification = pm.response.json().find((item) => item.data && item.data.announcement_id === pm.environment.get('announcementId'));",
                   "if (notification) {",
                   "  pm.environment.set('notificationId', notification.id);",
-                  "  pm.environment.unset('eventNotificationPolls');",
+                  "  pm.environment.unset('announcementNotificationPolls');",
                   "} else {",
-                  "  const polls = Number(pm.environment.get('eventNotificationPolls') || '0') + 1;",
-                  "  pm.environment.set('eventNotificationPolls', String(polls));",
+                  "  const polls = Number(pm.environment.get('announcementNotificationPolls') || '0') + 1;",
+                  "  pm.environment.set('announcementNotificationPolls', String(polls));",
                   "  if (pm.info.iteration !== undefined && polls < 5) { pm.execution.setNextRequest(pm.info.requestName); }",
-                  "  else { pm.test('Published event notification exists', function () { pm.expect(notification, 'Redis consumer did not create event.published notification after five attempts.').to.exist; }); }",
+                  "  else { pm.test('Published announcement notification exists', function () { pm.expect(notification, 'Redis consumer did not create announcement.published notification after five attempts.').to.exist; }); }",
                   "}"
                 ]
               }
@@ -693,12 +693,12 @@
           ]
         },
         {
-          "name": "Get event by ID (user sees published only)",
+          "name": "Get announcement by ID (user sees published only)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/announcement/{{eventId}}"
+            "url": "{{gatewayUrl}}/announcement/{{announcementId}}"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -711,10 +711,10 @@
           ]
         },
         {
-          "name": "Delete event (admin)",
+          "name": "Delete announcement (admin)",
           "request": {
             "method": "DELETE",
-            "url": "{{gatewayUrl}}/announcement/{{eventId}}",
+            "url": "{{gatewayUrl}}/announcement/{{announcementId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -745,7 +745,7 @@
             "method": "POST",
             "url": "{{gatewayUrl}}/attendance/check-in"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
@@ -777,7 +777,7 @@
             "method": "POST",
             "url": "{{gatewayUrl}}/attendance/check-out"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -795,7 +795,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/attendance/me"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -862,7 +862,7 @@
             },
             "description": "Admin correction emits `attendance.corrected` after successful database update."
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
@@ -888,9 +888,9 @@
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/notification?type=attendance.corrected&skip=0&limit=20",
-            "description": "Public proof for report: finds notification produced by admin attendance correction. Collection Runner retries up to five times while Redis consumer processes event."
+            "description": "Public proof for report: finds notification produced by admin attendance correction. Collection Runner retries up to five times while Redis consumer processes announcement."
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
@@ -939,7 +939,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/notification?skip=0&limit=20"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -958,7 +958,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/notification/unread-count"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -976,7 +976,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/notification/{{notificationId}}"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
@@ -1010,7 +1010,7 @@
             "method": "PATCH",
             "url": "{{gatewayUrl}}/notification/{{notificationId}}/read"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
@@ -1037,7 +1037,7 @@
             "method": "DELETE",
             "url": "{{gatewayUrl}}/notification/{{notificationId}}"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
@@ -1090,16 +1090,16 @@
       ]
     },
     {
-      "name": "07 - Members",
+      "name": "07 - Users",
       "description": "Run after user and admin login. Upload leaves a document in the configured test database.",
       "item": [
         {
-          "name": "Member health",
+          "name": "User health",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/user/health"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1112,19 +1112,19 @@
           ]
         },
         {
-          "name": "Get my profile (save memberUserId)",
+          "name": "Get my profile (save userUserId)",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/user/me"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
-                  "if (pm.response.code === 200) { pm.environment.set('memberUserId', pm.response.json().user_id); }"
+                  "if (pm.response.code === 200) { pm.environment.set('userUserId', pm.response.json().user_id); }"
                 ]
               }
             }
@@ -1151,7 +1151,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1164,7 +1164,7 @@
           ]
         },
         {
-          "name": "Upload my document (save memberDocumentId)",
+          "name": "Upload my document (save userDocumentId)",
           "description": "Select `file` again after import: `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf`. Postman exports file paths, not file content. Keep field type `file`; do not set `Content-Type` manually.",
           "request": {
             "method": "POST",
@@ -1200,14 +1200,14 @@
               ]
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 201', function () { pm.response.to.have.status(201); });",
-                  "if (pm.response.code === 201) { pm.environment.set('memberDocumentId', pm.response.json().id); }"
+                  "if (pm.response.code === 201) { pm.environment.set('userDocumentId', pm.response.json().id); }"
                 ]
               }
             }
@@ -1219,7 +1219,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/user/me/documents?skip=0&limit=20"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1228,7 +1228,7 @@
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
                   "pm.test('Has total count', function () { pm.expect(pm.response.headers.get('X-Total-Count')).to.exist; });",
                   "const documents = pm.response.json();",
-                  "if (documents.length) { pm.environment.set('memberDocumentId', documents[0].id); }"
+                  "if (documents.length) { pm.environment.set('userDocumentId', documents[0].id); }"
                 ]
               }
             }
@@ -1238,16 +1238,16 @@
           "name": "Download my document",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/user/me/documents/{{memberDocumentId}}/download"
+            "url": "{{gatewayUrl}}/user/me/documents/{{userDocumentId}}/download"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.environment.get('memberDocumentId')) {",
-                  "  throw new Error('memberDocumentId is empty. Upload a document with file selected, or run List my documents first.');",
+                  "if (!pm.environment.get('userDocumentId')) {",
+                  "  throw new Error('userDocumentId is empty. Upload a document with file selected, or run List my documents first.');",
                   "}"
                 ]
               }
@@ -1265,7 +1265,7 @@
           ]
         },
         {
-          "name": "List members (admin)",
+          "name": "List users (admin)",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/user?skip=0&limit=20",
@@ -1280,7 +1280,7 @@
               ]
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1293,10 +1293,10 @@
           ]
         },
         {
-          "name": "Get member profile (admin)",
+          "name": "Get user profile (admin)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/user/{{memberUserId}}",
+            "url": "{{gatewayUrl}}/user/{{userUserId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1308,7 +1308,7 @@
               ]
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1321,10 +1321,10 @@
           ]
         },
         {
-          "name": "List member documents (admin)",
+          "name": "List user documents (admin)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/user/{{memberUserId}}/documents?skip=0&limit=20",
+            "url": "{{gatewayUrl}}/user/{{userUserId}}/documents?skip=0&limit=20",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1336,7 +1336,7 @@
               ]
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1345,8 +1345,8 @@
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
                   "const documents = pm.response.json();",
                   "if (documents.length) {",
-                  "  pm.environment.set('memberUserId', documents[0].user_id);",
-                  "  pm.environment.set('memberDocumentId', documents[0].id);",
+                  "  pm.environment.set('userUserId', documents[0].user_id);",
+                  "  pm.environment.set('userDocumentId', documents[0].id);",
                   "}"
                 ]
               }
@@ -1354,10 +1354,10 @@
           ]
         },
         {
-          "name": "Download member document (admin)",
+          "name": "Download user document (admin)",
           "request": {
             "method": "GET",
-            "url": "{{gatewayUrl}}/user/{{memberUserId}}/documents/{{memberDocumentId}}/download",
+            "url": "{{gatewayUrl}}/user/{{userUserId}}/documents/{{userDocumentId}}/download",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1369,14 +1369,14 @@
               ]
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.environment.get('memberUserId') || !pm.environment.get('memberDocumentId')) {",
-                  "  throw new Error('memberUserId or memberDocumentId is empty. Run Get my profile and List member documents first.');",
+                  "if (!pm.environment.get('userUserId') || !pm.environment.get('userDocumentId')) {",
+                  "  throw new Error('userUserId or userDocumentId is empty. Run Get my profile and List user documents first.');",
                   "}"
                 ]
               }
@@ -1395,16 +1395,16 @@
       ]
     },
     {
-      "name": "08 - Library",
+      "name": "08 - Booking",
       "description": "Run after user and admin login. Creates booking history plus one disposable room and book, then deletes only records safe to delete.",
       "item": [
         {
-          "name": "Library health",
+          "name": "Booking health",
           "request": {
             "method": "GET",
             "url": "{{gatewayUrl}}/booking/health"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1447,7 +1447,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
@@ -1507,7 +1507,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1526,7 +1526,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/booking/rooms?skip=0&limit=20"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1544,7 +1544,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/booking/rooms/{{roomId}}"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1562,7 +1562,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/booking/rooms/{{roomId}}/availability?start={{bookingStart}}&end={{bookingEnd}}"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1605,7 +1605,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1633,7 +1633,7 @@
               ]
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1666,7 +1666,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1685,7 +1685,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/booking/me?skip=0&limit=20"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1713,7 +1713,7 @@
               ]
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1731,7 +1731,7 @@
             "method": "GET",
             "url": "{{gatewayUrl}}/booking/{{bookingId}}"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1774,7 +1774,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1807,7 +1807,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
@@ -1860,7 +1860,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {
@@ -1893,7 +1893,7 @@
               }
             }
           },
-          "event": [
+          "announcement": [
             {
               "listen": "prerequest",
               "script": {
@@ -1921,7 +1921,7 @@
             "method": "POST",
             "url": "{{gatewayUrl}}/booking/{{cancelledBookingId}}/cancel"
           },
-          "event": [
+          "announcement": [
             {
               "listen": "test",
               "script": {

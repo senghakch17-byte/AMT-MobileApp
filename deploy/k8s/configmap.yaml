@@ -10,9 +10,9 @@ data:
   REGISTER_SERVICE_URL: http://registration-service:5001
   LOGIN_SERVICE_URL: http://login-service:5002
   REQUEST_SERVICE_URL: http://request-service:8000
-  EVENT_SERVICE_URL: http://announcement-service:8001
+  ANNOUNCEMENT_SERVICE_URL: http://announcement-service:8001
   ATTENDANCE_SERVICE_URL: http://attendance-service:8002
   NOTIFICATION_SERVICE_URL: http://notification-service:8005
-  LIBRARY_SERVICE_URL: http://booking-service:8003
-  MEMBER_SERVICE_URL: http://user-service:8004
+  BOOKING_SERVICE_URL: http://booking-service:8003
+  USER_SERVICE_URL: http://user-service:8004
   REGISTRATION_SERVICE_URL: http://registration-service:5001

@@ -8,7 +8,7 @@ for service in api-gateway registration-service login-service attendance-service
   (cd "${root_dir}/apps/${service}" && npm test)
 done
 
-for service in request-service event-service member-service library-service; do
+for service in request-service announcement-service user-service booking-service; do
   echo "=== Testing ${service} ==="
   (cd "${root_dir}/apps/${service}" && uv sync && uv run pytest)
 done

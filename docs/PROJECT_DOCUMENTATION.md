@@ -6,7 +6,7 @@
 **Prof. Chandan Mukherjee**  
 **Fall 2026**
 
-| Member | Student ID |
+| User | Student ID |
 | --- | --- |
 | Panhaseth SUY | 2024060 |
 | Senghak CHOEUN | 2024010 |
@@ -41,7 +41,7 @@ The active local deployment is Docker Compose. The repository also contains port
 - Provide JWT-protected REST APIs with user and administrator roles.
 - Put Nginx and an API gateway in front of internal services.
 - Support approval workflows for leave requests and room bookings.
-- Deliver trusted in-app notifications through Redis-backed event processing.
+- Deliver trusted in-app notifications through Redis-backed announcement processing.
 - Persist business data in externally managed MongoDB.
 
 ## 3. Architecture Diagram
@@ -61,7 +61,7 @@ flowchart TB
   G1 & G2 --> User[User :8004]
   G1 & G2 --> Notification[Notification :8005]
   Register & Login & Request & Announcement & Attendance & Booking & User & Notification --> Mongo[(External MongoDB)]
-  Request & Announcement & Attendance -->|trusted internal events| Notification
+  Request & Announcement & Attendance -->|trusted internal announcements| Notification
   Notification <--> Redis[(Redis)]
 ```
 
@@ -74,7 +74,7 @@ Nginx is the public entry point. Gateway replicas listen internally on port `400
 | Node services | Node.js 24, Express, Mongoose |
 | Python services | Python 3.12, FastAPI, Pydantic v2, Beanie |
 | Persistence | External MongoDB |
-| Caching/events | Redis Streams |
+| Caching/announcements | Redis Streams |
 | Edge routing | Nginx, `http-proxy` API gateway |
 | Authentication | JWT, bcrypt, role-based authorization |
 | Packaging | Docker, Docker Compose |
@@ -90,10 +90,10 @@ Base public URL: `http://localhost`. Protected requests use `Authorization: Bear
 | Registration | `apps/registration-service` | 5001 | `/register` | Public user registration and internal account creation |
 | Login | `apps/login-service` | 5002 | `/login` | Credential verification and JWT issue |
 | Request | `apps/request-service` | 8000 | `/request` | Leave requests and approval workflow |
-| Announcement | `apps/event-service` | 8001 | `/announcement` | Announcement publishing and images |
+| Announcement | `apps/announcement-service` | 8001 | `/announcement` | Announcement publishing and images |
 | Attendance | `apps/attendance-service` | 8002 | `/attendance` | Check-in, check-out, and corrections |
-| Booking | `apps/library-service` | 8003 | `/booking` | Rooms and booking approval workflow |
-| User | `apps/member-service` | 8004 | `/user` | Profiles, documents, account administration facade |
+| Booking | `apps/booking-service` | 8003 | `/booking` | Rooms and booking approval workflow |
+| User | `apps/user-service` | 8004 | `/user` | Profiles, documents, account administration facade |
 | Notification | `apps/notification-service` | 8005 | `/notification` | Notifications, preferences, Redis consumer |
 
 ### Gateway, registration, and login
@@ -164,7 +164,7 @@ Base public URL: `http://localhost`. Protected requests use `Authorization: Bear
 | --- | --- | --- | --- |
 | POST | Registration `/internal/users` | Internal API key | Create account for User service |
 | PATCH | Registration `/internal/users/{id}` | Internal API key | Update credentials metadata/active state |
-| POST | Notification `/internal/events` | Internal API key | Receive trusted notification event |
+| POST | Notification `/internal/events` | Internal API key | Receive trusted notification announcement |
 
 ## 6. Pod and Container Details
 
@@ -220,8 +220,8 @@ The Ingress routes `oms.aupp.local` to Nginx. Validate rendered manifests with `
 
 | Data | Local Compose | Kubernetes |
 | --- | --- | --- |
-| Announcement uploads | `event_uploads` named volume | `announcement-uploads` PVC mounted at `/backend/uploads` |
-| User documents | `member_uploads` named volume | `user-uploads` PVC mounted at `/backend/uploads` |
+| Announcement uploads | `announcement_uploads` named volume | `announcement-uploads` PVC mounted at `/backend/uploads` |
+| User documents | `user_uploads` named volume | `user-uploads` PVC mounted at `/backend/uploads` |
 | MongoDB | External | External; no manifest provided |
 | Redis | Ephemeral | Ephemeral; no PVC |
 
@@ -250,7 +250,7 @@ Checklist:
 
 ## 12. Individual Contribution
 
-| Member | Assigned services |
+| User | Assigned services |
 | --- | --- |
 | Panhaseth SUY | Attendance, Notification |
 | Senghak CHOEUN | Announcement, Request |

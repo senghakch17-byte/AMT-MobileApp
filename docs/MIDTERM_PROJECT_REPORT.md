@@ -6,7 +6,7 @@
 | --- | --- |
 | Course | CLD 376 001 — Cloud Native Development |
 | Instructor | MUKHERJEE, Chandan |
-| Team members | Panhaseth SUY — 2024060; Senghak CHOEUN — 2024010; Sreypov THIM — 2024018 |
+| Team users | Panhaseth SUY — 2024060; Senghak CHOEUN — 2024010; Sreypov THIM — 2024018 |
 | Submission date | October 20, 2026 |
 | Source code | <https://github.com/senghakch17-byte/AMT-MobileApp> |
 | Demonstrated release | `ef758166ce71c61d726238a135b6fc40398cf061` |
@@ -15,14 +15,14 @@
 
 ## 1. Project Summary
 
-OMS is a backend-only Organization Management System. It manages accounts, leave and scholarship requests, events, attendance, notifications, member profiles/documents, library rooms, bookings, and books. The system uses nine Dockerized microservices, an API Gateway, JWT authentication, role-based authorization, external MongoDB, and Nginx load balancing. No frontend is included.
+OMS is a backend-only Organization Management System. It manages accounts, leave and scholarship requests, announcements, attendance, notifications, user profiles/documents, booking rooms, bookings, and books. The system uses nine Dockerized microservices, an API Gateway, JWT authentication, role-based authorization, external MongoDB, and Nginx load balancing. No frontend is included.
 
 ### Roles
 
 | Role | Main permissions |
 | --- | --- |
-| `user` | Register and log in; manage own requests, attendance, profile, documents, notifications, and bookings; view permitted events, rooms, and books. |
-| `admin` | User permissions plus event, attendance, member, room, book, and booking administration. |
+| `user` | Register and log in; manage own requests, attendance, profile, documents, notifications, and bookings; view permitted announcements, rooms, and books. |
+| `admin` | User permissions plus announcement, attendance, user, room, book, and booking administration. |
 
 ### Technology
 
@@ -39,15 +39,15 @@ OMS is a backend-only Organization Management System. It manages accounts, leave
 
 ## 2. Team Ownership and Service Architecture
 
-### 2.1 Member Service Ownership
+### 2.1 User Service Ownership
 
-> **Complete this table with the team's actual assignments before submission.** Each member must be responsible for two domain services.
+> **Complete this table with the team's actual assignments before submission.** Each user must be responsible for two domain services.
 
-| Team member | Student ID | Assigned microservice 1 | Assigned microservice 2 |
+| Team user | Student ID | Assigned microservice 1 | Assigned microservice 2 |
 | --- | --- | --- | --- |
 | Panhaseth SUY | 2024060 | **Attendance** | **Notification** |
-| Senghak CHOEUN | 2024010 | **Event** | **Request** |
-| Sreypov THIM | 2024018 | **Library** | **Members** |
+| Senghak CHOEUN | 2024010 | **Announcement** | **Request** |
+| Sreypov THIM | 2024018 | **Booking** | **Users** |
 
 ### 2.2 Architecture
 
@@ -59,13 +59,13 @@ flowchart TB
     Gateway1 & Gateway2 --> Register[Registration :5001\nEC2-A]
     Gateway1 & Gateway2 --> Login[Login :5002\nEC2-A]
     Gateway1 & Gateway2 --> Request[Request :8000\nEC2-B]
-    Gateway1 & Gateway2 --> Event[Event :8001\nEC2-B]
+    Gateway1 & Gateway2 --> Announcement[Announcement :8001\nEC2-B]
     Gateway1 & Gateway2 --> Attendance[Attendance :8002\nEC2-C]
     Gateway1 & Gateway2 --> Notification[Notification :8005\nEC2-C]
-    Gateway1 & Gateway2 --> Library[Library :8003\nEC2-D]
-    Gateway1 & Gateway2 --> Member[Member :8004\nEC2-D]
-    Register & Login & Request & Event & Attendance & Notification & Library & Member --> Mongo[(External MongoDB)]
-    Request & Event & Notification -.-> Redis[(Redis :6379\nEC2-A)]
+    Gateway1 & Gateway2 --> Booking[Booking :8003\nEC2-D]
+    Gateway1 & Gateway2 --> User[User :8004\nEC2-D]
+    Register & Login & Request & Announcement & Attendance & Notification & Booking & User --> Mongo[(External MongoDB)]
+    Request & Announcement & Notification -.-> Redis[(Redis :6379\nEC2-A)]
 ```
 
 ### 2.3 EC2 Deployment Layout
@@ -73,9 +73,9 @@ flowchart TB
 | Host | Containers/services | Purpose |
 | --- | --- | --- |
 | EC2-A | Nginx, Gateway 1, Gateway 2, Registration, Login, Redis | Public entry point, load balancing, authentication, and internal Redis. |
-| EC2-B | Request, Event | Request and event APIs. |
+| EC2-B | Request, Announcement | Request and announcement APIs. |
 | EC2-C | Attendance, Notification | Attendance and notification APIs. |
-| EC2-D | Library, Member | Library and member APIs. |
+| EC2-D | Booking, User | Booking and user APIs. |
 | External MongoDB | MongoDB | Persistent database; not created by Docker Compose. |
 
 ---
@@ -95,11 +95,11 @@ http://<EC2-A-PUBLIC-IP>
 | Registration | EC2-A | 5001 | `/register` | `POST /register/register` creates a `user` account. |
 | Login | EC2-A | 5002 | `/auth` | `POST /auth/login` validates credentials and issues JWT. |
 | Request | EC2-B | 8000 | `/request` | Leave-request and scholarship-registration create/read/update/cancel APIs. |
-| Event | EC2-B | 8001 | `/event` | Event create, list, read, update, and delete APIs. |
+| Announcement | EC2-B | 8001 | `/announcement` | Announcement create, list, read, update, and delete APIs. |
 | Attendance | EC2-C | 8002 | `/attendance` | Check-in, check-out, personal history, and admin administration APIs. |
 | Notification | EC2-C | 8005 | `/notification` | Notification, receipt, unread-count, and preference APIs. |
-| Library | EC2-D | 8003 | `/library` | Room, booking, and book catalog APIs. |
-| Member | EC2-D | 8004 | `/members` | Profile and protected document APIs. |
+| Booking | EC2-D | 8003 | `/booking` | Room, booking, and book catalog APIs. |
+| User | EC2-D | 8004 | `/users` | Profile and protected document APIs. |
 
 Detailed endpoint evidence is in **Appendix A**. Protected paths require `Authorization: Bearer <token>`.
 
@@ -124,10 +124,10 @@ Detailed endpoint evidence is in **Appendix A**. Protected paths require `Author
 | User token on an admin-only API | `403 Access Forbidden` |
 | Admin token on an admin-only API | Successful authorized response |
 
-> **Figure 1 — Registration and user login**  
+> **Figure 1 — Registration and user login**
 > `[Insert readable Postman screenshots showing registration 201 and login 200 through the EC2-A public IP.]`
 
-> **Figure 2 — Authentication and authorization failures**  
+> **Figure 2 — Authentication and authorization failures**
 > `[Insert Postman screenshots for wrong credentials, invalid/missing JWT (401), and user token blocked from an admin API (403).]`
 
 ---
@@ -140,19 +140,19 @@ MongoDB is an external persistent database. Node.js services use Mongoose; Pytho
 | --- | --- | --- |
 | `persons` | Registration / Login | Name, email, password hash, phone, role. |
 | `leave_requests`, `pre_scholarship_registrations` | Request | User ID, request details, status, timestamps. |
-| `events` | Event | Title, category, dates, status, creator. |
+| `announcements` | Announcement | Title, category, dates, status, creator. |
 | `attendances` | Attendance | `userID`, check-in/out details, status. |
 | `notifications`, `notificationreceipts`, `notificationpreferences` | Notification | Recipient, delivery/receipt state, preferences. |
-| `members`, `member_documents` | Member | Profile and protected-document metadata. |
-| `rooms`, `bookings`, `books` | Library | Room, booking, and catalog data. |
+| `users`, `user_documents` | User | Profile and protected-document metadata. |
+| `rooms`, `bookings`, `books` | Booking | Room, booking, and catalog data. |
 
-Database rules include unique account email, unique room name, unique member profile per user, booking indexes for availability checks, and a partial unique index for book ISBN values.
+Database rules include unique account email, unique room name, unique user profile per user, booking indexes for availability checks, and a partial unique index for book ISBN values.
 
-> **Figure 3 — Collection names and schema code**  
+> **Figure 3 — Collection names and schema code**
 > `[Insert readable MongoDB collection screenshot and schema-code screenshots. Split images by service if needed to keep code readable.]`
 
-> **Figure 4 — MongoDB CRUD evidence**  
-> `[Insert records created through Postman, such as a leave request, event, attendance record, booking, or member profile.]`
+> **Figure 4 — MongoDB CRUD evidence**
+> `[Insert records created through Postman, such as a leave request, announcement, attendance record, booking, or user profile.]`
 
 ---
 
@@ -168,9 +168,9 @@ The following evidence proves that all containers are running in the distributed
 | --- | --- |
 | EC2 Console | EC2-A, EC2-B, EC2-C, and EC2-D are running. |
 | EC2-A `docker compose ps` | Nginx, `gateway1`, `gateway2`, Registration, Login, and Redis are running. |
-| EC2-B/C/D `docker compose ps` | Request/Event, Attendance/Notification, and Library/Member are running on their assigned hosts. |
+| EC2-B/C/D `docker compose ps` | Request/Announcement, Attendance/Notification, and Booking/User are running on their assigned hosts. |
 
-> **Figure 5 — EC2 deployment and container status**  
+> **Figure 5 — EC2 deployment and container status**
 > `[Insert readable EC2 Console and docker compose ps screenshots for all four hosts.]`
 
 ### 6.2 Nginx Load-Balancing Proof
@@ -191,10 +191,10 @@ location / {
 
 Nginx uses round-robin balancing by default. Repeated public `GET /health` requests must show two distinct `X-Upstream` values.
 
-> **Figure 6 — Nginx load-balancer configuration and two Gateway replicas**  
+> **Figure 6 — Nginx load-balancer configuration and two Gateway replicas**
 > `[Insert readable nginx.conf and EC2-A container screenshots.]`
 
-> **Figure 7 — Functional Nginx forwarding test**  
+> **Figure 7 — Functional Nginx forwarding test**
 > `[Insert repeated Postman GET http://<EC2-A-PUBLIC-IP>/health responses. Each request must use the same public URL and show Server: nginx; show two distinct X-Upstream values, one for gateway1 and one for gateway2.]`
 
 The changing `X-Upstream` response header is the proof that Nginx forwards public requests to **both** API Gateway replicas rather than always reaching one container.
@@ -214,24 +214,24 @@ Postman → EC2-A public IP → Nginx → API Gateway → Microservice → Mongo
 | Registration | `POST /register/register` | `201 Created` user account | New `persons` document. |
 | Login | `POST /auth/login` | `200 OK` and JWT issued | Validates registered account. |
 | Request | `POST /request/leave-requests` | Leave request created | New `leave_requests` document. |
-| Event | `POST /event/events` with admin token | Event created | New `events` document. |
+| Announcement | `POST /announcement/announcements` with admin token | Announcement created | New `announcements` document. |
 | Attendance | `POST /attendance/check-in` | Check-in created | New `attendances` document. |
 | Notification | `GET /notification/api/v1/notifications` or preference update | Successful authenticated response | Notification or preference record where applicable. |
-| Member | Profile update or document upload | Successful authenticated response | Updated `members` or `member_documents` document. |
-| Library | Room or booking creation | Successful authenticated response | New `rooms` or `bookings` document. |
+| User | Profile update or document upload | Successful authenticated response | Updated `users` or `user_documents` document. |
+| Booking | Room or booking creation | Successful authenticated response | New `rooms` or `bookings` document. |
 
-> **Figure 8 — Registration, Login, Request, and Event evidence**  
+> **Figure 8 — Registration, Login, Request, and Announcement evidence**
 > `[Insert readable Postman and corresponding MongoDB screenshots. Show EC2-A public URL, method, status, and saved records.]`
 
-> **Figure 9 — Attendance and Notification evidence**  
+> **Figure 9 — Attendance and Notification evidence**
 > `[Insert readable Postman and corresponding MongoDB screenshots. Show EC2-A public URL, method, status, and saved records where applicable.]`
 
-> **Figure 10 — Member and Library evidence**  
+> **Figure 10 — User and Booking evidence**
 > `[Insert readable Postman and corresponding MongoDB screenshots. Show EC2-A public URL, method, status, and saved records.]`
 
 ### 7.1 Complete Collection Result
 
-The Postman collection contains **69 organized requests** covering gateway health, registration/login, requests, events, attendance, notifications, members, and library APIs.
+The Postman collection contains **69 organized requests** covering gateway health, registration/login, requests, announcements, attendance, notifications, users, and booking APIs.
 
 | Evidence | What the screenshot must show |
 | --- | --- |
@@ -239,7 +239,7 @@ The Postman collection contains **69 organized requests** covering gateway healt
 | Collection Runner | Request names, passed assertions, and zero failures using the EC2 environment. |
 | CRUD lifecycle | Create/read/update/delete or equivalent state changes for every domain service. |
 
-> **Figure 11 — Postman collection organization and complete test results**  
+> **Figure 11 — Postman collection organization and complete test results**
 > `[Insert Postman sidebar and Runner/test-result screenshot. Keep request names, status codes, and EC2-A public URL readable.]`
 
 Notification Service unit tests: **4/4 passed** (`npm test`).
@@ -248,7 +248,7 @@ Notification Service unit tests: **4/4 passed** (`npm test`).
 
 ## 8. Known Limitation
 
-At the demonstrated release, Notification Service HTTP endpoints remain available if its Redis consumer cannot reach EC2-A Redis. Redis event consumption requires restricted TCP port `6379` access from the appropriate private EC2 security group. This limitation does not expose Redis publicly and must be resolved before claiming end-to-end Redis event delivery.
+At the demonstrated release, Notification Service HTTP endpoints remain available if its Redis consumer cannot reach EC2-A Redis. Redis announcement consumption requires restricted TCP port `6379` access from the appropriate private EC2 security group. This limitation does not expose Redis publicly and must be resolved before claiming end-to-end Redis announcement delivery.
 
 ---
 
@@ -276,11 +276,11 @@ Use this appendix for readable Postman screenshots. Every screenshot must show t
 | Leave requests | Create, list, read, update pending request, and cancel request. |
 | Scholarship registrations | Create and list current user's registrations. |
 
-## A.3 Event Service
+## A.3 Announcement Service
 
 | API group | Expected evidence |
 | --- | --- |
-| Events | Admin create/update/delete and authenticated list/read. |
+| Announcements | Admin create/update/delete and authenticated list/read. |
 
 ## A.4 Attendance Service
 
@@ -294,13 +294,13 @@ Use this appendix for readable Postman screenshots. Every screenshot must show t
 | --- | --- |
 | Notifications | List, unread count, mark read/hide, and preference read/update. |
 
-## A.6 Member Service
+## A.6 User Service
 
 | API group | Expected evidence |
 | --- | --- |
-| Members | Profile read/update and protected document upload/list/download. |
+| Users | Profile read/update and protected document upload/list/download. |
 
-## A.7 Library Service
+## A.7 Booking Service
 
 | API group | Expected evidence |
 | --- | --- |

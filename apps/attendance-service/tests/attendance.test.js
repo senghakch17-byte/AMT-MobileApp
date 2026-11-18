@@ -132,7 +132,7 @@ test('admin correction validates ID, allowed fields, missing records, values, or
   assert.equal((await request('/507f1f77bcf86cd799439011', { method: 'PATCH', auth: admin, body: { checkOut: '2026-10-16T09:00:00.000Z' } })).status, 400);
   const attendance = record({ updatedAt: new Date('2026-10-17T09:00:00.000Z') }); let saved = false; attendance.save = async () => { saved = true; };
   let published;
-  notifications.publishNotification = async (event) => { published = event; };
+  notifications.publishNotification = async (announcement) => { published = announcement; };
   Attendance.findById = async () => attendance;
   const response = await request('/507f1f77bcf86cd799439011', { method: 'PATCH', auth: admin, body: { attendanceDate: '2026-10-17', checkIn: '2026-10-17T09:00:00.000Z', checkOut: null, status: 'late' } });
   assert.equal(response.status, 200);
@@ -141,7 +141,7 @@ test('admin correction validates ID, allowed fields, missing records, values, or
   assert.equal(attendance.status, 'late');
   assert.ok(saved);
   assert.deepEqual(published, {
-    event_id: 'attendance-service:507f1f77bcf86cd799439011:corrected:2026-10-17T09:00:00.000Z',
+    notification_key: 'attendance-service:507f1f77bcf86cd799439011:corrected:2026-10-17T09:00:00.000Z',
     type: 'attendance.corrected',
     recipient_id: 'user-1',
     data: { attendance_id: '507f1f77bcf86cd799439011', screen: 'attendance-history' },

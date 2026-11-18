@@ -1,6 +1,6 @@
 # Notification Service
 
-Express service that stores in-app notifications in MongoDB and consumes trusted notification events from a Redis Stream.
+Express service that stores in-app notifications in MongoDB and consumes trusted integration events from a Redis Stream.
 
 ## Configuration
 
@@ -21,24 +21,24 @@ All user routes require `Authorization: Bearer <token>`. Through the gateway, pr
 | GET | `/api/v1/notification-preferences/me` | Get in-app notification preferences. |
 | PATCH | `/api/v1/notification-preferences/me` | Update `inAppEnabled` and/or supported `mutedTypes`. |
 
-## Event ingestion
+## Internal event ingestion
 
 The consumer group reads from `notification:events` by default. Events must contain:
 
 ```json
 {
-  "event_id": "event-service:65e...:published",
-  "type": "event.published",
+  "notification_key": "announcement-service:65e...:published",
+  "type": "announcement.published",
   "recipient_role": "user",
-  "data": { "event_id": "65e...", "screen": "event-details" }
+  "data": { "announcement_id": "65e...", "screen": "announcement-details" }
 }
 ```
 
-Supported event types are `request.approved`, `request.rejected`, `attendance.absent`, `attendance.corrected`, `event.published`, and `event.updated`. The service owns message templates; producers only provide trusted event metadata.
+Supported types are `request.approved`, `request.rejected`, `attendance.absent`, `attendance.corrected`, `announcement.published`, and `announcement.updated`. The service owns message templates; producers only provide trusted event metadata.
 
-Event service publishes `event.published` when an event becomes published and `event.updated` for later published-event changes. Attendance service publishes `attendance.absent` when an admin marks a record absent, otherwise `attendance.corrected` after an admin correction. Both call `POST /api/v1/internal/announcements` directly with `x-internal-api-key`; it is not exposed for mobile clients. Producer delivery has a three-second timeout and does not roll back completed source writes; retry failed deliveries from an outbox when guaranteed delivery is required.
+Announcement service publishes `announcement.published` when an announcement becomes published and `announcement.updated` for later published-announcement changes. Attendance service publishes `attendance.absent` when an admin marks a record absent, otherwise `attendance.corrected` after an admin correction. Producers call `POST /internal/events` directly with `x-internal-api-key`; it is not exposed for mobile clients. Producer delivery has a three-second timeout and does not roll back completed source writes; retry failed deliveries from an outbox when guaranteed delivery is required.
 
-At-least-once Redis delivery is made idempotent using a unique `event_id` plus recipient constraint.
+At-least-once Redis delivery is made idempotent using a unique `notification_key` plus recipient constraint.
 
 ## Read and delete state
 

@@ -52,18 +52,18 @@ services:
     depends_on: [redis, notification-service]
     networks: [app-net]
 
-  event-service:
+  announcement-service:
     <<: *base
-    build: ./apps/event-service
-    container_name: event-service
+    build: ./apps/announcement-service
+    container_name: announcement-service
     env_file:
-      - path: ./apps/event-service/.env
+      - path: ./apps/announcement-service/.env
         required: false
     environment:
       REDIS_URL: redis://redis:6379
       NOTIFICATION_SERVICE_URL: http://notification-service:8005
     ports: ["8001:8001"]
-    volumes: [event_uploads:/backend/uploads]
+    volumes: [announcement_uploads:/backend/uploads]
     depends_on: [redis, notification-service]
     networks: [app-net]
 
@@ -80,27 +80,27 @@ services:
     depends_on: [notification-service]
     networks: [app-net]
 
-  library-service:
+  booking-service:
     <<: *base
-    build: ./apps/library-service
-    container_name: library-service
+    build: ./apps/booking-service
+    container_name: booking-service
     env_file:
-      - path: ./apps/library-service/.env
+      - path: ./apps/booking-service/.env
         required: false
     ports: ["8003:8003"]
     networks: [app-net]
 
-  member-service:
+  user-service:
     <<: *base
-    build: ./apps/member-service
-    container_name: member-service
+    build: ./apps/user-service
+    container_name: user-service
     env_file:
-      - path: ./apps/member-service/.env
+      - path: ./apps/user-service/.env
         required: false
     environment:
       REGISTRATION_SERVICE_URL: http://registration-service:5001
     ports: ["8004:8004"]
-    volumes: [member_uploads:/backend/uploads]
+    volumes: [user_uploads:/backend/uploads]
     networks: [app-net]
 
   notification-service:
@@ -128,13 +128,13 @@ services:
       - REGISTER_SERVICE_URL=http://registration-service:5001
       - LOGIN_SERVICE_URL=http://login-service:5002
       - REQUEST_SERVICE_URL=http://request-service:8000
-      - EVENT_SERVICE_URL=http://event-service:8001
+      - ANNOUNCEMENT_SERVICE_URL=http://announcement-service:8001
       - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
-      - LIBRARY_SERVICE_URL=http://library-service:8003
-      - MEMBER_SERVICE_URL=http://member-service:8004
+      - BOOKING_SERVICE_URL=http://booking-service:8003
+      - USER_SERVICE_URL=http://user-service:8004
       - NOTIFICATION_SERVICE_URL=http://notification-service:8005
       - REDIS_URL=redis://redis:6379
-    depends_on: [register, login, request-service, event-service, attendance-service, library-service, member-service, notification-service, redis]
+    depends_on: [register, login, request-service, announcement-service, attendance-service, booking-service, user-service, notification-service, redis]
     networks: [app-net]
 
   gateway2:
@@ -149,13 +149,13 @@ services:
       - REGISTER_SERVICE_URL=http://registration-service:5001
       - LOGIN_SERVICE_URL=http://login-service:5002
       - REQUEST_SERVICE_URL=http://request-service:8000
-      - EVENT_SERVICE_URL=http://event-service:8001
+      - ANNOUNCEMENT_SERVICE_URL=http://announcement-service:8001
       - ATTENDANCE_SERVICE_URL=http://attendance-service:8002
-      - LIBRARY_SERVICE_URL=http://library-service:8003
-      - MEMBER_SERVICE_URL=http://member-service:8004
+      - BOOKING_SERVICE_URL=http://booking-service:8003
+      - USER_SERVICE_URL=http://user-service:8004
       - NOTIFICATION_SERVICE_URL=http://notification-service:8005
       - REDIS_URL=redis://redis:6379
-    depends_on: [register, login, request-service, event-service, attendance-service, library-service, member-service, notification-service, redis]
+    depends_on: [register, login, request-service, announcement-service, attendance-service, booking-service, user-service, notification-service, redis]
     networks: [app-net]
 
 networks:
@@ -163,5 +163,5 @@ networks:
     driver: bridge
 
 volumes:
-  event_uploads:
-  member_uploads:
+  announcement_uploads:
+  user_uploads:

@@ -4,7 +4,7 @@ const notificationSchema = new mongoose.Schema(
   {
     recipientId: { type: String, trim: true, index: true },
     recipientRole: { type: String, trim: true, index: true },
-    eventId: { type: String, required: true, trim: true },
+    notificationKey: { type: String, required: true, trim: true },
     type: { type: String, required: true, trim: true, index: true },
     title: { type: String, required: true, maxlength: 160 },
     message: { type: String, required: true, maxlength: 1000 },
@@ -26,11 +26,11 @@ const notificationSchema = new mongoose.Schema(
   },
 );
 
-notificationSchema.index({ recipientId: 1, eventId: 1 }, {
+notificationSchema.index({ recipientId: 1, notificationKey: 1 }, {
   unique: true,
   partialFilterExpression: { recipientId: { $type: 'string' } },
 });
-notificationSchema.index({ recipientRole: 1, eventId: 1 }, {
+notificationSchema.index({ recipientRole: 1, notificationKey: 1 }, {
   unique: true,
   partialFilterExpression: { recipientRole: { $type: 'string' } },
 });

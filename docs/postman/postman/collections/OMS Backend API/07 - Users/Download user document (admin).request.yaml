@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{gatewayUrl}}/user/{{userUserId}}/documents/{{userDocumentId}}/download"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      if (!pm.environment.get('userUserId') || !pm.environment.get('userDocumentId')) {
+        throw new Error('userUserId or userDocumentId is empty. Run Get my profile and List user documents first.');
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 10000

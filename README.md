@@ -105,11 +105,13 @@ The script stops at first failure. Python suites run `uv sync` before `pytest`.
 ## Documentation
 
 - [API contract](docs/API_CONTRACT.md)
+- [Project documentation](docs/PROJECT_DOCUMENTATION.md)
 - [Configuration](docs/CONFIGURATION.md)
 - [Local development](docs/LOCAL_DEVELOPMENT.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [AWS sandbox development](docs/AWS_DEVELOPMENT.md)
 - [Postman collection](docs/postman/README.md)
+- [Minikube Kubernetes manifests](deploy/k8s/README.md)
 
 ## Local development
 

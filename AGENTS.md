@@ -10,7 +10,7 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - Node services: registration, login, attendance, and notification
 - Python services: request, announcement, user, and booking APIs using FastAPI
 - Database: external MongoDB
-- Deployment: local Docker Compose; EC2 Compose files exist but remain incomplete and unverified for production
+- Deployment: local Docker Compose; Minikube-oriented Kubernetes manifests are in `deploy/k8s/`. They use locally built images, `oms.aupp.local` Ingress DNS, external MongoDB, PVC storage, and require secrets plus cluster validation. EC2 Compose files remain incomplete and unverified for production.
 
 ## Service Map
 
@@ -24,7 +24,7 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - `apps/member-service/` — FastAPI/Beanie user profiles and document history APIs.
 - `apps/library-service/` — FastAPI/Beanie room booking APIs.
 - `nginx/` — public load balancer configuration connected to root Compose.
-- `deploy/` — EC2 compose placeholders. Do not claim production deployment is complete from these files alone.
+- `deploy/` — EC2 Compose placeholders and generic Kubernetes manifests in `deploy/k8s/`. Do not claim production deployment is complete from these files alone.
 
 ## Architecture Rules
 

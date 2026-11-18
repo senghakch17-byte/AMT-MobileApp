@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: oms
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - persistent-volumes.yaml
+  - redis.yaml
+  - nginx-config.yaml
+  - nginx.yaml
+  - ingress.yaml
+  - api-gateway.yaml
+  - registration-service.yaml
+  - login-service.yaml
+  - request-service.yaml
+  - announcement-service.yaml
+  - attendance-service.yaml
+  - booking-service.yaml
+  - user-service.yaml
+  - notification-service.yaml

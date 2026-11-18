@@ -1,7 +1,10 @@
 function registerProxyRoutes(app, proxy, services, middleware) {
   const { authenticate, authorize } = middleware;
 
-  app.get('/health', (req, res) => res.json({ status: 'ok' }));
+  app.get('/health', (req, res) => {
+    res.set('X-Gateway-Instance', process.env.HOSTNAME || 'local');
+    res.json({ status: 'ok', instance: process.env.HOSTNAME || 'local' });
+  });
 
   services.forEach((service) => {
     const middlewareStack = service.protected || service.role ? [(req, res, next) => (

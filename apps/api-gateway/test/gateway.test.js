@@ -30,7 +30,10 @@ test.before(async () => {
 test.after(async () => Promise.all([new Promise((resolve) => appServer.close(resolve)), new Promise((resolve) => upstream.close(resolve))]));
 
 test('health and public routes work through proxy', async () => {
-  assert.deepEqual(await request('/health'), { status: 200, body: { status: 'ok' } });
+  const health = await request('/health');
+  assert.equal(health.status, 200);
+  assert.equal(health.body.status, 'ok');
+  assert.equal(typeof health.body.instance, 'string');
   assert.deepEqual(await request('/login'), { status: 200, body: { path: '/', method: 'GET' } });
 });
 

@@ -12,6 +12,7 @@ These manifests target local Minikube. They do not create MongoDB; configure a r
 ## Apply
 
 ```bash
+kubectl apply -f deploy/k8s/namespace.yaml
 kubectl apply -f deploy/k8s/secret.yaml
 kubectl apply -k deploy/k8s
 kubectl get pods,svc -n oms

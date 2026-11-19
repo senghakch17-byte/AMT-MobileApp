@@ -30,7 +30,6 @@ scripts:
       const end = new Date(start.getTime() + 60 * 60 * 1000);
       pm.environment.set('bookingStart', start.toISOString());
       pm.environment.set('bookingEnd', end.toISOString());
-      pm.environment.set('testIsbn', '978' + runId.slice(-10));
     language: text/javascript
   - type: afterResponse
     code: |-

@@ -22,8 +22,6 @@ values:
     value: ''
   - key: notificationId
     value: ''
-  - key: preScholarshipAcademicYear
-    value: 2026-2027
   - key: userUserId
     value: ''
   - key: userDocumentId
@@ -38,19 +36,15 @@ values:
     value: ''
   - key: cancelledBookingId
     value: ''
-  - key: bookId
-    value: ''
   - key: testRunId
     value: ''
   - key: bookingStart
     value: ''
   - key: bookingEnd
     value: ''
-  - key: testIsbn
-    value: ''
   - key: gateway1Url
     value: 'http://localhost:4000'
   - key: gateway2Url
     value: 'http://localhost:4001'
-  - key: observedUpstreams
+  - key: observedGatewayInstances
     value: '[]'

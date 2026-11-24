@@ -13,14 +13,3 @@ class LeaveType(str, Enum):
     PERSONAL = "personal"
     FAMILY_EMERGENCY = "family_emergency"
     OTHER = "other"
-
-
-class ScholarshipType(str, Enum):
-    NEED_BASED = "need_based"
-    MERIT = "merit"
-
-
-class Gender(str, Enum):
-    MALE = "male"
-    FEMALE = "female"
-    OTHER = "other"

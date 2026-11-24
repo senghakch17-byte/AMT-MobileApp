@@ -1,10 +1,4 @@
-from pydantic import BaseModel, ConfigDict
-
-
-class Message(BaseModel):
-    message: str
-
-    model_config = ConfigDict(from_attributes=True)
+from pydantic import BaseModel
 
 
 class HealthCheck(BaseModel):

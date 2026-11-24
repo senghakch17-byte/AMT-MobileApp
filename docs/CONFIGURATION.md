@@ -18,13 +18,10 @@ Registration, login, attendance, and notification services require `MONGO_URI`. 
 
 Public registration creates role `admin` only for exact request value `role: "admin"`; all other or missing values create role `user`. This allows public self-provisioning of administrator accounts. To provision admin from environment values, set `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_MOBILE` in `apps/registration-service/.env`, then run `cd apps/registration-service && npm run provision-admin`.
 
-Announcement image URLs should use gateway prefix:
+Announcement service serves existing image files from its configured storage directory:
 
 ```dotenv
-PUBLIC_BASE_URL=http://localhost/announcement
 UPLOAD_DIR=uploads
-MAX_IMAGE_MB=5
-MAX_IMAGES_PER_ANNOUNCEMENT=10
 ```
 
 Do not commit `.env` files or credentials. URL-encode reserved characters in MongoDB passwords.

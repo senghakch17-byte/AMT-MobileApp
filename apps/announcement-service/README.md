@@ -33,7 +33,7 @@ uv sync
 uv run uvicorn app.main:app --reload --port 8001
 ```
 
-Required configuration includes `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, and `JWT_ALGORITHM`. Storage settings include `PUBLIC_BASE_URL`, `UPLOAD_DIR`, `MAX_IMAGE_MB`, and `MAX_IMAGES_PER_ANNOUNCEMENT`. Application startup pings MongoDB and fails when database is unreachable.
+Required configuration includes `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, and `JWT_ALGORITHM`. `UPLOAD_DIR` specifies the location of previously stored announcement images. Application startup pings MongoDB and fails when database is unreachable.
 
 ## URLs
 
@@ -58,7 +58,7 @@ All gateway `/announcement/*` traffic requires JWT. Announcement handlers also e
 | DELETE | `/announcements/{announcement_id}` | Admin; delete announcement and referenced images |
 | GET | `/uploads/*` | Static files; gateway access requires JWT |
 
-Image upload and removal handlers are disabled in source and are not available routes. Existing uploaded files remain served by static mount.
+Image upload endpoints are not provided. Existing uploaded files remain served by the static mount and are deleted when their announcement is deleted.
 
 ## Tests
 

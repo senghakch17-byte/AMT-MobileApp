@@ -2,12 +2,10 @@ from beanie import PydanticObjectId
 from fastapi import (
     APIRouter,
     Depends,
-    File,
     HTTPException,
     Query,
     Request,
     Response,
-    UploadFile,
     status,
 )
 from pydantic import TypeAdapter, ValidationError
@@ -22,7 +20,7 @@ from app.schemas.announcement import AnnouncementBase, AnnouncementCreate, Annou
 from app.utils.enums import AnnouncementCategory, AnnouncementStatus
 from app.utils.helpers import utcnow
 from app.utils.notifications import publish_notification
-from app.utils.storage import delete_image, save_image
+from app.utils.storage import delete_image
 
 router = APIRouter(tags=["Announcements"])
 
@@ -102,55 +100,6 @@ async def delete_announcement(announcement_id: PydanticObjectId, _: CurrentUser 
         delete_image(url)
     await announcement.delete()
     await invalidate_announcement(announcement_id)
-
-
-#================================================
-# Under Development
-#================================================
-# ---------- Admin: photos ----------
-
-# @router.post("/{announcement_id}/images", response_model=AnnouncementResponse)
-# async def upload_announcement_images(
-#     announcement_id: PydanticObjectId,
-#     files: list[UploadFile] = File(...),
-#     _: CurrentUser = Depends(require_admin),
-# ):
-#     announcement = await _get_or_404(announcement_id)
-#     if len(announcement.images) + len(files) > settings.MAX_IMAGES_PER_ANNOUNCEMENT:
-#         raise HTTPException(
-#             status.HTTP_400_BAD_REQUEST,
-#             f"An announcement can have at most {settings.MAX_IMAGES_PER_ANNOUNCEMENT} images",
-#         )
-#     saved: list[str] = []
-#     try:
-#         for f in files:
-#             saved.append(await save_image(f))
-#     except HTTPException:
-#         for url in saved:  # roll back files from this batch
-#             delete_image(url)
-#         raise
-#     announcement.images.extend(saved)
-#     announcement.updated_at = utcnow()
-#     await announcement.save()
-#     await invalidate_announcement(announcement.id)
-#     return announcement
-
-
-# @router.delete("/{announcement_id}/images", response_model=AnnouncementResponse)
-# async def remove_announcement_image(
-#     announcement_id: PydanticObjectId,
-#     url: str = Query(..., description="Exact image URL from the announcement's images list"),
-#     _: CurrentUser = Depends(require_admin),
-# ):
-#     announcement = await _get_or_404(announcement_id)
-#     if url not in announcement.images:
-#         raise HTTPException(status.HTTP_404_NOT_FOUND, "Image not found on this announcement")
-#     announcement.images.remove(url)
-#     delete_image(url)
-#     announcement.updated_at = utcnow()
-#     await announcement.save()
-#     await invalidate_announcement(announcement.id)
-#     return announcement
 
 
 # ---------- Any logged-in user: read (cached + rate-limited) ----------

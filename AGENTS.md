@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-OMS is a Docker Compose microservices backend for a mobile app.
+OMS is a Minikube Kubernetes microservices backend for a mobile app.
 
 - API style: REST
 - Public entry: `nginx` load balancer on port `80`, routing to gateway replicas on container port `4000`.
@@ -10,7 +10,7 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - Node services: registration, login, attendance, and notification
 - Python services: request, announcement, user, and booking APIs using FastAPI
 - Database: external MongoDB
-- Deployment: local Docker Compose; Minikube-oriented Kubernetes manifests are in `deploy/k8s/`. They use locally built images, `oms.aupp.local` Ingress DNS, external MongoDB, PVC storage, and require secrets plus cluster validation.
+- Deployment: Minikube-oriented Kubernetes manifests are in `deploy/k8s/`. They use locally built images, `oms.aupp.local` Ingress DNS, external MongoDB, PVC storage, and require secrets plus cluster validation.
 
 ## Service Map
 
@@ -23,7 +23,6 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - `apps/announcement-service/` — FastAPI/Beanie announcement APIs and uploads.
 - `apps/user-service/` — FastAPI/Beanie user profiles and document history APIs.
 - `apps/booking-service/` — FastAPI/Beanie room booking APIs.
-- `nginx/` — public load balancer configuration connected to root Compose.
 - `deploy/k8s/` — Minikube-oriented Kubernetes manifests organized by cluster, config, storage, networking, and component.
 
 ## Architecture Rules
@@ -67,9 +66,9 @@ OMS is a Docker Compose microservices backend for a mobile app.
 
 ## Documentation Sync
 
-- When changing routes, ports, environment variables, service names, Compose paths, startup commands, proxy prefixes, authentication requirements, behavior, architecture, or deployment decisions, update affected documentation in the same change.
+- When changing routes, ports, environment variables, service names, Kubernetes paths, startup commands, proxy prefixes, authentication requirements, behavior, architecture, or deployment decisions, update affected documentation in the same change.
 - When adding, removing, renaming, or materially changing a service, update `AGENTS.md` in the same change. Keep project overview, service map, architecture rules, API prefixes, environment variables, deployment status, and verification commands aligned with active code and configuration.
-- Check `README.md`, service READMEs, `.env.example` files, Docker/Compose configuration, route tables, and `AGENTS.md`; update only files affected by the change.
+- Check `README.md`, service READMEs, `.env.example` files, Docker and Kubernetes configuration, route tables, and `AGENTS.md`; update only files affected by the change.
 - Document only behavior present in active code and configuration. Label disabled code, empty deployment files, and planned infrastructure explicitly as incomplete; do not present them as operational.
 - Verify documented paths and commands from the repository root and distinguish direct-service URLs from gateway URLs.
 - Keep public entry points, service ports, URL prefixes, required authentication, and environment variable names consistent across documentation and configuration.
@@ -89,8 +88,7 @@ OMS is a Docker Compose microservices backend for a mobile app.
 
 ## Environment And Config
 
-- MongoDB is external. Docker Compose does not provision MongoDB.
-- Missing `.env` files may cause runtime failures even when Compose starts.
+- MongoDB is external; Kubernetes Secrets provide its URI and other sensitive configuration.
 - Gateway service targets come from environment variables such as `REGISTER_SERVICE_URL`, `LOGIN_SERVICE_URL`, `REQUEST_SERVICE_URL`, `ANNOUNCEMENT_SERVICE_URL`, `ATTENDANCE_SERVICE_URL`, and `NOTIFICATION_SERVICE_URL`.
 
 ## Testing And Verification
@@ -102,9 +100,9 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - Every active service must have tests covering its public routes, authentication and authorization rules, request validation, success paths, expected error paths, and persistence or external-boundary behavior. Update affected tests in same change whenever service behavior changes.
 - Unit tests may stub external systems. Keep at least one documented integration check for database, proxy, or other real boundaries that stubs cannot prove.
 - Useful checks:
-	- `docker compose config`
-	- `docker compose logs -f api-gateway`
-	- `docker compose logs -f request-service announcement-service`
+	- `kubectl kustomize deploy/k8s`
+	- `kubectl get pods,services,ingress,pvc -n oms`
+	- `kubectl logs -n oms deployment/api-gateway`
 	- `cd apps/request-service && uv run uvicorn app.main:app --reload --port 8000`
 	- `cd apps/announcement-service && uv run uvicorn app.main:app --reload --port 8001`
 	- `cd apps/attendance-service && npm test`
@@ -117,7 +115,7 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - Inspect existing service conventions before proposing architecture.
 - Suggest relevant useful features, security controls, edge cases, and simpler alternatives. Separate required scope from optional ideas and explain tradeoffs.
 - Confirm unresolved API contract, schema, security, and service-boundary decisions before implementation. Existing conventions may answer minor details.
-- After implementation, update tests, API contract, configuration examples, Compose files, README, AWS documentation when deployment changes, and `AGENTS.md`.
+- After implementation, update tests, API contract, configuration examples, Kubernetes manifests, README, AWS documentation when deployment changes, and `AGENTS.md`.
 
 ## Agent Workflow
 

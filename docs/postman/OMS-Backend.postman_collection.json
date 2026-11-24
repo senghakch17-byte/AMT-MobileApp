@@ -18,7 +18,7 @@
   "variable": [
     {
       "key": "gatewayUrl",
-      "value": "http://localhost"
+      "value": "http://oms.aupp.local"
     },
     {
       "key": "userEmail",
@@ -101,14 +101,6 @@
       "value": ""
     },
     {
-      "key": "gateway1Url",
-      "value": "http://localhost:4000"
-    },
-    {
-      "key": "gateway2Url",
-      "value": "http://localhost:4001"
-    },
-    {
       "key": "observedGatewayInstances",
       "value": "[]"
     }
@@ -117,50 +109,6 @@
     {
       "name": "01 - Load balancer and Gateway health",
       "item": [
-        {
-          "name": "Gateway 1 direct health",
-          "request": {
-            "method": "GET",
-            "url": "{{gateway1Url}}/health",
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Gateway 2 direct health",
-          "request": {
-            "method": "GET",
-            "url": "{{gateway2Url}}/health",
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });"
-                ]
-              }
-            }
-          ]
-        },
         {
           "name": "Load balancer health 1 (reset upstreams)",
           "request": {
@@ -276,7 +224,7 @@
           ]
         }
       ],
-      "description": "Run in order. Direct checks prove each Gateway port responds. Nginx checks collect X-Gateway-Instance values; final check requires both Gateway replicas."
+      "description": "Run in order. Public Nginx health checks collect X-Gateway-Instance values; the final check requires both Gateway replicas."
     },
     {
       "name": "02 - Registration and login",
@@ -1153,7 +1101,7 @@
         },
         {
           "name": "Upload my document (save userDocumentId)",
-          "description": "Select `file` again after import: `/Users/user/Documents/GitHub/AMT-MobileApp/docs/postman/fixtures/user-test-document.pdf`. Postman exports file paths, not file content. Keep field type `file`; do not set `Content-Type` manually.",
+          "description": "After import, select a local test PDF, JPEG, PNG, or WEBP file for the `file` field. Postman does not embed file content in collection exports. Keep field type `file`; do not set `Content-Type` manually.",
           "request": {
             "method": "POST",
             "url": "{{gatewayUrl}}/user/me/documents",
@@ -1162,8 +1110,7 @@
               "formdata": [
                 {
                   "key": "file",
-                  "type": "file",
-                  "src": "docs/postman/fixtures/user-test-document.pdf"
+                  "type": "file"
                 },
                 {
                   "key": "title",

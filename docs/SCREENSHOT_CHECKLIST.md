@@ -1,6 +1,6 @@
 # Final demonstration screenshot checklist
 
-Store readable, redacted screenshots in the matching `docs/evidence/` folder. Do not include credentials, full JWTs, or MongoDB URIs.
+Keep screenshots readable and redacted. Do not include credentials, full JWTs, or MongoDB URIs. Insert the final selected evidence into the placeholders in `FINAL_PROJECT_REPORT.md`.
 
 - [ ] `01-architecture`: current architecture diagram showing Ingress, Nginx, API Gateway, services, external MongoDB, Redis, and volumes.
 - [ ] `02-kubernetes-resources`: `minikube status` and `kubectl get deployments,pods,services,ingress,pvc -n oms`.

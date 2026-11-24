@@ -22,6 +22,7 @@ This directory contains the YAML-only Minikube deployment for OMS. Every client 
 minikube start
 minikube addons enable ingress
 ./scripts/build-minikube-images.sh
+kubectl apply -f deploy/k8s/cluster/namespace.yaml
 cp deploy/k8s/config/secret.example.yaml deploy/k8s/config/secret.yaml
 # Edit deploy/k8s/config/secret.yaml with cloud MongoDB and shared secret values.
 kubectl apply -f deploy/k8s/config/secret.yaml

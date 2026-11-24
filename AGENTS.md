@@ -14,7 +14,7 @@ OMS is a Minikube Kubernetes microservices backend for a mobile app.
 
 ## Service Map
 
-- `apps/api-gateway/` — Express gateway, dynamic service proxy routing, and JWT middleware in `server.js` and `app.js`.
+- `apps/api-gateway/` — Express gateway, explicit prefix proxy routing, and JWT middleware in `server.js` and `app.js`.
 - `apps/registration-service/` — Express/Mongoose registration service.
 - `apps/login-service/` — Express/Mongoose login service and JWT issuing.
 - `apps/attendance-service/` — Express/Mongoose attendance check-in, check-out, and administration API.
@@ -28,6 +28,7 @@ OMS is a Minikube Kubernetes microservices backend for a mobile app.
 ## Architecture Rules
 
 - Keep gateway routing in `apps/api-gateway/routes/proxyRoutes.js`, service targets in `apps/api-gateway/config/services.config.js`, and auth/error middleware in `apps/api-gateway/middleware/`.
+- Keep the gateway responsible for JWT validation; keep role, ownership, and business authorization in the owning service.
 - Keep attendance-service HTTP wiring in `routes/`, handlers in `controllers/`, JWT/error handling in `middleware/`, Mongoose schemas in `models/`, database setup in `config/`, and focused shared helpers in `utils/`. Keep `app.js` separate from `server.js` for testing.
 - Attendance records use `userID`, never `studentId` or `userId`.
 - Keep FastAPI routers in `app/api/`, schemas in `app/schemas/`, and database models in `app/database/models.py`.

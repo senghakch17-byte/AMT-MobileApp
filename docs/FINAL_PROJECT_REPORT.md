@@ -177,6 +177,8 @@ flowchart TB
 
 Only Nginx is exposed through Ingress. The Gateway and all business services use internal Kubernetes Service DNS names. Public requests follow Ingress → Nginx → API Gateway.
 
+The API Gateway validates JWTs for protected prefixes. Each business service is the authority for role, ownership, and business authorization checks; this keeps endpoint-specific authorization alongside the resource it protects.
+
 ## 5.2 API Details for Each Microservice
 
 All paths below are public Gateway paths relative to `http://oms.aupp.local`, unless marked **internal**. `JWT` means `Authorization: Bearer <token>` is required.

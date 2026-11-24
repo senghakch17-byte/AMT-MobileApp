@@ -2,7 +2,6 @@ const express = require('express');
 const httpProxy = require('http-proxy');
 const services = require('./config/services.config');
 const authenticate = require('./middleware/authenticate.middleware');
-const authorize = require('./middleware/authorize.middleware');
 const rateLimit = require('./middleware/rateLimit.middleware');
 const handleProxyError = require('./middleware/errorHandler.middleware');
 const registerProxyRoutes = require('./routes/proxyRoutes');
@@ -28,7 +27,6 @@ app.use(rateLimit({ windowMs: 60_000, max: 100 }));
 // Register proxy routes for each service defined in the configuration. Each route is protected by authentication and authorization middleware if specified in the service configuration. The proxy routes forward requests to the appropriate backend services based on the prefix defined in the configuration.
 registerProxyRoutes(app, proxy, services, {
   authenticate,
-  authorize,
 });
 
 module.exports = app;

@@ -1,28 +1,62 @@
 function registerProxyRoutes(app, proxy, services, middleware) {
-  const { authenticate, authorize } = middleware;
+  const { authenticate } = middleware;
+  const target = (service) => process.env[service.env];
 
   app.get('/health', (req, res) => {
     res.set('X-Gateway-Instance', process.env.HOSTNAME || 'local');
     res.json({ status: 'ok', instance: process.env.HOSTNAME || 'local' });
   });
 
-  services.forEach((service) => {
-    const middlewareStack = service.protected || service.role ? [(req, res, next) => (
-      service.publicPaths?.includes(req.path) ? next() : authenticate(req, res, next)
-    )] : [];
+  app.use(`/${services.register.prefix}`, (req, res) => {
+    console.log('[Gateway] Routing to register Service:', req.method, req.originalUrl);
+    proxy.web(req, res, { target: target(services.register) });
+  });
 
-    if (service.role) {
-      middlewareStack.push(authorize(service.role));
-    }
+  app.use(`/${services.login.prefix}`, (req, res) => {
+    console.log('[Gateway] Routing to login Service:', req.method, req.originalUrl);
+    proxy.web(req, res, { target: target(services.login) });
+  });
 
-    if (service.adminRoute) {
-      middlewareStack.push((req, res, next) => (service.adminRoute(req) ? authorize('admin')(req, res, next) : next()));
-    }
+  app.use(`/${services.request.prefix}`, (req, res, next) => (
+    req.path === '/health' ? next() : authenticate(req, res, next)
+  ), (req, res) => {
+    console.log('[Gateway] Routing to request Service:', req.method, req.originalUrl);
+    proxy.web(req, res, { target: target(services.request) });
+  });
 
-    app.use(`/${service.prefix}`, ...middlewareStack, (req, res) => {
-      console.log(`[Gateway] Routing to ${service.prefix} Service:`, req.method, req.originalUrl);
-      proxy.web(req, res, { target: service.target });
-    });
+  app.use(`/${services.announcement.prefix}`, (req, res, next) => (
+    req.path === '/health' ? next() : authenticate(req, res, next)
+  ), (req, res) => {
+    console.log('[Gateway] Routing to announcement Service:', req.method, req.originalUrl);
+    proxy.web(req, res, { target: target(services.announcement) });
+  });
+
+  app.use(`/${services.attendance.prefix}`, (req, res, next) => (
+    req.path === '/health' ? next() : authenticate(req, res, next)
+  ), (req, res) => {
+    console.log('[Gateway] Routing to attendance Service:', req.method, req.originalUrl);
+    proxy.web(req, res, { target: target(services.attendance) });
+  });
+
+  app.use(`/${services.notification.prefix}`, (req, res, next) => (
+    req.path === '/health' ? next() : authenticate(req, res, next)
+  ), (req, res) => {
+    console.log('[Gateway] Routing to notification Service:', req.method, req.originalUrl);
+    proxy.web(req, res, { target: target(services.notification) });
+  });
+
+  app.use(`/${services.user.prefix}`, (req, res, next) => (
+    req.path === '/health' ? next() : authenticate(req, res, next)
+  ), (req, res) => {
+    console.log('[Gateway] Routing to user Service:', req.method, req.originalUrl);
+    proxy.web(req, res, { target: target(services.user) });
+  });
+
+  app.use(`/${services.booking.prefix}`, (req, res, next) => (
+    req.path === '/health' ? next() : authenticate(req, res, next)
+  ), (req, res) => {
+    console.log('[Gateway] Routing to booking Service:', req.method, req.originalUrl);
+    proxy.web(req, res, { target: target(services.booking) });
   });
 }
 

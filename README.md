@@ -20,7 +20,7 @@ Kubernetes Ingress -> Nginx -> API Gateway Service -> 2 API Gateway Pods
                                          External MongoDB      Redis
 ```
 
-All client traffic must use the public Ingress hostname. Nginx is the public reverse proxy; the API Gateway routes requests to the internal services and applies gateway authentication. Business-service Services are `ClusterIP` only and are not public entry points.
+All client traffic must use the public Ingress hostname. Nginx is the public reverse proxy; the API Gateway validates JWTs and routes requests to internal services. Each business service enforces its own roles, ownership, and business authorization. Business-service Services are `ClusterIP` only and are not public entry points.
 
 ## Services
 

@@ -26,7 +26,7 @@ All client traffic must use the public Ingress hostname. Nginx is the public rev
 
 | Service | Responsibility | Container port |
 | --- | --- | ---: |
-| Nginx | Public reverse proxy and gateway load balancer | 80 |
+| Nginx | Internal reverse proxy and shared-log producer | 80 |
 | API Gateway | Routing and JWT middleware | 4000 |
 | Registration | Account creation and password hashing | 5001 |
 | Login | Credential validation and JWT issuance | 5002 |
@@ -113,21 +113,22 @@ echo "$(minikube ip) oms.aupp.local" | sudo tee -a /etc/hosts
 curl -i http://oms.aupp.local/health
 ```
 
-#### macOS/Docker driver: expose the Nginx LoadBalancer
+#### macOS/Docker driver: expose Ingress
 
-If the Minikube IP is not reachable from the host, or `kubectl get service nginx -n oms` shows its external IP as `<pending>`, run this command in a separate terminal and keep it running:
-
-```bash
-minikube tunnel
-```
-
-The tunnel may prompt for administrator access and assigns an external IP to the `nginx` LoadBalancer Service. Check it with:
+If the Minikube IP is not reachable from the host, run this command in a separate terminal and keep it running:
 
 ```bash
-kubectl get service nginx -n oms
+sudo minikube tunnel
 ```
 
-Map `oms.aupp.local` to that assigned external IP before making the health request. This is a local Minikube access fallback that reaches Nginx directly; use the Minikube-IP mapping above when verifying the Ingress route.
+The tunnel exposes the public Ingress on `127.0.0.1`. Replace the Minikube-IP hostname mapping with:
+
+```bash
+sudo sed -i '' '/oms\.aupp\.local/d' /etc/hosts
+echo "127.0.0.1 oms.aupp.local" | sudo tee -a /etc/hosts
+```
+
+Keep the tunnel running while accessing `http://oms.aupp.local`. The request path remains Ingress → Nginx → API Gateway.
 
 Repeat the request to check that the two API Gateway replicas receive traffic:
 

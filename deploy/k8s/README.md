@@ -32,15 +32,15 @@ kubectl get deployments,pods,services,ingress -n oms
 curl -i http://oms.aupp.local/health
 ```
 
-### LoadBalancer access with the Docker driver
+### Ingress access with the Docker driver
 
-The `nginx` Service is a `LoadBalancer`. If its external IP remains `<pending>`, or the Minikube IP cannot be reached from the host, run the following in a separate terminal and keep it running:
+If the Minikube IP cannot be reached from the host, run the following in a separate terminal and keep it running:
 
 ```bash
-minikube tunnel
+sudo minikube tunnel
 ```
 
-The tunnel may require administrator access. After it assigns an external IP, inspect it with `kubectl get service nginx -n oms` and map `oms.aupp.local` to that IP in `/etc/hosts`. This reaches Nginx directly; retain the Minikube-IP mapping when testing the configured Ingress route.
+The tunnel exposes the public Ingress on `127.0.0.1`. Replace the Minikube-IP mapping with `127.0.0.1 oms.aupp.local` in `/etc/hosts`, then verify `curl -i http://oms.aupp.local/health`. The nginx Service remains internal (`ClusterIP`); Ingress is the only public entry point.
 
 `secret.yaml` is intentionally ignored and is applied separately. Do not commit credentials.
 

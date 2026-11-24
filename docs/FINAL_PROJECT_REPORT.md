@@ -163,7 +163,7 @@ flowchart TB
 
 | Component | Kubernetes Service name | Port | Replicas | Responsibility |
 | --- | --- | ---: | ---: | --- |
-| Nginx | `nginx` | 80 | 1 | Public reverse proxy and load balancer |
+| Nginx | `nginx` | 80 | 1 | Internal reverse proxy and shared-log producer |
 | API Gateway | `api-gateway` | 4000 | 2 | Route proxy and JWT middleware |
 | Registration Service | `registration-service` | 5001 | 1 | Account creation and password hashing |
 | Login Service | `login-service` | 5002 | 1 | Credential validation and JWT issuance |
@@ -404,7 +404,7 @@ spec:
 | `port` / `targetPort` | Routes Service port 4000 to container port 4000. |
 | Default Service type | Keeps Gateway and business services internal (`ClusterIP`). |
 
-The Nginx Service is the exception: it specifies `type: LoadBalancer` and is the Ingress backend. Business-service Services remain internal.
+The Nginx Service is the Ingress backend and uses `ClusterIP`, like the Gateway and business services. Ingress is the only public entry point.
 
 > **Screenshot placeholder:** Insert selected active Service YAML screenshots and `kubectl get services -n oms` output here.
 
@@ -412,7 +412,7 @@ Recommended evidence, rather than screenshots of every repetitive Service file:
 
 1. `kubectl get services -n oms` to prove all Services and ports.
 2. `deploy/k8s/components/api-gateway/service.yaml` to show the Service selector and port mapping.
-3. `deploy/k8s/components/nginx/service.yaml` to show the public-facing `LoadBalancer` Service.
+3. `deploy/k8s/components/nginx/service.yaml` to show the internal `ClusterIP` Ingress backend.
 
 # 8. Fanout Mechanism
 
@@ -422,7 +422,7 @@ The project uses the local Fanout DNS hostname `oms.aupp.local`. Map it to the M
 echo "$(minikube ip) oms.aupp.local" | sudo tee -a /etc/hosts
 ```
 
-On macOS with the Docker driver, the Minikube IP may not be reachable from the host and the Nginx `LoadBalancer` can remain `<pending>`. In that case, run `minikube tunnel` in a separate terminal (it may request administrator access) and keep it running. After `kubectl get service nginx -n oms` reports an external IP, map `oms.aupp.local` to that IP. This tunnel path reaches Nginx directly; use the Minikube-IP mapping when demonstrating the Ingress route.
+On macOS with the Docker driver, the Minikube IP may not be reachable from the host. In that case, run `sudo minikube tunnel` in a separate terminal and keep it running. The tunnel exposes the public Ingress on `127.0.0.1`; map `oms.aupp.local` to `127.0.0.1` in `/etc/hosts`. This preserves the demonstrated Ingress path.
 
 The request flow is:
 
@@ -438,7 +438,7 @@ for i in {1..8}; do
 done
 ```
 
-> **Screenshot placeholder:** Insert the `/etc/hosts` mapping (and `minikube tunnel`/Nginx external-IP evidence when required) and repeated health responses showing at least two distinct `X-Gateway-Instance` values.
+> **Screenshot placeholder:** Insert the `/etc/hosts` mapping (and `minikube tunnel` evidence when required) and repeated health responses showing at least two distinct `X-Gateway-Instance` values.
 
 # 9. Volume Implementation
 

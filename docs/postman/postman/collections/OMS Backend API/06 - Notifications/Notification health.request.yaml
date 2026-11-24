@@ -1,3 +1,0 @@
-$kind: http-request
-url: "{{gatewayUrl}}/notification/health"
-method: GET

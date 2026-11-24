@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: user-service, namespace: oms }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: user-service } }
+  template:
+    metadata: { labels: { app: user-service } }
+    spec:
+      containers:
+        - name: user-service
+          image: oms-user-service:latest
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 8004 }]
+          envFrom: [{ configMapRef: { name: oms-config } }, { secretRef: { name: oms-secrets } }]
+          volumeMounts: [{ name: uploads, mountPath: /backend/uploads }]
+          readinessProbe: { httpGet: { path: /health, port: 8004 }, initialDelaySeconds: 5 }
+      volumes: [{ name: uploads, persistentVolumeClaim: { claimName: user-uploads } }]

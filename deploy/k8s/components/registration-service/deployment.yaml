@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: registration-service, namespace: oms }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: registration-service } }
+  template:
+    metadata: { labels: { app: registration-service } }
+    spec:
+      containers:
+        - name: registration-service
+          image: oms-registration-service:latest
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 5001 }]
+          env: [{ name: PORT, value: "5001" }]
+          envFrom: [{ configMapRef: { name: oms-config } }, { secretRef: { name: oms-secrets } }]
+          readinessProbe: { httpGet: { path: /health, port: 5001 }, initialDelaySeconds: 5 }

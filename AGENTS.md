@@ -10,7 +10,7 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - Node services: registration, login, attendance, and notification
 - Python services: request, announcement, user, and booking APIs using FastAPI
 - Database: external MongoDB
-- Deployment: local Docker Compose; Minikube-oriented Kubernetes manifests are in `deploy/k8s/`. They use locally built images, `oms.aupp.local` Ingress DNS, external MongoDB, PVC storage, and require secrets plus cluster validation. EC2 Compose files remain incomplete and unverified for production.
+- Deployment: local Docker Compose; Minikube-oriented Kubernetes manifests are in `deploy/k8s/`. They use locally built images, `oms.aupp.local` Ingress DNS, external MongoDB, PVC storage, and require secrets plus cluster validation.
 
 ## Service Map
 
@@ -24,7 +24,7 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - `apps/user-service/` — FastAPI/Beanie user profiles and document history APIs.
 - `apps/booking-service/` — FastAPI/Beanie room booking APIs.
 - `nginx/` — public load balancer configuration connected to root Compose.
-- `deploy/` — EC2 Compose placeholders and generic Kubernetes manifests in `deploy/k8s/`. Do not claim production deployment is complete from these files alone.
+- `deploy/k8s/` — Minikube-oriented Kubernetes manifests organized by cluster, config, storage, networking, and component.
 
 ## Architecture Rules
 
@@ -73,9 +73,9 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - Document only behavior present in active code and configuration. Label disabled code, empty deployment files, and planned infrastructure explicitly as incomplete; do not present them as operational.
 - Verify documented paths and commands from the repository root and distinguish direct-service URLs from gateway URLs.
 - Keep public entry points, service ports, URL prefixes, required authentication, and environment variable names consistent across documentation and configuration.
-- When changing active API routes, methods, request bodies, authentication, environment variables, or response-driven collection scripts, update both Postman YAML sources under `docs/postman/postman/` and exported JSON files `docs/postman/OMS-Backend.postman_collection.json` and `docs/postman/OMS-local.postman_environment.json` in the same change. Verify strict JSON parsing and JSON/YAML endpoint parity.
+- When changing active API routes, methods, request bodies, authentication, environment variables, or response-driven collection scripts, update the exported Postman collection `docs/postman/OMS-Backend.postman_collection.json` and environment `docs/postman/OMS-local.postman_environment.json` in the same change. Verify strict JSON parsing.
 - Record changed architectural or operational decisions in the relevant existing document. Create a dedicated decision record only when explicitly requested or when no existing document can hold the decision clearly.
-- Keep `docs/AWS_DEVELOPMENT.md` synchronized with EC2 topology, Compose paths, exposed ports, security-group requirements, deployment commands, and known deployment limitations.
+- Keep `deploy/k8s/README.md`, `docs/FINAL_PROJECT_REPORT.md`, and `docs/SCREENSHOT_CHECKLIST.md` synchronized with active Kubernetes deployment behavior.
 
 ## Security
 
@@ -137,4 +137,4 @@ OMS is a Docker Compose microservices backend for a mobile app.
 - Do not change database schemas without approval.
 - Do not modify authentication or authorization logic without approval.
 - Do not add dependencies unless necessary.
-- Do not claim EC2 deployment readiness from placeholder files.
+- Do not claim Kubernetes deployment readiness until the manifests have been validated on a real cluster with configured secrets and external MongoDB.

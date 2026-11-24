@@ -20,3 +20,4 @@
 **/.vscode/
 
 AGENTS.md
+deploy/k8s/config/secret.yaml

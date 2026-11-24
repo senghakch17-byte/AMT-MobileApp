@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: login-service, namespace: oms }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: login-service } }
+  template:
+    metadata: { labels: { app: login-service } }
+    spec:
+      containers:
+        - name: login-service
+          image: oms-login-service:latest
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 5002 }]
+          env: [{ name: PORT, value: "5002" }]
+          envFrom: [{ configMapRef: { name: oms-config } }, { secretRef: { name: oms-secrets } }]
+          readinessProbe: { httpGet: { path: /health, port: 5002 }, initialDelaySeconds: 5 }

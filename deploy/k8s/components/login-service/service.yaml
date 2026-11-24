@@ -1,0 +1,4 @@
+apiVersion: v1
+kind: Service
+metadata: { name: login-service, namespace: oms }
+spec: { selector: { app: login-service }, ports: [{ port: 5002, targetPort: 5002 }] }

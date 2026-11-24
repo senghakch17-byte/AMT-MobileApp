@@ -85,6 +85,10 @@ async function processBatches(batches) {
   }
 }
 
+function hasMessages(batches) {
+  return batches?.some((batch) => batch.messages?.length > 0) || false;
+}
+
 async function ensureConsumerGroup() {
   try {
     await consumer.xGroupCreate(redisStreamKey, redisConsumerGroup, '0', { MKSTREAM: true });
@@ -103,7 +107,7 @@ async function consume() {
         [{ key: redisStreamKey, id: '0' }],
         { COUNT: 25 },
       );
-      if (pending?.length) {
+      if (hasMessages(pending)) {
         await processBatches(pending);
         continue;
       }
@@ -144,4 +148,4 @@ function redisReady() {
   return consumer.isReady;
 }
 
-module.exports = { publishNotification, redisReady, startConsumer, stopConsumer };
+module.exports = { hasMessages, publishNotification, redisReady, startConsumer, stopConsumer };

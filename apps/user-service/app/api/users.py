@@ -14,20 +14,25 @@ from app.utils.helpers import utcnow
 router = APIRouter(tags=["Users"])
 
 
-async def _get_or_create_user(user: CurrentUser) -> UserProfile:
+async def _get_or_create_user(current_user: CurrentUser) -> UserProfile:
     """Profiles are created lazily from the JWT claims the first time a user shows up."""
-    user = await UserProfile.find_one(UserProfile.user_id == user.id, UserProfile.deleted_at == None)  # noqa: E711
+    user = await UserProfile.find_one(UserProfile.user_id == current_user.id, UserProfile.deleted_at == None)  # noqa: E711
     if user is None:
-        user = UserProfile(user_id=user.id, email=user.emailid, role=user.role, active=True)
+        user = UserProfile(
+            user_id=current_user.id,
+            email=current_user.emailid,
+            role=current_user.role,
+            active=True,
+        )
         try:
             await user.insert()
         except DuplicateKeyError:  # two first requests raced; the other one won
-            user = await UserProfile.find_one(UserProfile.user_id == user.id)
+            user = await UserProfile.find_one(UserProfile.user_id == current_user.id)
             if user is None:
                 raise
         return user
-    if user.email != user.emailid or user.role != user.role:  # keep in sync with auth
-        user.email, user.role = user.emailid, user.role
+    if user.email != current_user.emailid or user.role != current_user.role:  # keep in sync with auth
+        user.email, user.role = current_user.emailid, current_user.role
         user.updated_at = utcnow()
         await user.save()
     return user
@@ -94,7 +99,7 @@ async def create_user(payload: AdminUserCreate, _: CurrentUser = Depends(require
         "mobile": payload.mobile, "role": payload.role,
     })
     user = UserProfile(
-        **payload.model_dump(exclude={"name", "password", "mobile", "role"}),
+        **payload.model_dump(exclude={"name", "email", "password", "mobile", "role", "full_name", "phone"}),
         user_id=account["id"], email=account["emailid"], role=account["role"], active=account["active"],
         full_name=payload.full_name or payload.name,
         phone=payload.phone or payload.mobile,

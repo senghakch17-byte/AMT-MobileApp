@@ -6,6 +6,7 @@ Uses the throwaway database `user_service_test` (dropped afterwards).
 """
 from datetime import date
 
+from app.api import users
 from tests.conftest import make_token
 
 API = ""
@@ -45,6 +46,25 @@ async def test_profile_follows_token_claims(db_client):
     await db_client.get(f"{API}/me", headers=make_token("user-9", email="old@example.com"))
     r = await db_client.get(f"{API}/me", headers=make_token("user-9", role="admin", email="new@example.com"))
     assert (r.json()["email"], r.json()["role"]) == ("new@example.com", "admin")
+
+
+async def test_admin_can_create_user(db_client, admin_headers, monkeypatch):
+    async def account_request(method, path, payload):
+        assert (method, path) == ("POST", "/internal/users")
+        assert payload["emailid"] == "managed@example.com"
+        return {"id": "managed-user", "emailid": payload["emailid"], "role": "user", "active": True}
+
+    monkeypatch.setattr(users, "account_request", account_request)
+    response = await db_client.post(
+        API,
+        headers=admin_headers,
+        json={
+            "name": "Managed User", "email": "managed@example.com", "password": "Password123!",
+            "mobile": "+85512345678", "role": "user",
+        },
+    )
+    assert response.status_code == 201
+    assert response.json()["user_id"] == "managed-user"
 
 
 async def test_admin_lists_and_searches_users(db_client, user_headers, other_headers, admin_headers):

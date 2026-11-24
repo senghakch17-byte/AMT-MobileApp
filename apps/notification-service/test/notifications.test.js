@@ -56,6 +56,11 @@ test('internal event ingestion requires key and queues valid producer notificati
   }
 });
 
+test('consumer does not treat an empty pending batch as a message', () => {
+  assert.equal(notificationConsumer.hasMessages([{ name: 'notification:events', messages: [] }]), false);
+  assert.equal(notificationConsumer.hasMessages([{ name: 'notification:events', messages: [{ id: '1-0' }] }]), true);
+});
+
 test('receipt schema and user mutations keep role notifications shared', async () => {
   assert.equal(Notification.schema.path('readAt'), undefined);
   assert.deepEqual(

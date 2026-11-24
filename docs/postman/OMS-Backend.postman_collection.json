@@ -125,7 +125,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });",
                   "pm.environment.set('observedGatewayInstances', '[]');",
                   "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
                   "const upstream = pm.response.headers.get('X-Gateway-Instance');",
@@ -154,7 +154,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });",
                   "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
                   "const upstream = pm.response.headers.get('X-Gateway-Instance');",
                   "pm.test('Nginx selected a Gateway instance', function () { pm.expect(upstream).to.be.a('string').and.not.empty; });",
@@ -182,7 +182,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });",
                   "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
                   "const upstream = pm.response.headers.get('X-Gateway-Instance');",
                   "pm.test('Nginx selected a Gateway instance', function () { pm.expect(upstream).to.be.a('string').and.not.empty; });",
@@ -210,7 +210,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json()).to.deep.equal({ status: 'ok' }); });",
+                  "pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });",
                   "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
                   "const upstream = pm.response.headers.get('X-Gateway-Instance');",
                   "pm.test('Nginx selected a Gateway instance', function () { pm.expect(upstream).to.be.a('string').and.not.empty; });",

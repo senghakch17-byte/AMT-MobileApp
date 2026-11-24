@@ -420,6 +420,8 @@ The project uses the local Fanout DNS hostname `oms.aupp.local`. Map it to the M
 echo "$(minikube ip) oms.aupp.local" | sudo tee -a /etc/hosts
 ```
 
+On macOS with the Docker driver, the Minikube IP may not be reachable from the host and the Nginx `LoadBalancer` can remain `<pending>`. In that case, run `minikube tunnel` in a separate terminal (it may request administrator access) and keep it running. After `kubectl get service nginx -n oms` reports an external IP, map `oms.aupp.local` to that IP. This tunnel path reaches Nginx directly; use the Minikube-IP mapping when demonstrating the Ingress route.
+
 The request flow is:
 
 ```text
@@ -434,7 +436,7 @@ for i in {1..8}; do
 done
 ```
 
-> **Screenshot placeholder:** Insert the `/etc/hosts` mapping and repeated health responses showing at least two distinct `X-Gateway-Instance` values.
+> **Screenshot placeholder:** Insert the `/etc/hosts` mapping (and `minikube tunnel`/Nginx external-IP evidence when required) and repeated health responses showing at least two distinct `X-Gateway-Instance` values.
 
 # 9. Volume Implementation
 

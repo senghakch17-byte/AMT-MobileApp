@@ -106,10 +106,28 @@ Use `Ctrl+C` to stop watching after all Pods report `Running` and ready containe
 
 ### 5. Configure the local hostname and verify
 
+For the Ingress route, map the hostname to the Minikube IP:
+
 ```bash
 echo "$(minikube ip) oms.aupp.local" | sudo tee -a /etc/hosts
 curl -i http://oms.aupp.local/health
 ```
+
+#### macOS/Docker driver: expose the Nginx LoadBalancer
+
+If the Minikube IP is not reachable from the host, or `kubectl get service nginx -n oms` shows its external IP as `<pending>`, run this command in a separate terminal and keep it running:
+
+```bash
+minikube tunnel
+```
+
+The tunnel may prompt for administrator access and assigns an external IP to the `nginx` LoadBalancer Service. Check it with:
+
+```bash
+kubectl get service nginx -n oms
+```
+
+Map `oms.aupp.local` to that assigned external IP before making the health request. This is a local Minikube access fallback that reaches Nginx directly; use the Minikube-IP mapping above when verifying the Ingress route.
 
 Repeat the request to check that the two API Gateway replicas receive traffic:
 

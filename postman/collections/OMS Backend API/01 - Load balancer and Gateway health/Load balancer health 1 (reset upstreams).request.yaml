@@ -9,7 +9,7 @@ scripts:
       pm.test('Expected 200', function () { pm.response.to.have.status(200); });
       pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });
       pm.collectionVariables.set('observedGatewayInstances', '[]');
-      pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });
+      pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('X-Upstream')).to.be.a('string').and.not.empty; });
       const upstream = pm.response.headers.get('X-Gateway-Instance');
       pm.test('Nginx selected a Gateway instance', function () { pm.expect(upstream).to.be.a('string').and.not.empty; });
       const upstreams = JSON.parse(pm.collectionVariables.get('observedGatewayInstances') || '[]');

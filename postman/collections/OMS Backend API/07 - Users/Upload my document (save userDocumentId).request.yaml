@@ -6,7 +6,8 @@ body:
   content:
     - type: file
       key: file
-      src: []
+      src:
+        - fixtures/test-document.pdf
     - type: text
       key: title
       value: Postman test document

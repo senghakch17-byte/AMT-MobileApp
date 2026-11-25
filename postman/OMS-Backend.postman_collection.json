@@ -127,7 +127,7 @@
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
                   "pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });",
                   "pm.collectionVariables.set('observedGatewayInstances', '[]');",
-                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
+                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('X-Upstream')).to.be.a('string').and.not.empty; });",
                   "const upstream = pm.response.headers.get('X-Gateway-Instance');",
                   "pm.test('Nginx selected a Gateway instance', function () { pm.expect(upstream).to.be.a('string').and.not.empty; });",
                   "const upstreams = JSON.parse(pm.collectionVariables.get('observedGatewayInstances') || '[]');",
@@ -155,7 +155,7 @@
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
                   "pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });",
-                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
+                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('X-Upstream')).to.be.a('string').and.not.empty; });",
                   "const upstream = pm.response.headers.get('X-Gateway-Instance');",
                   "pm.test('Nginx selected a Gateway instance', function () { pm.expect(upstream).to.be.a('string').and.not.empty; });",
                   "const upstreams = JSON.parse(pm.collectionVariables.get('observedGatewayInstances') || '[]');",
@@ -183,7 +183,7 @@
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
                   "pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });",
-                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
+                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('X-Upstream')).to.be.a('string').and.not.empty; });",
                   "const upstream = pm.response.headers.get('X-Gateway-Instance');",
                   "pm.test('Nginx selected a Gateway instance', function () { pm.expect(upstream).to.be.a('string').and.not.empty; });",
                   "const upstreams = JSON.parse(pm.collectionVariables.get('observedGatewayInstances') || '[]');",
@@ -211,7 +211,7 @@
                 "exec": [
                   "pm.test('Expected 200', function () { pm.response.to.have.status(200); });",
                   "pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });",
-                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });",
+                  "pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('X-Upstream')).to.be.a('string').and.not.empty; });",
                   "const upstream = pm.response.headers.get('X-Gateway-Instance');",
                   "pm.test('Nginx selected a Gateway instance', function () { pm.expect(upstream).to.be.a('string').and.not.empty; });",
                   "const upstreams = JSON.parse(pm.collectionVariables.get('observedGatewayInstances') || '[]');",
@@ -1101,7 +1101,7 @@
         },
         {
           "name": "Upload my document (save userDocumentId)",
-          "description": "After import, select a local test PDF, JPEG, PNG, or WEBP file for the `file` field. Postman does not embed file content in collection exports. Keep field type `file`; do not set `Content-Type` manually.",
+          "description": "Uses `fixtures/test-document.pdf`. Set the Postman working directory to this repository's `postman/` directory so the relative fixture path resolves automatically. Keep field type `file`; do not set `Content-Type` manually.",
           "request": {
             "method": "POST",
             "url": "{{gatewayUrl}}/user/me/documents",
@@ -1110,7 +1110,8 @@
               "formdata": [
                 {
                   "key": "file",
-                  "type": "file"
+                  "type": "file",
+                  "src": "fixtures/test-document.pdf"
                 },
                 {
                   "key": "title",

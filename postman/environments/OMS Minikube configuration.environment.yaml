@@ -1,0 +1,10 @@
+name: OMS Minikube configuration
+values:
+  - key: gatewayUrl
+    value: 'http://oms.aupp.local'
+  - key: userPassword
+    value: ChangeMe123!
+  - key: adminEmail
+    value: admin@example.com
+  - key: adminPassword
+    value: ChangeMeAdmin123!

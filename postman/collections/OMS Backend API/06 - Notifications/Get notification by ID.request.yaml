@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{gatewayUrl}}/notification/{{notificationId}}"
+method: GET
+scripts:
+  - type: beforeRequest
+    code: pm.test('notificationId exists', function () { pm.expect(pm.collectionVariables.get('notificationId') || '').to.match(/^[a-f\d]{24}$/i); });
+    language: text/javascript
+  - type: afterResponse
+    code: pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 4000

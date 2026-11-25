@@ -1,0 +1,3 @@
+$kind: collection
+description: Run after user and admin login. Upload leaves a document in the configured test database.
+order: 7000

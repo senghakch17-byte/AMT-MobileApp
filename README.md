@@ -169,12 +169,12 @@ kubectl logs -n oms deployment/nginx -c log-reader
 
 Import these files into Postman:
 
-- `docs/postman/OMS-Backend.postman_collection.json`
-- `docs/postman/OMS-local.postman_environment.json`
+- `postman/OMS-Backend.postman_collection.json`
+- `postman/OMS-local.postman_environment.json`
 
 The environment defaults to `http://oms.aupp.local`. Test only through the public gateway URL; do not test business services or individual Gateway Pods directly. The document-upload request requires selecting a local PDF, JPEG, PNG, or WEBP file after import.
 
-Read the [Postman verification guide](docs/postman/README.md) for details.
+Read the [Postman verification guide](postman/README.md) for details.
 
 ## Verification
 
@@ -183,8 +183,8 @@ Run these static checks from the repository root:
 ```bash
 kubectl kustomize deploy/k8s
 bash -n scripts/build-minikube-images.sh
-python3 -m json.tool docs/postman/OMS-Backend.postman_collection.json >/dev/null
-python3 -m json.tool docs/postman/OMS-local.postman_environment.json >/dev/null
+python3 -m json.tool postman/OMS-Backend.postman_collection.json >/dev/null
+python3 -m json.tool postman/OMS-local.postman_environment.json >/dev/null
 ```
 
 Runtime verification requires a real Minikube cluster, valid secrets, and reachable MongoDB. Kubernetes manifests alone do not prove deployment readiness.
@@ -202,7 +202,7 @@ Removing the namespace also removes the separately applied Secret.
 - [Kubernetes deployment guide](deploy/k8s/README.md)
 - [Final project report](docs/FINAL_PROJECT_REPORT.md)
 - [Screenshot checklist](docs/SCREENSHOT_CHECKLIST.md)
-- [Postman verification](docs/postman/README.md)
+- [Postman verification](postman/README.md)
 
 ## Repository layout
 

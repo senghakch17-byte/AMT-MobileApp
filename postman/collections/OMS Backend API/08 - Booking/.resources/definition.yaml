@@ -1,0 +1,3 @@
+$kind: collection
+description: Run after user and admin login. Creates booking history plus one disposable room and book, then deletes only records safe to delete.
+order: 8000

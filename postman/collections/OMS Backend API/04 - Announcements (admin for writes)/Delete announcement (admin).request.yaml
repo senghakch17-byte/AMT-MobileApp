@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{gatewayUrl}}/announcement/{{announcementId}}"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+order: 6000

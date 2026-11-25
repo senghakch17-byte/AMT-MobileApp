@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{gatewayUrl}}/attendance/?from=2026-01-01&to=2026-12-31"
+method: GET
+queryParams:
+  from: 2026-01-01
+  to: 2026-12-31
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+order: 5000

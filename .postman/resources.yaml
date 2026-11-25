@@ -1,0 +1,14 @@
+# Use this workspace to collaborate
+workspace:
+  id: 748a62dc-3d37-4926-a657-a9f75a3cecb5
+
+localResources:
+  collections:
+    - ../postman/OMS-Backend.postman_collection.json
+  environments: []
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/OMS Backend API: ca14a02b-366a-4d4a-803c-b375849cdad3

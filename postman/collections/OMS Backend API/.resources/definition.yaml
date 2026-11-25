@@ -1,0 +1,31 @@
+$kind: collection
+description: Nginx load-balancer and Gateway collection for OMS microservices. Every request runs. Run folder 01 to verify both Gateway replicas receive Nginx traffic, then register/login and run protected endpoints. Register user creates isolated user email for each run. Login requests store userToken or adminToken automatically.
+variables:
+  gatewayUrl: http://oms.aupp.local
+  userEmail: user@example.com
+  userPassword: ChangeMe123!
+  adminEmail: admin@example.com
+  adminPassword: ChangeMeAdmin123!
+  userToken: ""
+  adminToken: ""
+  leaveRequestId: ""
+  announcementId: ""
+  attendanceId: ""
+  notificationId: ""
+  userUserId: ""
+  userDocumentId: ""
+  roomId: ""
+  disposableRoomId: ""
+  bookingId: ""
+  rejectedBookingId: ""
+  cancelledBookingId: ""
+  testRunId: ""
+  bookingStart: ""
+  bookingEnd: ""
+  observedGatewayInstances: "[]"
+auth:
+  - id: af732b85-13c8-4c48-9491-5132026c5428
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{userToken}}"

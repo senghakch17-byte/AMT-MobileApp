@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{gatewayUrl}}/health"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      pm.test('Gateway health body', function () { pm.expect(pm.response.json().status).to.equal('ok'); });
+      pm.test('Response passed through Nginx', function () { pm.expect(pm.response.headers.get('Server')).to.include('nginx'); });
+      const upstream = pm.response.headers.get('X-Gateway-Instance');
+      pm.test('Nginx selected a Gateway instance', function () { pm.expect(upstream).to.be.a('string').and.not.empty; });
+      const upstreams = JSON.parse(pm.collectionVariables.get('observedGatewayInstances') || '[]');
+      if (!upstreams.includes(upstream)) { upstreams.push(upstream); }
+      pm.collectionVariables.set('observedGatewayInstances', JSON.stringify(upstreams));
+    language: text/javascript
+order: 2000

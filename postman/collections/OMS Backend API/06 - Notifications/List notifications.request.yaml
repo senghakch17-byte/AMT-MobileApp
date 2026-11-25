@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{gatewayUrl}}/notification?skip=0&limit=20"
+method: GET
+queryParams:
+  skip: "0"
+  limit: "20"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      if (pm.response.code === 200 && pm.response.json().length) { pm.collectionVariables.set('notificationId', pm.response.json()[0].id); }
+    language: text/javascript
+order: 2000

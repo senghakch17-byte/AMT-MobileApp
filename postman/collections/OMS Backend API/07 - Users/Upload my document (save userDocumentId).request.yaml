@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{gatewayUrl}}/user/me/documents"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: file
+      key: file
+      src: []
+    - type: text
+      key: title
+      value: Postman test document
+    - type: text
+      key: doc_type
+      value: other
+    - type: text
+      key: description
+      value: Disposable document uploaded through Nginx.
+    - type: text
+      key: document_date
+      value: 2020-01-01
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 201', function () { pm.response.to.have.status(201); });
+      if (pm.response.code === 201) { pm.collectionVariables.set('userDocumentId', pm.response.json().id); }
+    language: text/javascript
+order: 4000

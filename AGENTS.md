@@ -73,7 +73,7 @@ OMS is a Minikube Kubernetes microservices backend for a mobile app.
 - Document only behavior present in active code and configuration. Label disabled code, empty deployment files, and planned infrastructure explicitly as incomplete; do not present them as operational.
 - Verify documented paths and commands from the repository root and distinguish direct-service URLs from gateway URLs.
 - Keep public entry points, service ports, URL prefixes, required authentication, and environment variable names consistent across documentation and configuration.
-- When changing active API routes, methods, request bodies, authentication, environment variables, or response-driven collection scripts, update the exported Postman collection `docs/postman/OMS-Backend.postman_collection.json` and environment `docs/postman/OMS-local.postman_environment.json` in the same change. Verify strict JSON parsing.
+- When changing active API routes, methods, request bodies, authentication, environment variables, or response-driven collection scripts, update the exported Postman collection `postman/OMS-Backend.postman_collection.json` and environment `postman/OMS-local.postman_environment.json` in the same change. Verify strict JSON parsing.
 - Record changed architectural or operational decisions in the relevant existing document. Create a dedicated decision record only when explicitly requested or when no existing document can hold the decision clearly.
 - Keep `deploy/k8s/README.md`, `docs/FINAL_PROJECT_REPORT.md`, and `docs/SCREENSHOT_CHECKLIST.md` synchronized with active Kubernetes deployment behavior.
 

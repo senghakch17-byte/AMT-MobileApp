@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{gatewayUrl}}/notification/read-all"
+method: PATCH
+order: 5000

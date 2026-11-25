@@ -467,8 +467,8 @@ kubectl logs -n oms deployment/nginx -c log-reader
 
 Import these exported Postman files:
 
-- `docs/postman/OMS-Backend.postman_collection.json`
-- `docs/postman/OMS-local.postman_environment.json`
+- `postman/OMS-Backend.postman_collection.json`
+- `postman/OMS-local.postman_environment.json`
 
 The environment default is `http://oms.aupp.local`. Run the collection only after Minikube, the Secret, and all Pods are ready. Redact passwords, full JWTs, MongoDB URIs, and API keys before adding screenshots.
 

@@ -1,0 +1,24 @@
+$kind: http-request
+description: "Public proof for report: finds notification produced after draft-to-published announcement mutation. Collection Runner retries up to five times while Redis consumer processes announcement. Internal ingestion endpoint remains service-to-service only."
+url: "{{gatewayUrl}}/notification?type=announcement.published&skip=0&limit=20"
+method: GET
+queryParams:
+  type: announcement.published
+  skip: "0"
+  limit: "20"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      const notification = pm.response.json().find((item) => item.data && item.data.announcement_id === pm.collectionVariables.get('announcementId'));
+      if (notification) {
+        pm.collectionVariables.set('notificationId', notification.id);
+        pm.collectionVariables.unset('announcementNotificationPolls');
+      } else {
+        const polls = Number(pm.collectionVariables.get('announcementNotificationPolls') || '0') + 1;
+        pm.collectionVariables.set('announcementNotificationPolls', String(polls));
+        if (pm.info.iteration !== undefined && polls < 5) { pm.execution.setNextRequest(pm.info.requestName); }
+        else { pm.test('Published announcement notification exists', function () { pm.expect(notification, 'Redis consumer did not create announcement.published notification after five attempts.').to.exist; }); }
+      }
+    language: text/javascript
+order: 4000

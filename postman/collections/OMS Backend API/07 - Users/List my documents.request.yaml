@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{gatewayUrl}}/user/me/documents?skip=0&limit=20"
+method: GET
+queryParams:
+  skip: "0"
+  limit: "20"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Expected 200', function () { pm.response.to.have.status(200); });
+      pm.test('Has total count', function () { pm.expect(pm.response.headers.get('X-Total-Count')).to.exist; });
+      const documents = pm.response.json();
+      if (documents.length) { pm.collectionVariables.set('userDocumentId', documents[0].id); }
+    language: text/javascript
+order: 5000

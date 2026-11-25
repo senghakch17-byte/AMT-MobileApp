@@ -32,7 +32,7 @@ All client traffic must use the public Ingress hostname. Nginx is the public rev
 | Login | Credential validation and JWT issuance | 5002 |
 | Request | Leave-request workflow | 8000 |
 | Announcement | Announcement management and uploads | 8001 |
-| Attendance | Check-in, check-out, and corrections | 8002 |
+| Attendance | Multiple daily check-in/out sessions and corrections | 8002 |
 | Booking | Room and booking workflow | 8003 |
 | User | Profiles and document history | 8004 |
 | Notification | In-app notifications and receipt state | 8005 |

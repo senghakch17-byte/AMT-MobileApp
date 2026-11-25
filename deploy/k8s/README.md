@@ -44,6 +44,8 @@ The tunnel exposes the public Ingress on `127.0.0.1`. Replace the Minikube-IP ma
 
 `secret.yaml` is intentionally ignored and is applied separately. Do not commit credentials.
 
+The shared ConfigMap sets `ATTENDANCE_TIME_ZONE=Asia/Phnom_Penh`; attendance sessions are grouped by that local calendar day.
+
 ## Requirement evidence
 
 - **Load balancing:** run the health request repeatedly and capture distinct `X-Gateway-Instance` values.

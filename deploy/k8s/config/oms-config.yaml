@@ -6,6 +6,7 @@ metadata:
 data:
   MONGODB_DB_NAME: final_project
   JWT_ALGORITHM: HS256
+  ATTENDANCE_TIME_ZONE: Asia/Phnom_Penh
   REDIS_URL: redis://redis:6379
   REGISTER_SERVICE_URL: http://registration-service:5001
   LOGIN_SERVICE_URL: http://login-service:5002

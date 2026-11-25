@@ -12,7 +12,7 @@ function notFound(req, res) {
 function errorHandler(error, req, res, next) {
   if (res.headersSent) return next(error);
   if (error.code === 11000) {
-    return res.status(409).json({ message: 'Attendance record already exists for this user and date' });
+    return res.status(409).json({ message: 'An attendance check-in is already open for today' });
   }
   if (error.name === 'ValidationError' || error.name === 'CastError') {
     return res.status(400).json({ message: error.message });

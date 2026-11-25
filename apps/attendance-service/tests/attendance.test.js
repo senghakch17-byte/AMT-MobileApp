@@ -6,8 +6,9 @@ process.env.JWT_SECRET = 'attendance-test-secret';
 const app = require('../app');
 const Attendance = require('../models/attendance.model');
 const notifications = require('../utils/notifications');
-const { parseDateOnly, utcDayStart } = require('../utils/date');
-const original = Object.fromEntries(['create', 'findOneAndUpdate', 'exists', 'find', 'findById'].map((key) => [key, Attendance[key]]));
+const { attendanceDay, parseDateOnly } = require('../utils/date');
+const { migrateAttendanceIndexes } = require('../config/db');
+const original = Object.fromEntries(['create', 'findOne', 'findOneAndUpdate', 'find', 'findById'].map((key) => [key, Attendance[key]]));
 const originalPublishNotification = notifications.publishNotification;
 let server;
 let url;
@@ -50,14 +51,45 @@ test.beforeEach(() => Object.assign(Attendance, original));
 test.afterEach(() => { notifications.publishNotification = originalPublishNotification; });
 
 test('date helpers and schema enforce storage contract', () => {
-  assert.equal(utcDayStart(new Date('2026-10-16T18:45:00Z')).toISOString(), '2026-10-16T00:00:00.000Z');
+  process.env.ATTENDANCE_TIME_ZONE = 'Asia/Phnom_Penh';
+  assert.equal(attendanceDay(new Date('2026-10-16T18:45:00Z')).toISOString(), '2026-10-17T00:00:00.000Z');
   assert.equal(parseDateOnly('2024-02-29', 'date').toISOString(), '2024-02-29T00:00:00.000Z');
   assert.throws(() => parseDateOnly('2026-02-29', 'date'), /valid YYYY-MM-DD/);
   assert.throws(() => parseDateOnly('16-10-2026', 'date'), /valid YYYY-MM-DD/);
   assert.ok(Attendance.schema.path('userID'));
   assert.equal(Attendance.schema.path('studentId'), undefined);
-  assert.deepEqual(Attendance.schema.indexes().find(([fields]) => fields.userID === 1 && fields.attendanceDate === 1), [{ userID: 1, attendanceDate: 1 }, { unique: true }]);
+  assert.deepEqual(Attendance.schema.indexes().find(([fields]) => fields.userID === 1 && fields.attendanceDate === 1), [
+    { userID: 1, attendanceDate: 1 },
+    { name: 'one_open_attendance_session_per_user_day', unique: true, partialFilterExpression: { checkOut: null, deletedAt: null } },
+  ]);
   assert.deepEqual(Attendance.schema.path('status').enumValues, ['present', 'late', 'absent', 'excused']);
+});
+
+test('attendance index migration replaces the legacy daily unique index', async () => {
+  const originalIndexes = Attendance.collection.indexes;
+  const originalDropIndex = Attendance.collection.dropIndex;
+  const originalCreateIndex = Attendance.collection.createIndex;
+  let dropped;
+  let created;
+  Attendance.collection.indexes = async () => [{ name: 'userID_1_attendanceDate_1', unique: true, key: { userID: 1, attendanceDate: 1 } }];
+  Attendance.collection.dropIndex = async (name) => { dropped = name; };
+  Attendance.collection.createIndex = async (key, options) => { created = { key, options }; };
+  try {
+    await migrateAttendanceIndexes();
+  } finally {
+    Attendance.collection.indexes = originalIndexes;
+    Attendance.collection.dropIndex = originalDropIndex;
+    Attendance.collection.createIndex = originalCreateIndex;
+  }
+  assert.equal(dropped, 'userID_1_attendanceDate_1');
+  assert.deepEqual(created, {
+    key: { userID: 1, attendanceDate: 1 },
+    options: {
+      name: 'one_open_attendance_session_per_user_day',
+      unique: true,
+      partialFilterExpression: { checkOut: null, deletedAt: null },
+    },
+  });
 });
 
 test('health, unknown routes, and JWT failures return expected responses', async () => {
@@ -69,8 +101,9 @@ test('health, unknown routes, and JWT failures return expected responses', async
   }
 });
 
-test('check-in uses JWT identity and maps duplicate records to conflict', async () => {
+test('check-in uses JWT identity, allows a new session after checkout, and rejects an open session', async () => {
   let created;
+  Attendance.findOne = async () => null;
   Attendance.create = async (input) => { created = input; return record(input); };
   const response = await request('/check-in', { method: 'POST', auth: token(), body: { userID: 'forged', userEmail: 'forged@example.com' } });
   assert.equal(response.status, 201);
@@ -78,21 +111,18 @@ test('check-in uses JWT identity and maps duplicate records to conflict', async 
   assert.equal(created.userEmail, 'user@example.com');
   assert.equal(created.status, 'present');
   assert.equal(created.attendanceDate.toISOString().slice(11), '00:00:00.000Z');
-  Attendance.create = async () => { const error = new Error('duplicate'); error.code = 11000; throw error; };
-  assert.deepEqual(await request('/check-in', { method: 'POST', auth: token() }), { status: 409, body: { message: 'Attendance record already exists for this user and date' } });
+  Attendance.findOne = async () => record({ checkOut: null });
+  assert.deepEqual(await request('/check-in', { method: 'POST', auth: token() }), { status: 409, body: { message: 'An attendance check-in is already open for today' } });
 });
 
-test('check-out handles success, absent check-in, and duplicate check-out', async () => {
+test('check-out handles success and rejects when no session is open', async () => {
   Attendance.findOneAndUpdate = async (filter, update, options) => {
     assert.equal(filter.userID, 'user-1'); assert.equal(filter.checkOut, null); assert.ok(update.$set.checkOut instanceof Date);
     assert.deepEqual(options, { new: true, runValidators: true }); return record({ checkOut: new Date() });
   };
   assert.equal((await request('/check-out', { method: 'POST', auth: token() })).status, 200);
   Attendance.findOneAndUpdate = async () => null;
-  Attendance.exists = async () => null;
-  assert.deepEqual(await request('/check-out', { method: 'POST', auth: token() }), { status: 404, body: { message: 'No check-in found for today' } });
-  Attendance.exists = async () => ({ _id: 'existing' });
-  assert.deepEqual(await request('/check-out', { method: 'POST', auth: token() }), { status: 409, body: { message: 'Already checked out today' } });
+  assert.deepEqual(await request('/check-out', { method: 'POST', auth: token() }), { status: 404, body: { message: 'No open check-in found for today' } });
 });
 
 test('history uses JWT identity, valid UTC ranges, and 100-record cap', async () => {

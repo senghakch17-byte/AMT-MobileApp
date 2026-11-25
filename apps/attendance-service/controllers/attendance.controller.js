@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Attendance = require('../models/attendance.model');
 const { AppError } = require('../middleware/error.middleware');
-const { parseDateOnly, utcDayStart } = require('../utils/date');
+const { attendanceDay, parseDateOnly } = require('../utils/date');
 const notifications = require('../utils/notifications');
 
 const STATUSES = Attendance.schema.path('status').enumValues;
@@ -20,10 +20,13 @@ function dateRange(query) {
 
 async function checkIn(req, res) {
   const now = new Date();
+  const attendanceDate = attendanceDay(now);
+  const openSession = await Attendance.findOne({ userID: req.user.id, attendanceDate, checkOut: null, deletedAt: null });
+  if (openSession) throw new AppError(409, 'An attendance check-in is already open for today');
   const attendance = await Attendance.create({
     userID: req.user.id,
     userEmail: req.user.emailid,
-    attendanceDate: utcDayStart(now),
+    attendanceDate,
     checkIn: now,
     status: 'present',
   });
@@ -31,7 +34,7 @@ async function checkIn(req, res) {
 }
 
 async function checkOut(req, res) {
-  const filter = { userID: req.user.id, attendanceDate: utcDayStart(new Date()), deletedAt: null };
+  const filter = { userID: req.user.id, attendanceDate: attendanceDay(new Date()), deletedAt: null };
   const attendance = await Attendance.findOneAndUpdate(
     { ...filter, checkOut: null },
     { $set: { checkOut: new Date() } },
@@ -40,8 +43,7 @@ async function checkOut(req, res) {
 
   if (attendance) return res.json(attendance);
 
-  const existing = await Attendance.exists(filter);
-  throw new AppError(existing ? 409 : 404, existing ? 'Already checked out today' : 'No check-in found for today');
+  throw new AppError(404, 'No open check-in found for today');
 }
 
 async function listMine(req, res) {

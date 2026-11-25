@@ -235,8 +235,8 @@ All paths below are public Gateway paths relative to `http://oms.aupp.local`, un
 | Method | Path | Auth | Purpose / expected result |
 | --- | --- | --- | --- |
 | GET | `/attendance/health` | None | Service health response. |
-| POST | `/attendance/check-in` | JWT | Creates the caller's attendance check-in. |
-| POST | `/attendance/check-out` | JWT | Records the caller's check-out. |
+| POST | `/attendance/check-in` | JWT | Creates a caller attendance session. A second check-in is allowed after checkout; only one session may be open per `Asia/Phnom_Penh` day. |
+| POST | `/attendance/check-out` | JWT | Records the caller's check-out for the open attendance session. |
 | GET | `/attendance/me` | JWT | Lists the caller's attendance history. |
 | POST | `/attendance/` | JWT, admin | Creates an attendance record. |
 | GET | `/attendance/` | JWT, admin | Lists attendance records. |

@@ -18,7 +18,14 @@ const attendanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-attendanceSchema.index({ userID: 1, attendanceDate: 1 }, { unique: true });
+attendanceSchema.index(
+  { userID: 1, attendanceDate: 1 },
+  {
+    name: 'one_open_attendance_session_per_user_day',
+    unique: true,
+    partialFilterExpression: { checkOut: null, deletedAt: null },
+  }
+);
 attendanceSchema.index({ attendanceDate: -1, status: 1 });
 attendanceSchema.index({ deletedAt: 1 });
 

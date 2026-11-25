@@ -1,7 +1,19 @@
 const { AppError } = require('../middleware/error.middleware');
 
-function utcDayStart(date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+function attendanceDay(date, timeZone = process.env.ATTENDANCE_TIME_ZONE || 'Asia/Phnom_Penh') {
+  let parts;
+  try {
+    parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(date);
+  } catch {
+    throw new AppError(500, 'ATTENDANCE_TIME_ZONE must be a valid IANA time zone');
+  }
+  const values = Object.fromEntries(parts.filter(({ type }) => type !== 'literal').map(({ type, value }) => [type, value]));
+  return new Date(Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day)));
 }
 
 function parseDateOnly(value, field) {
@@ -15,4 +27,4 @@ function parseDateOnly(value, field) {
   return date;
 }
 
-module.exports = { parseDateOnly, utcDayStart };
+module.exports = { attendanceDay, parseDateOnly };

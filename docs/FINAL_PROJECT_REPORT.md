@@ -50,7 +50,7 @@
 
 Organization Management System (OMS) is a REST microservice backend for registration, login, leave requests, announcements, attendance, notifications, user profiles/documents, and room booking. The project deploys on Minikube through Kubernetes YAML manifests and connects to external MongoDB.
 
-The public URL is `http://oms.aupp.local`. Kubernetes Ingress forwards requests to Nginx. Nginx forwards requests to the API Gateway Service, and the Gateway routes requests to internal business services. Redis is used for internal notification event transport.
+The public URL is `http://oms.aupp.local`. Kubernetes Ingress forwards requests to Nginx. Nginx forwards requests to the API Gateway Service, and the Gateway routes requests to internal business services. Redis provides shared Gateway rate limiting, Request and Announcement caching/rate limiting, and Notification Service event transport.
 
 # 2. Objective
 
@@ -131,9 +131,14 @@ flowchart TB
     Booking --> MongoDB
     User --> MongoDB
     Notification --> MongoDB
-    Request --> Redis
-    Announcement --> Redis
-    Notification --> Redis
+    GatewayOne -->|Shared rate limits| Redis
+    GatewayTwo -->|Shared rate limits| Redis
+    Request -->|Cache and rate limits| Redis
+    Announcement -->|Cache and rate limits| Redis
+    Request -->|Internal events| Notification
+    Announcement -->|Internal events| Notification
+    Attendance -->|Internal events| Notification
+    Notification -->|Redis Stream| Redis
     Announcement --> AnnouncementPVC
     User --> UserPVC
 ```
@@ -152,7 +157,7 @@ flowchart TB
 | Node.js / Express | API Gateway, Registration, Login, Attendance, and Notification services |
 | Python 3.12 / FastAPI | Request, Announcement, User, and Booking services |
 | MongoDB | External persistent application database |
-| Redis | Internal notification event transport |
+| Redis | Shared Gateway rate limiting, service caching/rate limiting, and notification event transport |
 | Nginx | Public reverse proxy and Gateway load balancer |
 | Postman | Public API verification |
 | GitHub | Source control and repository hosting |
@@ -164,7 +169,7 @@ flowchart TB
 | Component | Kubernetes Service name | Port | Replicas | Responsibility |
 | --- | --- | ---: | ---: | --- |
 | Nginx | `nginx` | 80 | 1 | Internal reverse proxy and shared-log producer |
-| API Gateway | `api-gateway` | 4000 | 2 | Route proxy and JWT middleware |
+| API Gateway | `api-gateway` | 4000 | 2 | Route proxy, JWT middleware, and shared Redis-backed rate limiting |
 | Registration Service | `registration-service` | 5001 | 1 | Account creation and password hashing |
 | Login Service | `login-service` | 5002 | 1 | Credential validation and JWT issuance |
 | Request Service | `request-service` | 8000 | 1 | Leave-request workflow |
@@ -173,7 +178,7 @@ flowchart TB
 | Booking Service | `booking-service` | 8003 | 1 | Room and booking workflow |
 | User Service | `user-service` | 8004 | 1 | Profiles and protected documents |
 | Notification Service | `notification-service` | 8005 | 1 | In-app notifications and preferences |
-| Redis | `redis` | 6379 | 1 | Internal event transport |
+| Redis | `redis` | 6379 | 1 | Shared rate limiting, service caching, and internal event transport |
 
 Only Nginx is exposed through Ingress. The Gateway and all business services use internal Kubernetes Service DNS names. Public requests follow Ingress → Nginx → API Gateway.
 
@@ -312,7 +317,7 @@ All paths below are public Gateway paths relative to `http://oms.aupp.local`, un
 | `booking-service` | 1 | `booking-service` | `oms-booking-service:latest` | 8003 | Loads ConfigMap/Secret; `/health` readiness probe. |
 | `user-service` | 1 | `user-service` | `oms-user-service:latest` | 8004 | Loads ConfigMap/Secret; mounts `user-uploads`; `/health` readiness probe. |
 | `notification-service` | 1 | `notification-service` | `oms-notification-service:latest` | 8005 | Loads ConfigMap/Secret; `/health` readiness probe. |
-| `redis` | 1 | `redis` | `redis:7-alpine` | 6379 | Runs without disk persistence for event transport. |
+| `redis` | 1 | `redis` | `redis:7-alpine` | 6379 | Runs without disk persistence for shared rate limits, service caches, and event transport. |
 
 Use the following commands during the demonstration:
 
